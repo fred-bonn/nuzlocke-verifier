@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fred-bonn/nuzlocke_verifier/internal/pokeapi"
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 type Config struct {
