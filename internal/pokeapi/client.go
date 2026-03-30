@@ -20,7 +20,7 @@ func (c *Client) FetchPokemon(name string) (Pokemon, error) {
 	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", name)
 	res, err := http.Get(url)
 	if err != nil {
-		return Pokemon{}, fmt.Errorf("error fetching Pokemon data: %w", err)
+		return Pokemon{}, fmt.Errorf("error fetching Pokemon data from API: %w", err)
 	}
 	defer res.Body.Close()
 
