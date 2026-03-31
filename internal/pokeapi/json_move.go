@@ -45,6 +45,13 @@ func (mj moveJSON) ToMove() BaseMove {
 	for _, sc := range mj.StatChanges {
 		statChanges[sc.Stat.Name] = sc.Change
 	}
+	var statChance int
+	if mj.DamageClass.Name == "status" {
+		statChance = 100
+	} else {
+		statChance = mj.Meta.StatChance
+	}
+
 	return BaseMove{
 		Name:          mj.Name,
 		Type:          mj.Type.Name,
@@ -61,7 +68,7 @@ func (mj moveJSON) ToMove() BaseMove {
 		MinHits:       mj.Meta.MinHits,
 		MaxTurns:      mj.Meta.MaxTurns,
 		MinTurns:      mj.Meta.MinTurns,
-		StatChance:    mj.Meta.StatChance,
+		StatChance:    statChance,
 		StatChanges:   statChanges,
 		Target:        mj.Target.Name,
 		Category:      mj.Meta.Category.Name,
