@@ -39,6 +39,36 @@ func loadPokemon(cfg *Config, name string) (pokeapi.BasePokemon, error) {
 	return pokemon, nil
 }
 
+func loadMove(cfg *Config, name string) (pokeapi.BaseMove, error) {
+	data, err := os.ReadFile(fmt.Sprintf("data/moves/%s.json", name))
+	// If the file exists and is read successfully, unmarshal it into a Move struct
+	if err == nil {
+		var move pokeapi.BaseMove
+		err = json.Unmarshal(data, &move)
+		if err != nil {
+			return pokeapi.BaseMove{}, fmt.Errorf("error unmarshaling Move data: %w", err)
+		}
+		fmt.Printf("Loaded '%s' from file\n", name)
+		return move, nil
+	}
+
+	// Otherwise, fetch the Move data from the API
+	move, err := cfg.client.FetchMove(name)
+	if err != nil {
+		return pokeapi.BaseMove{}, fmt.Errorf("error fetching Move: %w", err)
+	}
+	fmt.Printf("Fetched '%s' from API\n", name)
+
+	// Save the fetched Move data using the internal Move struct to a file for future use
+	data, err = json.Marshal(move)
+	if err != nil {
+		return pokeapi.BaseMove{}, fmt.Errorf("error marshaling Move JSON data to file: %w", err)
+	}
+	writeToFile(fmt.Sprintf("data/moves/%s.json", name), data)
+
+	return move, nil
+}
+
 func writeToFile(filename string, data []byte) error {
 	dir := filepath.Dir(filename)
 	err := os.MkdirAll(dir, 0755)

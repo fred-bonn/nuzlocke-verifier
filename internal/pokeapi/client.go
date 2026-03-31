@@ -34,3 +34,22 @@ func (c *Client) FetchPokemon(name string) (BasePokemon, error) {
 
 	return pokemon, nil
 }
+
+func (c *Client) FetchMove(name string) (BaseMove, error) {
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/move/%s", name)
+	res, err := http.Get(url)
+	if err != nil {
+		return BaseMove{}, fmt.Errorf("error fetching Move data from API: %w", err)
+	}
+	defer res.Body.Close()
+
+	var moveJSON moveJSON
+	err = json.NewDecoder(res.Body).Decode(&moveJSON)
+	if err != nil {
+		return BaseMove{}, fmt.Errorf("error decoding JSON into MoveJSON: %w", err)
+	}
+
+	move := moveJSON.ToMove()
+
+	return move, nil
+}
