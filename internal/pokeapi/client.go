@@ -16,18 +16,18 @@ func NewClient() Client {
 	}
 }
 
-func (c *Client) FetchPokemon(name string) (Pokemon, error) {
+func (c *Client) FetchPokemon(name string) (BasePokemon, error) {
 	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", name)
 	res, err := http.Get(url)
 	if err != nil {
-		return Pokemon{}, fmt.Errorf("error fetching Pokemon data from API: %w", err)
+		return BasePokemon{}, fmt.Errorf("error fetching Pokemon data from API: %w", err)
 	}
 	defer res.Body.Close()
 
-	var pokemonJSON PokemonJSON
+	var pokemonJSON pokemonJSON
 	err = json.NewDecoder(res.Body).Decode(&pokemonJSON)
 	if err != nil {
-		return Pokemon{}, fmt.Errorf("error decoding JSON into PokemonJSON: %w", err)
+		return BasePokemon{}, fmt.Errorf("error decoding JSON into PokemonJSON: %w", err)
 	}
 
 	pokemon := pokemonJSON.ToPokemon()

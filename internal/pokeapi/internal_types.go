@@ -1,6 +1,6 @@
 package pokeapi
 
-type Pokemon struct {
+type BasePokemon struct {
 	Id     int
 	Name   string
 	Height int

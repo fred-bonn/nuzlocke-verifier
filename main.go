@@ -15,20 +15,17 @@ func main() {
 		client: pokeapi.NewClient(),
 	}
 
-	_, err := loadPokemon(&cfg, "ivysaur")
+	bp, err := loadPokemon(&cfg, "mewtwo")
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Printf("Error loading Pokémon: %v\n", err)
 		return
 	}
-	_, err = loadPokemon(&cfg, "pidgey")
+
+	p, err := initializePokemon(bp, 20, []int{31, 31, 31, 31, 31, 31}, "hardy", []Move{}, 25, "burn")
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Printf("Error initializing Pokémon: %v\n", err)
 		return
 	}
-	_, err = loadPokemon(&cfg, "mewtwo")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	fmt.Printf("%s\n", p.String())
 
 }

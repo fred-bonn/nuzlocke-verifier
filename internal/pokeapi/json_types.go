@@ -1,7 +1,7 @@
 package pokeapi
 
 // This file contains the structs used to unmarshal the JSON data from the PokeAPI.
-type PokemonJSON struct {
+type pokemonJSON struct {
 	Id     int    `json:"id"`
 	Name   string `json:"name"`
 	Height int    `json:"height"`
@@ -20,7 +20,7 @@ type PokemonJSON struct {
 }
 
 // Converting PokeAPI JSON to internal Pokemon struct
-func (pj PokemonJSON) ToPokemon() Pokemon {
+func (pj pokemonJSON) ToPokemon() BasePokemon {
 	types := make([]string, len(pj.Types))
 	for i, t := range pj.Types {
 		types[i] = t.Type.Name
@@ -31,7 +31,7 @@ func (pj PokemonJSON) ToPokemon() Pokemon {
 		stats[s.Stat.Name] = s.BaseStat
 	}
 
-	return Pokemon{
+	return BasePokemon{
 		Id:     pj.Id,
 		Name:   pj.Name,
 		Height: pj.Height,
