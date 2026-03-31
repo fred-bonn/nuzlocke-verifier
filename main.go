@@ -29,7 +29,10 @@ func main() {
 
 	path := args[0]
 
-	parseInputFile(&cfg, path)
+	_, err := parseInputFile(&cfg, path)
+	if err != nil {
+		fmt.Printf("error parsing input file: %v", err)
+	}
 }
 
 func parseInputFile(cfg *Config, path string) ([]Pokemon, error) {
@@ -43,45 +46,73 @@ func parseInputFile(cfg *Config, path string) ([]Pokemon, error) {
 	// var pokemons []Pokemon
 
 	for i := 0; i < len(lines); {
+		// extract pokemon name (and item)
 		line := lines[i]
-		name := cleanPokemonName(parsePokemonLine(line))
+
+		name := parsePokemonLine(line)
 		if name == "" {
 			return nil, fmt.Errorf("invalid pokemon name format: %q", line)
 		}
-		fmt.Printf("Parsed Pokémon: %s\n", name)
+
+		name = cleanPokemonName(name)
 		i++
 
+		// extract pokemon level
 		line = lines[i]
+
 		level := parseLevelLine(line)
 		if level == 0 {
 			return nil, fmt.Errorf("invalid level format: %q", line)
 		}
-		fmt.Printf("Parsed Level: %d\n", level)
+
 		i++
 
+		// extract pokemon nature
 		line = lines[i]
+
 		nature := parseNatureLine(line)
 		if nature == "" {
 			return nil, fmt.Errorf("invalid nature format: %q", line)
 		}
-		fmt.Printf("Parsed Nature: %s\n", nature)
+
 		i++
 
 		// skip ability for now
 		i++
 
+		// extract IVs map
+		ivs := make(map[string]int, 6)
+		if strings.HasPrefix(lines[i], "IVs: ") {
+			line = lines[i]
+
+			err := parseIVsLine(line, ivs)
+			if err != nil {
+				return nil, fmt.Errorf("invalid IVs format: %q", line)
+			}
+
+			i++
+		}
+
+		// extract moves slice
 		var moves []string
 		for strings.HasPrefix(lines[i], "-") {
 			line = lines[i]
+
 			move := parseMoveLine(line)
 			if move == "" {
 				return nil, fmt.Errorf("invalid move format: %q", line)
 			}
-			fmt.Printf("Parsed Move: %s\n", move)
+
+			move = cleanMoveName(move)
 			moves = append(moves, move)
 			i++
+
+			if i >= len(lines) {
+				break
+			}
 		}
 
+		// skip the final empty line before next Pokemon
 		i++
 	}
 
@@ -90,9 +121,6 @@ func parseInputFile(cfg *Config, path string) ([]Pokemon, error) {
 
 func parsePokemonLine(line string) string {
 	parts := strings.Split(line, " @ ")
-	if len(parts) != 2 {
-		return ""
-	}
 	name := strings.TrimSpace(parts[0])
 	return name
 }
@@ -135,6 +163,37 @@ func parseNatureLine(line string) string {
 	return nature
 }
 
+func parseIVsLine(line string, ivs map[string]int) error {
+	line = strings.TrimPrefix(line, "IVs: ")
+	parts := strings.Split(line, "/")
+
+	for i := range parts {
+		fields := strings.Fields(parts[i])
+		if len(fields) != 2 {
+			return fmt.Errorf("invalid IV format: %d", len(fields))
+		}
+
+		iv, err := strconv.Atoi(fields[0])
+		if err != nil {
+			return fmt.Errorf("not a number: %s", fields[0])
+		}
+
+		name := strings.ToLower(fields[1])
+
+		ivs[name] = iv
+	}
+	return nil
+}
+
 func parseMoveLine(line string) string {
-	return ""
+	if line == "" {
+		return ""
+	}
+
+	parts := strings.Split(line, "-")
+	if parts[0] != "" {
+		return ""
+	}
+
+	return strings.TrimSpace(parts[1])
 }

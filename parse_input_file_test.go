@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestParsePokemonLine(t *testing.T) {
 	tests := map[string]struct {
@@ -61,6 +63,27 @@ func TestParseNatureLine(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if got := parseNatureLine(tc.input); got != tc.want {
 				t.Errorf("%s: parseNatureLine(%q) = %s, want %s", name, tc.input, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestParseMoveLine(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		want  string
+	}{
+		"valid":               {"- Tackle", "Tackle"},
+		"wrong pre":           {"~ pound", ""},
+		"extra space invalid": {"  -   ember ", ""},
+		"extra space valid":   {"-   ember ", "ember"},
+		"empty":               {"", ""},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := parseMoveLine(tc.input); got != tc.want {
+				t.Errorf("%s: parseMoveLine(%q) = %s, want %s", name, tc.input, got, tc.want)
 			}
 		})
 	}
