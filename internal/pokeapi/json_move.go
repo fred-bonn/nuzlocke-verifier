@@ -46,8 +46,10 @@ func (mj moveJSON) ToMove() BaseMove {
 		statChanges[sc.Stat.Name] = sc.Change
 	}
 	var statChance int
+	var ailmentChance int
 	if mj.DamageClass.Name == "status" {
 		statChance = 100
+		ailmentChance = 100
 	} else {
 		statChance = mj.Meta.StatChance
 	}
@@ -63,7 +65,7 @@ func (mj moveJSON) ToMove() BaseMove {
 		Heal:          mj.Meta.Heal,
 		FlinchChange:  mj.Meta.FlinchChance,
 		Ailentment:    mj.Meta.Ailment.Name,
-		AilmentChance: mj.Meta.AilmentChance,
+		AilmentChance: ailmentChance,
 		MaxHits:       mj.Meta.MaxHits,
 		MinHits:       mj.Meta.MinHits,
 		MaxTurns:      mj.Meta.MaxTurns,
