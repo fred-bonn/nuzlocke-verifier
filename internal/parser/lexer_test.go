@@ -63,6 +63,24 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
+		"status token": {
+			{
+				input: "   Status>",
+				want: Token{
+					Type:    STATUS,
+					Literal: "Status",
+				},
+			},
+		},
+		"move": {
+			{
+				input: "\t - Tackle",
+				want: Token{
+					Type:    MOVE,
+					Literal: "-",
+				},
+			},
+		},
 	}
 
 	for name, tcs := range tests {

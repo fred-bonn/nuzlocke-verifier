@@ -10,6 +10,9 @@ type Lexer struct {
 	position     int
 	readPosition int
 	ch           byte
+
+	line   int
+	column int
 }
 
 func New(input string) *Lexer {
@@ -26,6 +29,13 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition++
+
+	if l.ch == '\n' {
+		l.line++
+		l.column = 0
+	} else {
+		l.column++
+	}
 }
 
 func (l *Lexer) skipWhitespace() {
