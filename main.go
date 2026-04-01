@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/fred-bonn/nuzlocke-verifier/internal/parser"
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
@@ -12,28 +10,32 @@ type Config struct {
 }
 
 func main() {
-	args := os.Args[1:]
+	parser.Parse()
 
-	if len(args) == 0 {
-		fmt.Println("Usage: nuzlocke-verifier [options]")
-		fmt.Println("Options:")
-		fmt.Println("...")
-		return
-	}
+	/*
+		args := os.Args[1:]
 
-	cfg := Config{
-		client: pokeapi.NewClient(),
-	}
+		if len(args) == 0 {
+			fmt.Println("Usage: nuzlocke-verifier [options]")
+			fmt.Println("Options:")
+			fmt.Println("...")
+			return
+		}
 
-	path := args[0]
+		cfg := Config{
+			client: pokeapi.NewClient(),
+		}
 
-	pokemon, err := parseInputFile(&cfg, path)
-	if err != nil {
-		fmt.Printf("error parsing input file: %v", err)
-	}
-	fmt.Println("---")
-	for i := range pokemon {
-		fmt.Println(pokemon[i].String())
+		path := args[0]
+
+		pokemon, err := parseInputFile(&cfg, path)
+		if err != nil {
+			fmt.Printf("error parsing input file: %v", err)
+		}
 		fmt.Println("---")
-	}
+		for i := range pokemon {
+			fmt.Println(pokemon[i].String())
+			fmt.Println("---")
+		}
+	*/
 }
