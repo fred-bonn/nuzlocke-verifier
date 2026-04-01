@@ -8,6 +8,11 @@ const (
 
 	IDENT   TokenType = "IDENT"
 	ITEM    TokenType = "ITEM"
+	LEVEL   TokenType = "LEVEL"
+	ABILITY TokenType = "ABILITY"
+	IVS     TokenType = "IVS"
+	STATUS  TokenType = "STATUS"
+	HP      TokenType = "HP"
 	MOVE    TokenType = "MOVE"
 	NEWLINE TokenType = "NEWLINE"
 )

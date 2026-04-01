@@ -84,10 +84,16 @@ func (l *Lexer) readIdent() Token {
 	lit := l.input[start:l.position]
 	lit = normalize(lit)
 
-	return Token{
+	res := Token{
 		Type:    IDENT,
 		Literal: lit,
 	}
+
+	if token, ok := literalMap[res.Literal]; ok {
+		return token
+	}
+
+	return res
 }
 
 func (l *Lexer) readItem() Token {

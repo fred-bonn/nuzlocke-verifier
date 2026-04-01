@@ -54,6 +54,15 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
+		"level token": {
+			{
+				input: "Level: 30",
+				want: Token{
+					Type:    LEVEL,
+					Literal: "Level",
+				},
+			},
+		},
 	}
 
 	for name, tcs := range tests {
