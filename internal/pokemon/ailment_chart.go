@@ -1,4 +1,4 @@
-package main
+package pokemon
 
 import (
 	"math/rand"
@@ -18,7 +18,7 @@ var validAilments = map[string]struct{}{
 	"confusion": {},
 }
 
-func generateAilment(ailment string) int {
+func GenerateAilment(ailment string) int {
 	switch ailment {
 	case "sleep":
 		return rand.Intn(3) + 1
@@ -27,4 +27,8 @@ func generateAilment(ailment string) int {
 	default:
 		return INDEFINITE_AILMENT_DURATION
 	}
+}
+
+func GenerateTrap(low int, high int) int {
+	return rand.Intn(high-low+1) + low
 }

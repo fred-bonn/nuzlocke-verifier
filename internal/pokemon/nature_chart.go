@@ -1,4 +1,4 @@
-package main
+package pokemon
 
 import "fmt"
 
@@ -30,7 +30,7 @@ var natureChart = map[string][]string{
 	"serious": {"speed", "speed"},
 }
 
-func getNature(nature string) ([]string, error) {
+func GetNature(nature string) ([]string, error) {
 	res, ok := natureChart[nature]
 	if !ok {
 		return nil, fmt.Errorf("invalid nature: %s", nature)

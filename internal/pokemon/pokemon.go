@@ -1,4 +1,4 @@
-package main
+package pokemon
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func initializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature st
 		return Pokemon{}, fmt.Errorf("IVs must be a list of 6 integers")
 	}
 
-	nat, err := getNature(nature)
+	nat, err := GetNature(nature)
 	if err != nil {
 		return Pokemon{}, err
 	}
@@ -70,7 +70,7 @@ func initializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature st
 
 	_, ok := validAilments[status]
 	if ok && status != "" {
-		res.Ailments[status] = generateAilment(status)
+		res.Ailments[status] = GenerateAilment(status)
 	}
 
 	return res, nil

@@ -1,4 +1,4 @@
-package main
+package pokemon
 
 var typeChart = map[string]map[string]float64{
 	"normal": {

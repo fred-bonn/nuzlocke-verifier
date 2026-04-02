@@ -1,4 +1,4 @@
-package main
+package pokemon
 
 var ivMap = map[string]string{
 	"hp":  "hp",
