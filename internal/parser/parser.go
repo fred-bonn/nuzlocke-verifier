@@ -285,7 +285,6 @@ func (p *parser) consumeNewlines() {
 }
 
 func (p *parser) nextToken() {
-	fmt.Printf("next token: %s, %s\n", p.peek.Type, p.peek.Literal)
 	p.current = p.peek
 
 	if p.current.Type == t_EOF {

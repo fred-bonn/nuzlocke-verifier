@@ -38,8 +38,6 @@ func ReadShowdownFile(path string) ([]ParsedPokemon, error) {
 		}
 
 		res = append(res, pokemon)
-
-		fmt.Println(pokemon.String())
 	}
 
 	return res, nil
