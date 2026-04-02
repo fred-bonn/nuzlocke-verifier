@@ -29,6 +29,13 @@ func GenerateAilment(ailment string) int {
 	}
 }
 
-func GenerateTrap(low int, high int) int {
+func GenerateTrap(low, high int) int {
 	return rand.Intn(high-low+1) + low
+}
+
+func ValidAilment(ailment string) bool {
+	if _, ok := validAilments[ailment]; ok {
+		return true
+	}
+	return false
 }

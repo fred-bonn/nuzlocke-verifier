@@ -30,7 +30,7 @@ var natureChart = map[string][]string{
 	"serious": {"speed", "speed"},
 }
 
-func GetNature(nature string) ([]string, error) {
+func getNature(nature string) ([]string, error) {
 	res, ok := natureChart[nature]
 	if !ok {
 		return nil, fmt.Errorf("invalid nature: %s", nature)

@@ -19,7 +19,7 @@ type Pokemon struct {
 	Ailments map[string]int
 }
 
-func initializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature string, moves []pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
+func InitializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature string, moves []pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
 	if level < 1 || level > 100 {
 		return Pokemon{}, fmt.Errorf("invalid level: %d", level)
 	}
@@ -28,7 +28,7 @@ func initializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature st
 		return Pokemon{}, fmt.Errorf("IVs must be a list of 6 integers")
 	}
 
-	nat, err := GetNature(nature)
+	nat, err := getNature(nature)
 	if err != nil {
 		return Pokemon{}, err
 	}
