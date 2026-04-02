@@ -10,7 +10,7 @@ var literalMap = map[string]token{
 		Literal: "",
 	},
 	"IVs": {
-		Type:    t_IVE,
+		Type:    t_IVS,
 		Literal: "",
 	},
 	"Status": {

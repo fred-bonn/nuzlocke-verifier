@@ -12,7 +12,7 @@ type Config struct {
 }
 
 func main() {
-	_, err := parser.Parse()
+	_, err := parser.ReadShowdownFile("./test.txt")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

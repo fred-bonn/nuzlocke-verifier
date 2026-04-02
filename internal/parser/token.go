@@ -5,6 +5,7 @@ import "fmt"
 type tokenType string
 
 const (
+	t_START   tokenType = "START"
 	t_ILLEGAL tokenType = "ILLEGAL"
 	t_EOF     tokenType = "EOF"
 
@@ -12,7 +13,7 @@ const (
 	t_ITEM    tokenType = "ITEM"
 	t_LEVEL   tokenType = "LEVEL"
 	t_ABILITY tokenType = "ABILITY"
-	t_IVE     tokenType = "IVS"
+	t_IVS     tokenType = "IVS"
 	t_STATUS  tokenType = "STATUS"
 	t_HP      tokenType = "HP"
 	t_MOVE    tokenType = "MOVE"
