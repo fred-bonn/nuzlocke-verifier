@@ -7,13 +7,13 @@ import (
 func TestNextToken(t *testing.T) {
 	tests := map[string][]struct {
 		input string
-		want  Token
+		want  token
 	}{
 		"skip whitespace": {
 			{
 				input: "\t\t   \r\n\t",
-				want: Token{
-					Type:    NEWLINE,
+				want: token{
+					Type:    t_NEWLINE,
 					Literal: "\\n",
 				},
 			},
@@ -21,8 +21,8 @@ func TestNextToken(t *testing.T) {
 		"item": {
 			{
 				input: "@ item-name",
-				want: Token{
-					Type:    ITEM,
+				want: token{
+					Type:    t_ITEM,
 					Literal: "item-name",
 				},
 			},
@@ -30,8 +30,8 @@ func TestNextToken(t *testing.T) {
 		"end": {
 			{
 				input: "",
-				want: Token{
-					Type:    EOF,
+				want: token{
+					Type:    t_EOF,
 					Literal: "",
 				},
 			},
@@ -39,8 +39,8 @@ func TestNextToken(t *testing.T) {
 		"level": {
 			{
 				input: ": 69",
-				want: Token{
-					Type:    IDENT,
+				want: token{
+					Type:    t_IDENT,
 					Literal: "69",
 				},
 			},
@@ -48,8 +48,8 @@ func TestNextToken(t *testing.T) {
 		"nature": {
 			{
 				input: "Jolly Nature\n",
-				want: Token{
-					Type:    IDENT,
+				want: token{
+					Type:    t_IDENT,
 					Literal: "Jolly Nature",
 				},
 			},
@@ -57,26 +57,26 @@ func TestNextToken(t *testing.T) {
 		"level token": {
 			{
 				input: "Level: 30",
-				want: Token{
-					Type:    LEVEL,
-					Literal: "Level",
+				want: token{
+					Type:    t_LEVEL,
+					Literal: "",
 				},
 			},
 		},
 		"status token": {
 			{
 				input: "   Status>",
-				want: Token{
-					Type:    STATUS,
-					Literal: "Status",
+				want: token{
+					Type:    t_STATUS,
+					Literal: "",
 				},
 			},
 		},
 		"move": {
 			{
 				input: "\t - Tackle",
-				want: Token{
-					Type:    MOVE,
+				want: token{
+					Type:    t_MOVE,
 					Literal: "-",
 				},
 			},
@@ -86,9 +86,9 @@ func TestNextToken(t *testing.T) {
 	for name, tcs := range tests {
 		for _, tc := range tcs {
 			t.Run(name, func(t *testing.T) {
-				l := New(string(tc.input))
+				l := newLexer(string(tc.input))
 
-				if got := l.NextToken(); got != tc.want {
+				if got := l.nextToken(); got != tc.want {
 					t.Errorf("%s: l.NextToken() = %q, want %q", name, got, tc.want)
 				}
 			})
@@ -99,13 +99,13 @@ func TestNextToken(t *testing.T) {
 func TestReadIdentifier(t *testing.T) {
 	tests := map[string][]struct {
 		input string
-		want  Token
+		want  token
 	}{
 		"mr mime": {
 			{
 				input: "Mr. Mime   \n",
-				want: Token{
-					Type:    IDENT,
+				want: token{
+					Type:    t_IDENT,
 					Literal: "Mr Mime",
 				},
 			},
@@ -113,8 +113,8 @@ func TestReadIdentifier(t *testing.T) {
 		"nidoran-f": {
 			{
 				input: "Nidoran-F\n",
-				want: Token{
-					Type:    IDENT,
+				want: token{
+					Type:    t_IDENT,
 					Literal: "Nidoran-F",
 				},
 			},
@@ -122,8 +122,8 @@ func TestReadIdentifier(t *testing.T) {
 		"farfetch": {
 			{
 				input: "   Farfetc'h\n",
-				want: Token{
-					Type:    IDENT,
+				want: token{
+					Type:    t_IDENT,
 					Literal: "Farfetch",
 				},
 			},
@@ -131,8 +131,8 @@ func TestReadIdentifier(t *testing.T) {
 		"porygon2": {
 			{
 				input: "Porygon2\n",
-				want: Token{
-					Type:    IDENT,
+				want: token{
+					Type:    t_IDENT,
 					Literal: "Porygon2",
 				},
 			},
@@ -142,7 +142,7 @@ func TestReadIdentifier(t *testing.T) {
 	for name, tcs := range tests {
 		for _, tc := range tcs {
 			t.Run(name, func(t *testing.T) {
-				l := New(string(tc.input))
+				l := newLexer(string(tc.input))
 
 				if got := l.readIdent(); got != tc.want {
 					t.Errorf("%s: parsePokemonLine(%q) = %q, want %q", name, tc.input, got, tc.want)

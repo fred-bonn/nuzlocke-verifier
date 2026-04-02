@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Parse() ([]Token, error) {
+func Parse() ([]token, error) {
 	path := "./internal/parser/example.txt"
 
 	input, err := os.ReadFile(path)
@@ -13,13 +13,12 @@ func Parse() ([]Token, error) {
 		return nil, fmt.Errorf("could not open file: %s", "<path>")
 	}
 
-	var res []Token
-	l := New(string(input))
+	var res []token
+	l := newLexer(string(input))
 
-	for tok := l.NextToken(); tok.Type != EOF; tok = l.NextToken() {
-		if tok.Type == ILLEGAL {
-			return nil, LexError{
-				Path:   path,
+	for tok := l.nextToken(); tok.Type != t_EOF; tok = l.nextToken() {
+		if tok.Type == t_ILLEGAL {
+			return nil, lexError{
 				Line:   l.line,
 				Column: l.column,
 				Char:   l.ch,

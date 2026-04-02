@@ -30,7 +30,7 @@ func (c *Client) FetchPokemon(name string) (BasePokemon, error) {
 		return BasePokemon{}, fmt.Errorf("error decoding JSON into PokemonJSON: %w", err)
 	}
 
-	pokemon := pokemonJSON.ToPokemon()
+	pokemon := pokemonJSON.toPokemon()
 
 	return pokemon, nil
 }
@@ -49,7 +49,7 @@ func (c *Client) FetchMove(name string) (BaseMove, error) {
 		return BaseMove{}, fmt.Errorf("error decoding JSON into MoveJSON: %w", err)
 	}
 
-	move := moveJSON.ToMove()
+	move := moveJSON.toMove()
 
 	return move, nil
 }

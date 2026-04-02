@@ -2,28 +2,28 @@ package parser
 
 import "fmt"
 
-type TokenType string
+type tokenType string
 
 const (
-	ILLEGAL TokenType = "ILLEGAL"
-	EOF     TokenType = "EOF"
+	t_ILLEGAL tokenType = "ILLEGAL"
+	t_EOF     tokenType = "EOF"
 
-	IDENT   TokenType = "IDENT"
-	ITEM    TokenType = "ITEM"
-	LEVEL   TokenType = "LEVEL"
-	ABILITY TokenType = "ABILITY"
-	IVS     TokenType = "IVS"
-	STATUS  TokenType = "STATUS"
-	HP      TokenType = "HP"
-	MOVE    TokenType = "MOVE"
-	NEWLINE TokenType = "NEWLINE"
+	t_IDENT   tokenType = "IDENT"
+	t_ITEM    tokenType = "ITEM"
+	t_LEVEL   tokenType = "LEVEL"
+	t_ABILITY tokenType = "ABILITY"
+	t_IVE     tokenType = "IVS"
+	t_STATUS  tokenType = "STATUS"
+	t_HP      tokenType = "HP"
+	t_MOVE    tokenType = "MOVE"
+	t_NEWLINE tokenType = "NEWLINE"
 )
 
-type Token struct {
-	Type    TokenType
+type token struct {
+	Type    tokenType
 	Literal string
 }
 
-func (t Token) String() string {
+func (t token) String() string {
 	return fmt.Sprintf("(%s, %s)", t.Type, t.Literal)
 }

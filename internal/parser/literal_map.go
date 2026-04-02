@@ -1,24 +1,24 @@
 package parser
 
-var literalMap = map[string]Token{
-	"Level": Token{
-		Type:    LEVEL,
-		Literal: "Level",
+var literalMap = map[string]token{
+	"Level": {
+		Type:    t_LEVEL,
+		Literal: "",
 	},
-	"Ability": Token{
-		Type:    ABILITY,
-		Literal: "Ability",
+	"Ability": {
+		Type:    t_ABILITY,
+		Literal: "",
 	},
-	"IVs": Token{
-		Type:    IVS,
-		Literal: "IVs",
+	"IVs": {
+		Type:    t_IVE,
+		Literal: "",
 	},
-	"Status": Token{
-		Type:    STATUS,
-		Literal: "Status",
+	"Status": {
+		Type:    t_STATUS,
+		Literal: "",
 	},
-	"HP": Token{
-		Type:    HP,
-		Literal: "HP",
+	"HP": {
+		Type:    t_HP,
+		Literal: "",
 	},
 }

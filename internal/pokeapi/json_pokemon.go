@@ -20,7 +20,7 @@ type pokemonJSON struct {
 }
 
 // Converting PokeAPI JSON to internal Pokemon struct
-func (pj pokemonJSON) ToPokemon() BasePokemon {
+func (pj pokemonJSON) toPokemon() BasePokemon {
 	types := make([]string, len(pj.Types))
 	for i, t := range pj.Types {
 		types[i] = t.Type.Name

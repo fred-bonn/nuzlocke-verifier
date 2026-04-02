@@ -40,7 +40,7 @@ type moveJSON struct {
 	} `json:"target"`
 }
 
-func (mj moveJSON) ToMove() BaseMove {
+func (mj moveJSON) toMove() BaseMove {
 	statChanges := make(map[string]int)
 	for _, sc := range mj.StatChanges {
 		statChanges[sc.Stat.Name] = sc.Change

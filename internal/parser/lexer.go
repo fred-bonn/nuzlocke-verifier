@@ -5,7 +5,7 @@ import (
 	"unicode"
 )
 
-type Lexer struct {
+type lexer struct {
 	input        string
 	position     int
 	readPosition int
@@ -15,13 +15,13 @@ type Lexer struct {
 	column int
 }
 
-func New(input string) *Lexer {
-	l := &Lexer{input: input}
+func newLexer(input string) *lexer {
+	l := &lexer{input: input}
 	l.readChar()
 	return l
 }
 
-func (l *Lexer) readChar() {
+func (l *lexer) readChar() {
 	if l.readPosition >= len(l.input) {
 		l.ch = 0
 	} else {
@@ -38,20 +38,20 @@ func (l *Lexer) readChar() {
 	}
 }
 
-func (l *Lexer) skipWhitespace() {
+func (l *lexer) skipWhitespace() {
 	// IMPORTANT: we do NOT skip '\n'
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\r' {
 		l.readChar()
 	}
 }
 
-func (l *Lexer) NextToken() Token {
+func (l *lexer) nextToken() token {
 	l.skipWhitespace()
 
 	switch l.ch {
 	case '\n':
 		l.readChar()
-		return Token{Type: NEWLINE, Literal: "\\n"}
+		return token{Type: t_NEWLINE, Literal: "\\n"}
 
 	case '@':
 		l.readChar()
@@ -63,7 +63,7 @@ func (l *Lexer) NextToken() Token {
 
 	case '-':
 		l.readChar()
-		return Token{Type: MOVE, Literal: "-"}
+		return token{Type: t_MOVE, Literal: "-"}
 
 	case '/':
 		l.readChar()
@@ -71,7 +71,7 @@ func (l *Lexer) NextToken() Token {
 		return l.readIdent()
 
 	case 0:
-		return Token{Type: EOF, Literal: ""}
+		return token{Type: t_EOF, Literal: ""}
 
 	default:
 		if isWordChar(l.ch) {
@@ -79,12 +79,12 @@ func (l *Lexer) NextToken() Token {
 		}
 	}
 
-	tok := Token{Type: ILLEGAL, Literal: string(l.ch)}
+	tok := token{Type: t_ILLEGAL, Literal: string(l.ch)}
 	l.readChar()
 	return tok
 }
 
-func (l *Lexer) readIdent() Token {
+func (l *lexer) readIdent() token {
 	start := l.position
 
 	for isWordChar(l.ch) || l.ch == ' ' {
@@ -94,8 +94,8 @@ func (l *Lexer) readIdent() Token {
 	lit := l.input[start:l.position]
 	lit = normalize(lit)
 
-	res := Token{
-		Type:    IDENT,
+	res := token{
+		Type:    t_IDENT,
 		Literal: lit,
 	}
 
@@ -106,7 +106,7 @@ func (l *Lexer) readIdent() Token {
 	return res
 }
 
-func (l *Lexer) readItem() Token {
+func (l *lexer) readItem() token {
 	l.skipWhitespace()
 
 	start := l.position
@@ -121,8 +121,8 @@ func (l *Lexer) readItem() Token {
 	lit := l.input[start:l.position]
 	lit = normalize(lit)
 
-	return Token{
-		Type:    ITEM,
+	return token{
+		Type:    t_ITEM,
 		Literal: lit,
 	}
 }
