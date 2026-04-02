@@ -12,8 +12,15 @@ type Config struct {
 }
 
 func main() {
-	_, err := parser.ReadShowdownFile("./test.txt")
+	cfg := &Config{
+		client: pokeapi.NewClient(),
+	}
+
+	res, err := parser.ReadShowdownFile("./test.txt")
 	if err != nil {
 		fmt.Println(err.Error())
+	}
+	for i := range res {
+		loadPokemon(cfg, res[i].Name)
 	}
 }
