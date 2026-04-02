@@ -1,0 +1,30 @@
+Arcanine-Hisui @ Leftovers
+Level: 68
+Jolly Nature
+Ability: Intimidate
+- Stone Edge
+- Flare Blitz
+- Wild Charge
+- Extreme Speed
+
+Musharna @ Leftovers
+Level: 68
+Quiet Nature
+Ability: Telepathy
+Status: Burn
+HP: 150
+IVs: 0 Spe
+- Future Sight
+- Moonblast
+- Energy Ball
+
+Abomasnow @ Occa Berry
+Level: 68
+Modest Nature
+Ability: Snow Warning
+Status: Burn
+IVs: 30 HP / 29 Atk / 28 Def / 27 SpA / 26 SpD / 25 Spe
+- Energy Ball
+- Blizzard
+- Focus Blast
+- Grass Whistle

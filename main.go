@@ -16,7 +16,7 @@ func main() {
 		client: pokeapi.NewClient(),
 	}
 
-	res, err := parser.ReadShowdownFile("./test.txt")
+	res, err := parser.ReadShowdownFile("./showdown_test_file.txt")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
