@@ -75,7 +75,7 @@ var typeChart = map[string]map[string]float64{
 	},
 }
 
-func getEffectiveness(attacking, defending string) float64 {
+func GetEffectiveness(attacking, defending string) float64 {
 	if effectiveness, ok := typeChart[attacking][defending]; ok {
 		return effectiveness
 	}
