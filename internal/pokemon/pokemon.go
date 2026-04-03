@@ -19,13 +19,9 @@ type Pokemon struct {
 	Ailments map[string]int
 }
 
-func InitializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature string, moves []pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
+func InitializePokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature string, moves []pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
 	if level < 1 || level > 100 {
 		return Pokemon{}, fmt.Errorf("invalid level: %d", level)
-	}
-
-	if len(ivs) != 6 {
-		return Pokemon{}, fmt.Errorf("IVs must be a list of 6 integers")
 	}
 
 	nat, err := getNature(nature)
@@ -33,14 +29,17 @@ func InitializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature st
 		return Pokemon{}, err
 	}
 
-	if len(moves) > 4 {
-		moves = moves[:4] // limit to 4 moves
-	}
-
 	res := Pokemon{
-		Base:   base,
-		Level:  level,
-		IVs:    make(map[string]int, 6),
+		Base:  base,
+		Level: level,
+		IVs: map[string]int{
+			"hp":              31,
+			"attack":          31,
+			"defense":         31,
+			"speed":           31,
+			"special-attack":  31,
+			"special-defense": 31,
+		},
 		Nature: nat,
 		Moves:  moves,
 		Stats:  make(map[string]int, 6),
@@ -76,25 +75,10 @@ func InitializePokemon(base pokeapi.BasePokemon, level int, ivs []int, nature st
 	return res, nil
 }
 
-func setIVs(pokemon *Pokemon, ivs []int) {
-	for i := range ivs {
-		val := max(0, min(31, ivs[i]))
-
-		switch i {
-		case 0:
-			pokemon.IVs["hp"] = val
-		case 1:
-			pokemon.IVs["attack"] = val
-		case 2:
-			pokemon.IVs["defense"] = val
-		case 3:
-			pokemon.IVs["special-attack"] = val
-		case 4:
-			pokemon.IVs["special-defense"] = val
-		case 5:
-			pokemon.IVs["speed"] = val
-		}
-
+func setIVs(pokemon *Pokemon, ivs map[string]int) {
+	for key, val := range ivs {
+		key = ivMap[key]
+		pokemon.IVs[key] = max(0, min(31, val))
 	}
 }
 
