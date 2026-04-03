@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/parser"
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
@@ -115,4 +116,21 @@ func writeToFile(filename string, data []byte) error {
 		return fmt.Errorf("error creating directory: %w", err)
 	}
 	return os.WriteFile(filename, data, 0644)
+}
+
+func cleanPokemonName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.ReplaceAll(name, " ", "-")
+	name = strings.ReplaceAll(name, ".", "")
+	name = strings.ReplaceAll(name, "’", "")
+
+	return name
+}
+
+func cleanMoveName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.ReplaceAll(name, " ", "-")
+	name = strings.ReplaceAll(name, ".", "")
+	name = strings.ReplaceAll(name, "’", "")
+	return name
 }
