@@ -11,7 +11,7 @@ import (
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
-func loadShowdonw(cfg *Config, mons []parser.ParsedPokemon) ([]pokemon.Pokemon, error) {
+func loadShowdown(cfg *Config, mons []parser.ParsedPokemon) ([]pokemon.Pokemon, error) {
 	var res []pokemon.Pokemon
 
 	for _, mon := range mons {

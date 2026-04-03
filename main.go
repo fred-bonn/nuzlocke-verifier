@@ -30,7 +30,7 @@ func main() {
 		fmt.Println(res[i])
 	}
 
-	mons, err := loadShowdonw(cfg, res)
+	mons, err := loadShowdown(cfg, res)
 	if err != nil {
 		log.Fatalf("error: loading showdown file '%s' failed: %v", path, err)
 	}
