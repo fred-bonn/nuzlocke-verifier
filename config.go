@@ -11,21 +11,25 @@ import (
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
-func loadShowdown(cfg *Config, mons []parser.ParsedPokemon) ([]pokemon.Pokemon, error) {
+type config struct {
+	client pokeapi.Client
+}
+
+func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]pokemon.Pokemon, error) {
 	var res []pokemon.Pokemon
 
 	for _, mon := range mons {
 		var moves []pokeapi.BaseMove
 
 		cleanedMonName := cleanPokemonName(mon.Name)
-		basePokemon, err := loadPokemon(cfg, cleanedMonName)
+		basePokemon, err := cfg.loadPokemon(cleanedMonName)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, moveName := range mon.Moves {
 			cleanedMoveName := cleanMoveName(moveName)
-			baseMove, err := loadMove(cfg, cleanedMoveName)
+			baseMove, err := cfg.loadMove(cleanedMoveName)
 			if err != nil {
 				return nil, err
 			}
@@ -44,7 +48,7 @@ func loadShowdown(cfg *Config, mons []parser.ParsedPokemon) ([]pokemon.Pokemon, 
 	return res, nil
 }
 
-func loadPokemon(cfg *Config, name string) (pokeapi.BasePokemon, error) {
+func (cfg *config) loadPokemon(name string) (pokeapi.BasePokemon, error) {
 	data, err := os.ReadFile(fmt.Sprintf("data/pokemon/%s.json", name))
 	// If the file exists and is read successfully, unmarshal it into a Pokemon struct
 	if err == nil {
@@ -74,7 +78,7 @@ func loadPokemon(cfg *Config, name string) (pokeapi.BasePokemon, error) {
 	return pokemon, nil
 }
 
-func loadMove(cfg *Config, name string) (pokeapi.BaseMove, error) {
+func (cfg *config) loadMove(name string) (pokeapi.BaseMove, error) {
 	data, err := os.ReadFile(fmt.Sprintf("data/moves/%s.json", name))
 	// If the file exists and is read successfully, unmarshal it into a Move struct
 	if err == nil {
