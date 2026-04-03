@@ -19,7 +19,7 @@ func main() {
 	path := "./showdown_test_file.txt"
 	res, err := parser.ReadShowdownFile(path)
 	if err != nil {
-		log.Fatalf("error: parsing '%s' failed: %v", err)
+		log.Fatalf("error: parsing '%s' failed: %v", path, err)
 	}
 
 	if len(res) == 0 {
