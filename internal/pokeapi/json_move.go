@@ -20,6 +20,7 @@ type moveJSON struct {
 		Category      struct {
 			Name string `json:"name"`
 		} `json:"category"`
+		CritRate     int `json:"crit_rate"`
 		Drain        int `json:"drain"`
 		FlinchChance int `json:"flinch_chance"`
 		Heal         int `json:"heal"`
@@ -61,6 +62,7 @@ func (mj moveJSON) toMove() BaseMove {
 		Accuracy:      mj.Accuracy,
 		Class:         mj.DamageClass.Name,
 		Priority:      mj.Priority,
+		CritRate:      mj.Meta.CritRate,
 		Drain:         mj.Meta.Drain,
 		Heal:          mj.Meta.Heal,
 		FlinchChange:  mj.Meta.FlinchChance,

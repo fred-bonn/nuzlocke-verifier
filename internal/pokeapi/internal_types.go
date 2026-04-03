@@ -16,6 +16,7 @@ type BaseMove struct {
 	Accuracy      int
 	Class         string
 	Priority      int
+	CritRate      int
 	Drain         int
 	Heal          int
 	FlinchChange  int

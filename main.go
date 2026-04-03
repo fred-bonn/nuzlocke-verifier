@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/parser"
@@ -22,16 +21,8 @@ func main() {
 		log.Fatalf("error: file '%s' contained no pokemon", path)
 	}
 
-	for i := range res {
-		fmt.Println(res[i])
-	}
-
-	mons, err := cfg.loadShowdown(res)
+	_, err = cfg.loadShowdown(res)
 	if err != nil {
 		log.Fatalf("error: loading showdown file '%s' failed: %v", path, err)
-	}
-
-	for i := range mons {
-		fmt.Println(mons[i].Ailments)
 	}
 }
