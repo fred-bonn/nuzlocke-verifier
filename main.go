@@ -11,7 +11,7 @@ func main() {
 	cfg := &config{
 		client: pokeapi.NewClient(),
 	}
-	path := "./showdown_test_file.txt"
+	path := "./data/rnb_brawly.txt"
 	res, err := parser.ReadShowdownFile(path)
 	if err != nil {
 		log.Fatalf("error: parsing '%s' failed: %v", path, err)
