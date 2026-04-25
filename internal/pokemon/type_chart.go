@@ -1,6 +1,6 @@
 package pokemon
 
-var typeChart = map[string]map[string]float64{
+var TypeChart = map[string]map[string]float64{
 	"normal": {
 		"rock": 0.5, "ghost": 0.0, "steel": 0.5,
 	},
@@ -76,7 +76,7 @@ var typeChart = map[string]map[string]float64{
 }
 
 func GetEffectiveness(attacking, defending string) float64 {
-	if effectiveness, ok := typeChart[attacking][defending]; ok {
+	if effectiveness, ok := TypeChart[attacking][defending]; ok {
 		return effectiveness
 	}
 	return 1.0

@@ -1,5 +1,10 @@
 package pokeapi
 
+import (
+	"encoding/json"
+	"os"
+)
+
 type moveJSON struct {
 	Name  string `json:"name"`
 	Power int    `json:"power"`
@@ -41,7 +46,10 @@ type moveJSON struct {
 	} `json:"target"`
 }
 
+var contactMoves map[string]any
+
 func (mj moveJSON) toMove() BaseMove {
+	isContact := false
 	statChanges := make(map[string]int)
 	for _, sc := range mj.StatChanges {
 		statChanges[sc.Stat.Name] = sc.Change
@@ -55,6 +63,12 @@ func (mj moveJSON) toMove() BaseMove {
 		statChance = mj.Meta.StatChance
 	}
 
+	if contactMoves == nil {
+		initContactMoves()
+	}
+
+	_, isContact = contactMoves[mj.Name]
+
 	return BaseMove{
 		Name:          mj.Name,
 		Type:          mj.Type.Name,
@@ -66,6 +80,7 @@ func (mj moveJSON) toMove() BaseMove {
 		Drain:         mj.Meta.Drain,
 		Heal:          mj.Meta.Heal,
 		FlinchChange:  mj.Meta.FlinchChance,
+		Contact:       isContact,
 		Ailentment:    mj.Meta.Ailment.Name,
 		AilmentChance: ailmentChance,
 		MaxHits:       mj.Meta.MaxHits,
@@ -77,4 +92,25 @@ func (mj moveJSON) toMove() BaseMove {
 		Target:        mj.Target.Name,
 		Category:      mj.Meta.Category.Name,
 	}
+}
+
+func initContactMoves() error {
+	var moves []string
+
+	data, err := os.ReadFile("./contact_moves.json")
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, &moves)
+	if err != nil {
+		return err
+	}
+
+	contactMoves = make(map[string]any, len(moves))
+	for _, move := range moves {
+		contactMoves[move] = struct{}{}
+	}
+
+	return nil
 }
