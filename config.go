@@ -16,8 +16,30 @@ type config struct {
 	client pokeapi.Client
 }
 
-func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]pokemon.Pokemon, error) {
-	var res []pokemon.Pokemon
+func (cfg *config) validateInput(trainerPath string) ([]*pokemon.Pokemon, error) {
+	trainerFullPath, err := filepath.Abs(trainerPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting absolute path: %w", err)
+	}
+
+	trainerPokemon, err := parser.ReadShowdownFile(trainerFullPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed reading showdown file: %w", err)
+	}
+	if len(trainerPokemon) == 0 {
+		return nil, err
+	}
+
+	trainerParty, err := cfg.loadShowdown(trainerPokemon)
+	if err != nil {
+		return nil, fmt.Errorf("failed loading showdown file: %w", err)
+	}
+
+	return trainerParty, nil
+}
+
+func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon.Pokemon, error) {
+	var res []*pokemon.Pokemon
 
 	for _, mon := range mons {
 		var moves []pokeapi.BaseMove
@@ -43,7 +65,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]pokemon.Pokemon,
 			return nil, err
 		}
 
-		res = append(res, finalPokemon)
+		res = append(res, &finalPokemon)
 	}
 
 	return res, nil

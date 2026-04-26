@@ -9,4 +9,4 @@ build: test
 	go build -o $(OUT_PATH)
 
 run: build
-	$(OUT_PATH)
+	$(OUT_PATH) data/player.txt data/rnb_calvin.txt
