@@ -10,11 +10,11 @@ type trainer struct {
 	ai           ai
 }
 
-func (t trainer) nextAction(sbs *singleBattleState, current *pokemon.Pokemon) action {
+func (t trainer) nextAction(sbs battleState, current *pokemon.Pokemon, slot int) action {
 	possibleActions := make([]action, 0)
+	opponentSlot := 1 - slot
 	for _, mon := range t.pokemonParty {
-
-		if mon == current {
+		if mon == current || mon.Fainted {
 			continue
 		}
 		possibleActions = append(possibleActions, &swapAction{
@@ -25,7 +25,7 @@ func (t trainer) nextAction(sbs *singleBattleState, current *pokemon.Pokemon) ac
 	for _, move := range current.Moves {
 		possibleActions = append(possibleActions, &moveAction{
 			mon:  current,
-			slot: 0,
+			slot: opponentSlot,
 			move: move,
 		})
 	}

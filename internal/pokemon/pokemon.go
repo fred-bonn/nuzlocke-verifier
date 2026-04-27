@@ -98,8 +98,8 @@ func calculateStats(pokemon *Pokemon) {
 	negNat := pokemon.Nature[1]
 
 	if posNat != negNat {
-		pokemon.Stats[posNat] = int(float64(pokemon.Stats[posNat]) * 1.1)
-		pokemon.Stats[negNat] = int(float64(pokemon.Stats[negNat]) * 0.9)
+		pokemon.Stats[posNat] = (pokemon.Stats[posNat] * 110) / 100
+		pokemon.Stats[negNat] = (pokemon.Stats[negNat] * 90) / 100
 	}
 }
 
@@ -117,4 +117,53 @@ func (p *Pokemon) String() string {
 	stages := fmt.Sprintf("Stages: (%d, %d, %d, %d, %d, %d, %d)", p.Stages["attack"], p.Stages["defense"], p.Stages["special-attack"], p.Stages["special-defense"], p.Stages["speed"], p.Stages["accuracy"], p.Stages["evasion"])
 
 	return fmt.Sprintf("%s (Level %d) - HP: %d/%d\nNature: (%s,%s)\n%s\n%s\n%s\n%s", p.Base.Name, p.Level, p.Hp, p.Stats["hp"], p.Nature[0], p.Nature[1], status, ivs, stats, stages)
+}
+
+func (p *Pokemon) EffectiveStat(stat string) int {
+	if _, ok := p.Stages[stat]; !ok {
+		panic("invalid stat, make this more robust later?")
+	}
+
+	stage := p.Stages[stat]
+	if stage == 0 {
+		return p.Stats[stat]
+	} else if stage > 0 {
+		return int(float32(p.Stats[stat]) * ((2.0 + float32(stage)) / 2.0))
+	}
+	return int(float32(p.Stats[stat]) * (2.0 / (2.0 + float32(stage))))
+}
+
+func (p *Pokemon) EffectiveEvasion() float32 {
+	stage := p.Stages["evasion"]
+	if stage == 0 {
+		return 1.0
+	} else if stage > 0 {
+		return float32(3.0 / (3.0 + float32(stage)))
+	}
+	return float32((3.0 - float32(stage)) / 3.0)
+}
+
+func (p *Pokemon) EffectiveAccuracy() float32 {
+	stage := p.Stages["accuracy"]
+	if stage == 0 {
+		return 1.0
+	} else if stage > 0 {
+		return float32((3.0 + float32(stage)) / 3.0)
+	}
+	return float32(3.0 / (3.0 - float32(stage)))
+}
+
+func (p *Pokemon) ResetStages() {
+	for stat := range p.Stages {
+		p.Stages[stat] = 0
+	}
+}
+
+func (p *Pokemon) HasType(typeName string) bool {
+	for _, t := range p.Base.Types {
+		if typeName == t {
+			return true
+		}
+	}
+	return false
 }
