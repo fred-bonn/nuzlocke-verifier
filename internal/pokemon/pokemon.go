@@ -125,12 +125,12 @@ func (p *Pokemon) EffectiveStat(stat string) int {
 	}
 
 	stage := p.Stages[stat]
-	if stage == 0 {
-		return p.Stats[stat]
-	} else if stage > 0 {
-		return int(float32(p.Stats[stat]) * ((2.0 + float32(stage)) / 2.0))
+	base := p.Stats[stat]
+
+	if stage >= 0 {
+		return base * (2 + stage) / 2
 	}
-	return int(float32(p.Stats[stat]) * (2.0 / (2.0 + float32(stage))))
+	return base * 2 / (2 - stage)
 }
 
 func (p *Pokemon) EffectiveEvasion() float32 {

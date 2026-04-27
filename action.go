@@ -100,7 +100,7 @@ func applyDamageMove(target *pokemon.Pokemon, mon *pokemon.Pokemon, move pokeapi
 	stab := mon.HasType(move.Type)
 
 	var offensiveStat, defensiveStat int
-	if move.Category == "physical" {
+	if move.Class == "physical" {
 		offensiveStat = mon.EffectiveStat("attack")
 		defensiveStat = target.EffectiveStat("defense")
 	} else {
@@ -108,28 +108,53 @@ func applyDamageMove(target *pokemon.Pokemon, mon *pokemon.Pokemon, move pokeapi
 		defensiveStat = target.EffectiveStat("special-defense")
 	}
 
-	base := ((2*mon.Level)/5 + 2)
-	damage := (base * move.Power * offensiveStat) / defensiveStat
-	damage = damage / 50
-	damage += 2
+	damage := ((((2*mon.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
+
+	numerator := 1
+	denominator := 1
 
 	if stab {
-		damage = int(float32(damage) * 1.5)
+		numerator *= 3
+		denominator *= 2
 	}
-	damage = int(float32(damage) * pokemon.GetEffectiveness(move.Type, target.Base.Types[0]))
-	if len(target.Base.Types) > 1 {
-		damage = int(float32(damage) * pokemon.GetEffectiveness(move.Type, target.Base.Types[1]))
-	}
+
 	if crit {
-		damage = int(float32(damage) * 1.5)
+		numerator *= 3
+		denominator *= 2
 	}
+
+	applyType := func(mult float64) {
+		switch mult {
+		case 0:
+			numerator = 0
+			denominator = 1
+		case 0.5:
+			denominator *= 2
+		case 1:
+		case 2:
+			numerator *= 2
+		}
+	}
+
+	applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[0]))
+	if len(target.Base.Types) > 1 {
+		applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[1]))
+	}
+
 	randFactor := rand.Intn(16) + 85
-	damage = damage * randFactor / 100
+	numerator *= randFactor
+	denominator *= 100
+
+	damage = damage * numerator / denominator
+	if damage < 1 {
+		damage = 1
+	}
 
 	log.Printf("%s took %d damage", target.Base.Name, int(damage))
 	if crit {
 		log.Printf("it was a critical hit!")
 	}
+
 	target.Hp -= int(damage)
 	if target.Hp <= 0 {
 		target.Hp = 0

@@ -33,7 +33,7 @@ func (sbs *singleBattleState) execute() {
 	log.Println("Starting battle...")
 	var actions []action
 
-	for k := 0; k < 20; k++ {
+	for k := 0; k < 3; k++ {
 		log.Println("=====")
 		log.Printf("Turn %d:\n", k+1)
 		actions = sbs.gatherActions()
