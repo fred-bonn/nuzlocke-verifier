@@ -8,37 +8,37 @@ import (
 )
 
 type singleBattleState struct {
-	activePlayerMon   *pokemon.Pokemon
-	activeOpponentMon *pokemon.Pokemon
-	player            *trainer
-	opponent          *trainer
+	activePlayerSlot   *slot
+	activeOpponentSlot *slot
+	player             *trainer
+	opponent           *trainer
+	actions            []action
 }
 
 func (sbs *singleBattleState) setMon(old, new *pokemon.Pokemon) {
-	if old == sbs.activePlayerMon {
-		sbs.activePlayerMon = new
+	if old == sbs.activePlayerSlot.mon {
+		sbs.activePlayerSlot.mon = new
 	} else {
-		sbs.activeOpponentMon = new
+		sbs.activeOpponentSlot.mon = new
 	}
 }
 
-func (sbs *singleBattleState) getMon(slot int) *pokemon.Pokemon {
-	if slot == 0 {
-		return sbs.activePlayerMon
+func (sbs *singleBattleState) getMon(slot *slot) *pokemon.Pokemon {
+	if slot == sbs.activePlayerSlot {
+		return sbs.activePlayerSlot.mon
 	}
-	return sbs.activeOpponentMon
+	return sbs.activeOpponentSlot.mon
 }
 
 func (sbs *singleBattleState) execute() {
 	log.Println("Starting battle...")
-	var actions []action
 
 	for k := 0; k < 3; k++ {
 		log.Println("=====")
 		log.Printf("Turn %d:\n", k+1)
-		actions = sbs.gatherActions()
-		sortActions(actions)
-		for _, action := range actions {
+		sbs.gatherActions()
+		sortActions(sbs.actions)
+		for _, action := range sbs.actions {
 			action.invoke(sbs)
 		}
 	}
@@ -46,11 +46,17 @@ func (sbs *singleBattleState) execute() {
 	log.Println("Ending battle...")
 }
 
-func (sbs *singleBattleState) gatherActions() []action {
-	actions := make([]action, 0, 2)
-	actions = append(actions, sbs.player.nextAction(sbs, sbs.activePlayerMon, 0))
-	actions = append(actions, sbs.opponent.nextAction(sbs, sbs.activeOpponentMon, 1))
-	return actions
+func (sbs *singleBattleState) gatherActions() {
+	sbs.actions = make([]action, 0, 2)
+	sbs.actions = append(sbs.actions, sbs.player.nextAction(sbs, sbs.activePlayerSlot))
+	sbs.actions = append(sbs.actions, sbs.opponent.nextAction(sbs, sbs.activeOpponentSlot))
+}
+
+func (sbs *singleBattleState) getOtherSlots(s *slot) []*slot {
+	if s == sbs.activePlayerSlot {
+		return []*slot{sbs.activeOpponentSlot}
+	}
+	return []*slot{sbs.activePlayerSlot}
 }
 
 func initSingleBattleState(player, opponent trainer) (*singleBattleState, error) {
@@ -59,9 +65,9 @@ func initSingleBattleState(player, opponent trainer) (*singleBattleState, error)
 	}
 
 	return &singleBattleState{
-		activePlayerMon:   player.pokemonParty[0],
-		activeOpponentMon: opponent.pokemonParty[0],
-		player:            &player,
-		opponent:          &opponent,
+		activePlayerSlot:   &slot{mon: player.pokemonParty[0]},
+		activeOpponentSlot: &slot{mon: opponent.pokemonParty[0]},
+		player:             &player,
+		opponent:           &opponent,
 	}, nil
 }

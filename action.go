@@ -36,7 +36,7 @@ func (sa *swapAction) speed() int {
 
 type moveAction struct {
 	mon  *pokemon.Pokemon
-	slot int
+	slot *slot
 	move pokeapi.BaseMove
 }
 
