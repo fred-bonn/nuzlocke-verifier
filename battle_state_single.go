@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"fmt"
 	"log"
 
@@ -12,7 +13,7 @@ type singleBattleState struct {
 	activeOpponentSlot *slot
 	player             *trainer
 	opponent           *trainer
-	actions            []action
+	actions            *ActionQueue
 }
 
 func (sbs *singleBattleState) setMon(old, new *pokemon.Pokemon) {
@@ -32,13 +33,31 @@ func (sbs *singleBattleState) getMon(slot *slot) *pokemon.Pokemon {
 
 func (sbs *singleBattleState) execute() {
 	log.Println("Starting battle...")
-
-	for k := 0; k < 3; k++ {
+	heap.Init(sbs.actions)
+	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
 		log.Println("=====")
 		log.Printf("Turn %d:\n", k+1)
+
 		sbs.gatherActions()
-		sortActions(sbs.actions)
-		for _, action := range sbs.actions {
+		for sbs.actions.Len() > 0 {
+			action := heap.Pop(sbs.actions).(action)
+			action.invoke(sbs)
+		}
+
+		if sbs.activePlayerSlot.mon.Fainted {
+			heap.Push(sbs.actions, &replaceAction{
+				oldSlot: sbs.activePlayerSlot,
+				trainer: sbs.player,
+			})
+		}
+		if sbs.activeOpponentSlot.mon.Fainted {
+			heap.Push(sbs.actions, &replaceAction{
+				oldSlot: sbs.activeOpponentSlot,
+				trainer: sbs.opponent,
+			})
+		}
+		for sbs.actions.Len() > 0 {
+			action := heap.Pop(sbs.actions).(action)
 			action.invoke(sbs)
 		}
 	}
@@ -47,9 +66,8 @@ func (sbs *singleBattleState) execute() {
 }
 
 func (sbs *singleBattleState) gatherActions() {
-	sbs.actions = make([]action, 0, 2)
-	sbs.actions = append(sbs.actions, sbs.player.nextAction(sbs, sbs.activePlayerSlot))
-	sbs.actions = append(sbs.actions, sbs.opponent.nextAction(sbs, sbs.activeOpponentSlot))
+	heap.Push(sbs.actions, sbs.player.nextAction(sbs, sbs.activePlayerSlot))
+	heap.Push(sbs.actions, sbs.opponent.nextAction(sbs, sbs.activeOpponentSlot))
 }
 
 func (sbs *singleBattleState) getOtherSlots(s *slot) []*slot {
@@ -69,5 +87,6 @@ func initSingleBattleState(player, opponent trainer) (*singleBattleState, error)
 		activeOpponentSlot: &slot{mon: opponent.pokemonParty[0]},
 		player:             &player,
 		opponent:           &opponent,
+		actions:            &ActionQueue{},
 	}, nil
 }

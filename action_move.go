@@ -9,31 +9,6 @@ import (
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
-type action interface {
-	invoke(bs battleState)
-	prio() int
-	speed() int
-}
-
-type swapAction struct {
-	old *pokemon.Pokemon
-	new *pokemon.Pokemon
-}
-
-func (sa *swapAction) invoke(sbs battleState) {
-	sbs.setMon(sa.old, sa.new)
-	sa.old.ResetStages()
-	log.Printf("swapped %s for %s", sa.old.Base.Name, sa.new.Base.Name)
-}
-
-func (sa *swapAction) prio() int {
-	return 6
-}
-
-func (sa *swapAction) speed() int {
-	return sa.old.EffectiveStat("speed")
-}
-
 type moveAction struct {
 	mon  *pokemon.Pokemon
 	slot *slot
@@ -82,7 +57,7 @@ func roll(chance float32) bool {
 func applyStatusMove(target *pokemon.Pokemon, move pokeapi.BaseMove) {
 	if move.StatChance == 100 || roll(float32(move.StatChance/100)) {
 		for stat, change := range move.StatChanges {
-			target.Stages[stat] += change
+			target.Stages[stat] = max(-6, min(6, target.Stages[stat]+change))
 			log.Printf("%s's %s changed by %d stages (%d)", target.Base.Name, stat, change, target.Stages[stat])
 		}
 	}
