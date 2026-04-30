@@ -43,23 +43,6 @@ func (sbs *singleBattleState) execute() {
 			action := heap.Pop(sbs.actions).(action)
 			action.invoke(sbs)
 		}
-
-		if sbs.activePlayerSlot.mon.Fainted {
-			heap.Push(sbs.actions, &replaceAction{
-				oldSlot: sbs.activePlayerSlot,
-				trainer: sbs.player,
-			})
-		}
-		if sbs.activeOpponentSlot.mon.Fainted {
-			heap.Push(sbs.actions, &replaceAction{
-				oldSlot: sbs.activeOpponentSlot,
-				trainer: sbs.opponent,
-			})
-		}
-		for sbs.actions.Len() > 0 {
-			action := heap.Pop(sbs.actions).(action)
-			action.invoke(sbs)
-		}
 	}
 	log.Println("=====")
 	log.Println("Ending battle...")
@@ -75,6 +58,20 @@ func (sbs *singleBattleState) getOtherSlots(s *slot) []*slot {
 		return []*slot{sbs.activeOpponentSlot}
 	}
 	return []*slot{sbs.activePlayerSlot}
+}
+
+func (sbs *singleBattleState) injectReplaceAction(slot *slot, trainer *trainer) {
+	heap.Push(sbs.actions, &replaceAction{
+		oldSlot: slot,
+		trainer: trainer,
+	})
+}
+
+func (sbs *singleBattleState) getTrainer(slot *slot) *trainer {
+	if slot == sbs.activePlayerSlot {
+		return sbs.player
+	}
+	return sbs.opponent
 }
 
 func initSingleBattleState(player, opponent trainer) (*singleBattleState, error) {

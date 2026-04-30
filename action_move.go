@@ -23,12 +23,12 @@ func (ma *moveAction) speed() int {
 	return ma.mon.EffectiveStat("speed")
 }
 
-func (ma *moveAction) invoke(sbs battleState) {
+func (ma *moveAction) invoke(bs battleState) {
 	if ma.mon.Fainted {
 		return
 	}
 
-	target := sbs.getMon(ma.slot)
+	target := bs.getMon(ma.slot)
 	hitChance := target.EffectiveEvasion() * ma.mon.EffectiveAccuracy()
 	if ma.move.Accuracy != 0 && hitChance < 1.0 {
 		if !roll(hitChance) {
@@ -41,12 +41,12 @@ func (ma *moveAction) invoke(sbs battleState) {
 
 	if ma.move.Class == "status" {
 		if strings.HasPrefix(ma.move.Target, "user") {
-			applyStatusMove(ma.mon, ma.move)
+			ma.applyStatusMove(bs, ma.mon, ma.move)
 		} else {
-			applyStatusMove(target, ma.move)
+			ma.applyStatusMove(bs, target, ma.move)
 		}
 	} else {
-		applyDamageMove(target, ma.mon, ma.move)
+		ma.applyDamageMove(bs, target, ma.mon, ma.move)
 	}
 }
 
@@ -54,7 +54,7 @@ func roll(chance float32) bool {
 	return rand.Float32() < chance
 }
 
-func applyStatusMove(target *pokemon.Pokemon, move pokeapi.BaseMove) {
+func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon, move pokeapi.BaseMove) {
 	if move.StatChance == 100 || roll(float32(move.StatChance/100)) {
 		for stat, change := range move.StatChanges {
 			target.Stages[stat] = max(-6, min(6, target.Stages[stat]+change))
@@ -70,7 +70,7 @@ var critRateMap = map[int]float32{
 	3: 1.0,
 }
 
-func applyDamageMove(target *pokemon.Pokemon, mon *pokemon.Pokemon, move pokeapi.BaseMove) {
+func (ma *moveAction) applyDamageMove(bs battleState, target *pokemon.Pokemon, mon *pokemon.Pokemon, move pokeapi.BaseMove) {
 	crit := roll(1.0 / critRateMap[move.CritRate])
 	stab := mon.HasType(move.Type)
 
@@ -134,6 +134,7 @@ func applyDamageMove(target *pokemon.Pokemon, mon *pokemon.Pokemon, move pokeapi
 	if target.Hp <= 0 {
 		target.Hp = 0
 		target.Fainted = true
+		bs.injectReplaceAction(ma.slot, bs.getTrainer(ma.slot))
 		log.Printf("%s fainted!", target.Base.Name)
 	}
 }
