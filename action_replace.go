@@ -5,9 +5,13 @@ import "log"
 type replaceAction struct {
 	oldSlot *slot
 	trainer *trainer
+	midTurn bool
 }
 
 func (ra *replaceAction) prio() int {
+	if ra.midTurn {
+		return 10
+	}
 	return -10
 }
 

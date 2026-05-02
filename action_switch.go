@@ -11,8 +11,8 @@ type switchAction struct {
 	new *pokemon.Pokemon
 }
 
-func (sa *switchAction) invoke(sbs battleState) {
-	sbs.setMon(sa.old, sa.new)
+func (sa *switchAction) invoke(bs battleState) {
+	bs.setMon(sa.old, sa.new)
 	sa.old.ResetStages()
 	log.Printf("switched %s for %s", sa.old.Base.Name, sa.new.Base.Name)
 }

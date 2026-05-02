@@ -27,9 +27,9 @@ func (t *trainer) nextAction(sbs battleState, slot *slot) action {
 	}
 	for _, move := range slot.mon.Moves {
 		possibleActions = append(possibleActions, &moveAction{
-			mon:  slot.mon,
-			slot: opponentSlot,
-			move: move,
+			mon:        slot.mon,
+			targetSlot: opponentSlot,
+			move:       move,
 		})
 	}
 
@@ -51,6 +51,16 @@ func (t *trainer) selectSwitchIn(sbs battleState, slot *slot) *pokemon.Pokemon {
 	}
 
 	return t.ai.evaluteSwitchIns(sbs, possibleMons)
+}
+
+func (t *trainer) numberOfAliveMons() int {
+	count := 0
+	for _, mon := range t.pokemonParty {
+		if !mon.Fainted {
+			count++
+		}
+	}
+	return count
 }
 
 type ai interface {

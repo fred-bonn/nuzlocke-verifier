@@ -10,9 +10,9 @@ import (
 )
 
 type moveAction struct {
-	mon  *pokemon.Pokemon
-	slot *slot
-	move pokeapi.BaseMove
+	mon        *pokemon.Pokemon
+	targetSlot *slot
+	move       pokeapi.BaseMove
 }
 
 func (ma *moveAction) prio() int {
@@ -28,7 +28,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
-	target := bs.getMon(ma.slot)
+	target := bs.getMon(ma.targetSlot)
 	hitChance := target.EffectiveEvasion() * ma.mon.EffectiveAccuracy()
 	if ma.move.Accuracy != 0 && hitChance < 1.0 {
 		if !roll(hitChance) {
@@ -134,7 +134,15 @@ func (ma *moveAction) applyDamageMove(bs battleState, target *pokemon.Pokemon, m
 	if target.Hp <= 0 {
 		target.Hp = 0
 		target.Fainted = true
-		bs.injectReplaceAction(ma.slot, bs.getTrainer(ma.slot))
+		bs.injectReplaceAction(ma.targetSlot, bs.getTrainer(ma.targetSlot), false)
 		log.Printf("%s fainted!", target.Base.Name)
+	}
+
+	if move.Name == "u-turn" {
+		slot := bs.getSlot(mon)
+		trainer := bs.getTrainer(slot)
+		if trainer.numberOfAliveMons() > 1 {
+			bs.injectReplaceAction(slot, trainer, true)
+		}
 	}
 }

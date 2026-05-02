@@ -60,10 +60,11 @@ func (sbs *singleBattleState) getOtherSlots(s *slot) []*slot {
 	return []*slot{sbs.activePlayerSlot}
 }
 
-func (sbs *singleBattleState) injectReplaceAction(slot *slot, trainer *trainer) {
+func (sbs *singleBattleState) injectReplaceAction(slot *slot, trainer *trainer, midTurn bool) {
 	heap.Push(sbs.actions, &replaceAction{
 		oldSlot: slot,
 		trainer: trainer,
+		midTurn: midTurn,
 	})
 }
 
@@ -72,6 +73,13 @@ func (sbs *singleBattleState) getTrainer(slot *slot) *trainer {
 		return sbs.player
 	}
 	return sbs.opponent
+}
+
+func (sbs *singleBattleState) getSlot(mon *pokemon.Pokemon) *slot {
+	if sbs.activePlayerSlot.mon == mon {
+		return sbs.activePlayerSlot
+	}
+	return sbs.activeOpponentSlot
 }
 
 func initSingleBattleState(player, opponent trainer) (*singleBattleState, error) {
