@@ -20,7 +20,7 @@ func (ma *moveAction) prio() int {
 }
 
 func (ma *moveAction) speed() int {
-	return ma.userSlot.mon.EffectiveStat("speed")
+	return ma.userSlot.mon.EffectiveStat("speed", false)
 }
 
 func (ma *moveAction) invoke(bs battleState) {
@@ -80,11 +80,11 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 
 	var offensiveStat, defensiveStat int
 	if move.Class == "physical" {
-		offensiveStat = user.EffectiveStat("attack")
-		defensiveStat = target.EffectiveStat("defense")
+		offensiveStat = user.EffectiveStat("attack", crit)
+		defensiveStat = target.EffectiveStat("defense", crit)
 	} else {
-		offensiveStat = user.EffectiveStat("special-attack")
-		defensiveStat = target.EffectiveStat("special-defense")
+		offensiveStat = user.EffectiveStat("special-attack", crit)
+		defensiveStat = target.EffectiveStat("special-defense", crit)
 	}
 
 	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2

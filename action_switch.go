@@ -22,5 +22,5 @@ func (sa *switchAction) prio() int {
 }
 
 func (sa *switchAction) speed() int {
-	return sa.oldSlot.mon.EffectiveStat("speed")
+	return sa.oldSlot.mon.EffectiveStat("speed", false)
 }

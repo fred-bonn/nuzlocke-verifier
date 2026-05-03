@@ -119,13 +119,22 @@ func (p *Pokemon) String() string {
 	return fmt.Sprintf("%s (Level %d) - HP: %d/%d\nNature: (%s,%s)\n%s\n%s\n%s\n%s", p.Base.Name, p.Level, p.Hp, p.Stats["hp"], p.Nature[0], p.Nature[1], status, ivs, stats, stages)
 }
 
-func (p *Pokemon) EffectiveStat(stat string) int {
+func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat, make this more robust later?")
 	}
 
 	stage := p.Stages[stat]
 	base := p.Stats[stat]
+
+	if crit {
+		switch stat {
+		case "defense", "special-defense":
+			stage = min(0, stage)
+		case "attack", "special-attack":
+			stage = max(0, stage)
+		}
+	}
 
 	if stage >= 0 {
 		return base * (2 + stage) / 2

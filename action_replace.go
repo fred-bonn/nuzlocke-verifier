@@ -16,7 +16,7 @@ func (ra *replaceAction) prio() int {
 }
 
 func (ra *replaceAction) speed() int {
-	return ra.oldSlot.mon.EffectiveStat("speed")
+	return ra.oldSlot.mon.EffectiveStat("speed", false)
 }
 
 func (ra *replaceAction) invoke(sbs battleState) {
