@@ -12,6 +12,7 @@ type battleState interface {
 	injectReplaceAction(slot *slot, trainer *trainer, midTurn bool)
 	getTrainer(slot *slot) *trainer
 	gatherActions()
+	getActions() *ActionQueue
 	execute()
 }
 

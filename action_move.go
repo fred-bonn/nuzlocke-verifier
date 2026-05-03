@@ -10,7 +10,7 @@ import (
 )
 
 type moveAction struct {
-	mon        *pokemon.Pokemon
+	userSlot   *slot
 	targetSlot *slot
 	move       pokeapi.BaseMove
 }
@@ -20,33 +20,33 @@ func (ma *moveAction) prio() int {
 }
 
 func (ma *moveAction) speed() int {
-	return ma.mon.EffectiveStat("speed")
+	return ma.userSlot.mon.EffectiveStat("speed")
 }
 
 func (ma *moveAction) invoke(bs battleState) {
-	if ma.mon.Fainted {
+	if ma.userSlot.mon.Fainted {
 		return
 	}
 
 	target := bs.getMon(ma.targetSlot)
-	hitChance := target.EffectiveEvasion() * ma.mon.EffectiveAccuracy()
+	hitChance := target.EffectiveEvasion() * ma.userSlot.mon.EffectiveAccuracy()
 	if ma.move.Accuracy != 0 && hitChance < 1.0 {
 		if !roll(hitChance) {
-			log.Printf("%s's move missed", ma.mon.Base.Name)
+			log.Printf("%s's move missed", ma.userSlot.mon.Base.Name)
 			return
 		}
 	}
 
-	log.Printf("%s used %s", ma.mon.Base.Name, ma.move.Name)
+	log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
 
 	if ma.move.Class == "status" {
 		if strings.HasPrefix(ma.move.Target, "user") {
-			ma.applyStatusMove(bs, ma.mon, ma.move)
+			ma.applyStatusMove(bs, ma.userSlot.mon, ma.move)
 		} else {
 			ma.applyStatusMove(bs, target, ma.move)
 		}
 	} else {
-		ma.applyDamageMove(bs, target, ma.mon, ma.move)
+		ma.applyDamageMove(bs)
 	}
 }
 
@@ -70,20 +70,24 @@ var critRateMap = map[int]float32{
 	3: 1.0,
 }
 
-func (ma *moveAction) applyDamageMove(bs battleState, target *pokemon.Pokemon, mon *pokemon.Pokemon, move pokeapi.BaseMove) {
+func (ma *moveAction) applyDamageMove(bs battleState) {
+	user := ma.userSlot.mon
+	target := ma.targetSlot.mon
+	move := ma.move
+
 	crit := roll(1.0 / critRateMap[move.CritRate])
-	stab := mon.HasType(move.Type)
+	stab := user.HasType(move.Type)
 
 	var offensiveStat, defensiveStat int
 	if move.Class == "physical" {
-		offensiveStat = mon.EffectiveStat("attack")
+		offensiveStat = user.EffectiveStat("attack")
 		defensiveStat = target.EffectiveStat("defense")
 	} else {
-		offensiveStat = mon.EffectiveStat("special-attack")
+		offensiveStat = user.EffectiveStat("special-attack")
 		defensiveStat = target.EffectiveStat("special-defense")
 	}
 
-	damage := ((((2*mon.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
+	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
 
 	numerator := 1
 	denominator := 1
@@ -138,11 +142,10 @@ func (ma *moveAction) applyDamageMove(bs battleState, target *pokemon.Pokemon, m
 		log.Printf("%s fainted!", target.Base.Name)
 	}
 
-	if move.Name == "u-turn" {
-		slot := bs.getSlot(mon)
-		trainer := bs.getTrainer(slot)
-		if trainer.numberOfAliveMons() > 1 {
-			bs.injectReplaceAction(slot, trainer, true)
+	if _, ok := pivotMoves[move.Name]; ok {
+		trainer := bs.getTrainer(ma.userSlot)
+		if trainer.canReplace(bs) {
+			bs.injectReplaceAction(ma.userSlot, trainer, true)
 		}
 	}
 }

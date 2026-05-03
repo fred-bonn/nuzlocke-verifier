@@ -7,14 +7,14 @@ import (
 )
 
 type switchAction struct {
-	old *pokemon.Pokemon
-	new *pokemon.Pokemon
+	oldSlot *slot
+	new     *pokemon.Pokemon
 }
 
 func (sa *switchAction) invoke(bs battleState) {
-	bs.setMon(sa.old, sa.new)
-	sa.old.ResetStages()
-	log.Printf("switched %s for %s", sa.old.Base.Name, sa.new.Base.Name)
+	log.Printf("switched %s for %s", sa.oldSlot.mon.Base.Name, sa.new.Base.Name)
+	bs.setMon(sa.oldSlot.mon, sa.new)
+	sa.oldSlot.mon.ResetStages()
 }
 
 func (sa *switchAction) prio() int {
@@ -22,5 +22,5 @@ func (sa *switchAction) prio() int {
 }
 
 func (sa *switchAction) speed() int {
-	return sa.old.EffectiveStat("speed")
+	return sa.oldSlot.mon.EffectiveStat("speed")
 }

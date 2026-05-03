@@ -82,6 +82,10 @@ func (sbs *singleBattleState) getSlot(mon *pokemon.Pokemon) *slot {
 	return sbs.activeOpponentSlot
 }
 
+func (sbs *singleBattleState) getActions() *ActionQueue {
+	return sbs.actions
+}
+
 func initSingleBattleState(player, opponent trainer) (*singleBattleState, error) {
 	if len(player.pokemonParty) == 0 || len(opponent.pokemonParty) == 0 {
 		return nil, fmt.Errorf("player or opponent has no pokemon in their party")

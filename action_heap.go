@@ -1,6 +1,10 @@
 package main
 
-import "math/rand"
+import (
+	"math/rand"
+
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
+)
 
 type ActionQueue []action
 
@@ -36,4 +40,13 @@ func (aq *ActionQueue) Pop() any {
 	action := (*aq)[0]
 	*aq = (*aq)[1:]
 	return action
+}
+
+func (aq *ActionQueue) containstSwitchTo(mon *pokemon.Pokemon) bool {
+	for _, a := range *aq {
+		if sa, ok := a.(*switchAction); ok && sa.new == mon {
+			return true
+		}
+	}
+	return false
 }

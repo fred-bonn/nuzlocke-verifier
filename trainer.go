@@ -13,30 +13,30 @@ type trainer struct {
 	lost         bool
 }
 
-func (t *trainer) nextAction(sbs battleState, slot *slot) action {
+func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	possibleActions := make([]action, 0)
-	opponentSlot := sbs.getOtherSlots(slot)[0] // only works for single battles for now
+	opponentSlot := bs.getOtherSlots(slot)[0] // only works for single battles for now
 	for _, mon := range t.pokemonParty {
-		if mon == slot.mon || mon.Fainted {
+		if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
 			continue
 		}
 		possibleActions = append(possibleActions, &switchAction{
-			old: slot.mon,
-			new: mon,
+			oldSlot: slot,
+			new:     mon,
 		})
 	}
 	for _, move := range slot.mon.Moves {
 		possibleActions = append(possibleActions, &moveAction{
-			mon:        slot.mon,
+			userSlot:   slot,
 			targetSlot: opponentSlot,
 			move:       move,
 		})
 	}
 
-	return t.ai.evaluateActions(sbs, possibleActions)
+	return t.ai.evaluateActions(bs, possibleActions)
 }
 
-func (t *trainer) selectSwitchIn(sbs battleState, slot *slot) *pokemon.Pokemon {
+func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *pokemon.Pokemon {
 	var possibleMons []*pokemon.Pokemon
 	for _, mon := range t.pokemonParty {
 		if mon == slot.mon || mon.Fainted {
@@ -50,17 +50,21 @@ func (t *trainer) selectSwitchIn(sbs battleState, slot *slot) *pokemon.Pokemon {
 		return nil
 	}
 
-	return t.ai.evaluteSwitchIns(sbs, possibleMons)
+	return t.ai.evaluteSwitchIns(bs, possibleMons)
 }
 
-func (t *trainer) numberOfAliveMons() int {
+func (t *trainer) canReplace(bs battleState) bool {
 	count := 0
 	for _, mon := range t.pokemonParty {
+
 		if !mon.Fainted {
 			count++
 		}
+		if count > 1 {
+			return true
+		}
 	}
-	return count
+	return false
 }
 
 type ai interface {
