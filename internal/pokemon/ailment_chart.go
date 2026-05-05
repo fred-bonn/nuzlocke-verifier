@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	INDEFINITE_AILMENT_DURATION = 100
+	INDEFINITE_AILMENT_DURATION = 200
 )
 
 var validAilments = map[string]struct{}{

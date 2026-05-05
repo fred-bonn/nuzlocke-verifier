@@ -14,7 +14,7 @@ type switchAction struct {
 func (sa *switchAction) invoke(bs battleState) {
 	log.Printf("switched %s for %s", sa.oldSlot.mon.Base.Name, sa.new.Base.Name)
 	bs.setMon(sa.oldSlot.mon, sa.new)
-	sa.oldSlot.mon.ResetStages()
+	sa.oldSlot.mon.SwitchReset()
 }
 
 func (sa *switchAction) prio() int {

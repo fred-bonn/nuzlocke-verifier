@@ -56,7 +56,6 @@ func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *pokemon.Pokemon {
 func (t *trainer) canReplace(bs battleState) bool {
 	count := 0
 	for _, mon := range t.pokemonParty {
-
 		if !mon.Fainted {
 			count++
 		}
@@ -68,16 +67,16 @@ func (t *trainer) canReplace(bs battleState) bool {
 }
 
 type ai interface {
-	evaluateActions(sbs battleState, actions []action) action
-	evaluteSwitchIns(sbs battleState, mons []*pokemon.Pokemon) *pokemon.Pokemon
+	evaluateActions(bs battleState, actions []action) action
+	evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon) *pokemon.Pokemon
 }
 
 type randomAi struct{}
 
-func (ra randomAi) evaluateActions(sbs battleState, actions []action) action {
+func (ra randomAi) evaluateActions(bs battleState, actions []action) action {
 	return actions[rand.Intn(len(actions))]
 }
 
-func (ra randomAi) evaluteSwitchIns(sbs battleState, mons []*pokemon.Pokemon) *pokemon.Pokemon {
+func (ra randomAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon) *pokemon.Pokemon {
 	return mons[rand.Intn(len(mons))]
 }

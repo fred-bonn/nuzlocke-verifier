@@ -119,6 +119,14 @@ func (p *Pokemon) String() string {
 	return fmt.Sprintf("%s (Level %d) - HP: %d/%d\nNature: (%s,%s)\n%s\n%s\n%s\n%s", p.Base.Name, p.Level, p.Hp, p.Stats["hp"], p.Nature[0], p.Nature[1], status, ivs, stats, stages)
 }
 
+func (p *Pokemon) ChangeStatStage(stat string, change int) error {
+	if _, ok := p.Stages[stat]; !ok {
+		return fmt.Errorf("invalid stat: %s", stat)
+	}
+	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
+	return nil
+}
+
 func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat, make this more robust later?")
@@ -162,7 +170,8 @@ func (p *Pokemon) EffectiveAccuracy() float32 {
 	return float32(3.0 / (3.0 - float32(stage)))
 }
 
-func (p *Pokemon) ResetStages() {
+func (p *Pokemon) SwitchReset() {
+	delete(p.Ailments, "confusion")
 	for stat := range p.Stages {
 		p.Stages[stat] = 0
 	}
@@ -175,4 +184,12 @@ func (p *Pokemon) HasType(typeName string) bool {
 		}
 	}
 	return false
+}
+
+func (p *Pokemon) ApplyAilment(ailment string) error {
+	if _, ok := validAilments[ailment]; !ok {
+		return fmt.Errorf("invalid ailment: %s", ailment)
+	}
+	p.Ailments[ailment] = GenerateAilment(ailment)
+	return nil
 }

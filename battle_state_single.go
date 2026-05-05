@@ -75,13 +75,6 @@ func (sbs *singleBattleState) getTrainer(slot *slot) *trainer {
 	return sbs.opponent
 }
 
-func (sbs *singleBattleState) getSlot(mon *pokemon.Pokemon) *slot {
-	if sbs.activePlayerSlot.mon == mon {
-		return sbs.activePlayerSlot
-	}
-	return sbs.activeOpponentSlot
-}
-
 func (sbs *singleBattleState) getActions() *ActionQueue {
 	return sbs.actions
 }
