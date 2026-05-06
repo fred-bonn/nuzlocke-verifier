@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"strings"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
@@ -12,7 +11,7 @@ import (
 type moveAction struct {
 	userSlot   *slot
 	targetSlot *slot
-	move       pokeapi.BaseMove
+	move       *pokeapi.BaseMove
 }
 
 func (ma *moveAction) prio() int {
@@ -20,7 +19,11 @@ func (ma *moveAction) prio() int {
 }
 
 func (ma *moveAction) speed() int {
-	return ma.userSlot.mon.EffectiveStat("speed", false)
+	speed := ma.userSlot.mon.EffectiveStat("speed", false)
+	if _, ok := ma.userSlot.mon.Ailments["paralysis"]; ok {
+		return speed / 4
+	}
+	return speed
 }
 
 func (ma *moveAction) invoke(bs battleState) {
@@ -33,8 +36,12 @@ func (ma *moveAction) invoke(bs battleState) {
 			ma.userSlot.mon.Ailments["confusion"] -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
 			if roll(1.0 / 3.0) {
-				log.Printf("%s hit itself in confusion", ma.userSlot.mon.Base.Name)
-				// implement self damage
+				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false)
+				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.Base.Name, damage)
+				ma.userSlot.mon.Hp -= int(damage)
+				if ma.userSlot.mon.Hp <= 0 {
+					ma.monFainted(bs, ma.userSlot)
+				}
 				return
 			}
 		} else {
@@ -45,11 +52,9 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	target := bs.getMon(ma.targetSlot)
 	hitChance := target.EffectiveEvasion() * ma.userSlot.mon.EffectiveAccuracy()
-	if ma.move.Accuracy != 0 {
-		if !roll(float32(ma.move.Accuracy) / 100.0 * hitChance) {
-			log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
-			return
-		}
+	if ma.move.Accuracy != 0 && !roll(float32(ma.move.Accuracy)/100.0*hitChance) {
+		log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
+		return
 	}
 
 	log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
@@ -63,10 +68,6 @@ func (ma *moveAction) invoke(bs battleState) {
 	} else {
 		ma.applyDamageMove(bs)
 	}
-}
-
-func roll(chance float32) bool {
-	return rand.Float32() < chance
 }
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon) {
@@ -101,16 +102,9 @@ func (ma *moveAction) applySwagger(bs battleState, target *pokemon.Pokemon) {
 	log.Printf("%s became confused", target.Base.Name)
 }
 
-var critRateMap = map[int]float32{
-	0: 16.0,
-	1: 8.0,
-	2: 2.0,
-	3: 1.0,
-}
-
 func (ma *moveAction) applyDamageMove(bs battleState) {
 	crit := roll(1.0 / critRateMap[ma.move.CritRate])
-	damage := ma.calculateDamage(bs, crit, false)
+	damage := calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, crit, false)
 	target := ma.targetSlot.mon
 
 	log.Printf("%s took %d damage", target.Base.Name, int(damage))
@@ -120,10 +114,7 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 
 	target.Hp -= int(damage)
 	if target.Hp <= 0 {
-		target.Hp = 0
-		target.Fainted = true
-		bs.injectReplaceAction(ma.targetSlot, bs.getTrainer(ma.targetSlot), false)
-		log.Printf("%s fainted!", target.Base.Name)
+		ma.monFainted(bs, ma.targetSlot)
 	}
 
 	if _, ok := pivotMoves[ma.move.Name]; ok {
@@ -134,64 +125,8 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 	}
 }
 
-func (ma *moveAction) calculateDamage(bs battleState, crit bool, max bool) int {
-	user := ma.userSlot.mon
-	target := ma.targetSlot.mon
-	move := ma.move
-	stab := ma.userSlot.mon.HasType(ma.move.Type)
-
-	var offensiveStat, defensiveStat int
-	if move.Class == "physical" {
-		offensiveStat = user.EffectiveStat("attack", crit)
-		defensiveStat = target.EffectiveStat("defense", crit)
-	} else {
-		offensiveStat = user.EffectiveStat("special-attack", crit)
-		defensiveStat = target.EffectiveStat("special-defense", crit)
-	}
-
-	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
-
-	numerator := 1
-	denominator := 1
-
-	if stab {
-		numerator *= 3
-		denominator *= 2
-	}
-
-	if crit {
-		numerator *= 3
-		denominator *= 2
-	}
-
-	applyType := func(mult float64) {
-		switch mult {
-		case 0:
-			numerator = 0
-			denominator = 1
-		case 0.5:
-			denominator *= 2
-		case 1:
-		case 2:
-			numerator *= 2
-		}
-	}
-
-	applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[0]))
-	if len(target.Base.Types) > 1 {
-		applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[1]))
-	}
-
-	if !max {
-		randFactor := rand.Intn(16) + 85
-		numerator *= randFactor
-		denominator *= 100
-	}
-
-	damage = damage * numerator / denominator
-	if damage < 1 {
-		damage = 1
-	}
-
-	return damage
+func (ma *moveAction) monFainted(bs battleState, slot *slot) {
+	slot.mon.Fainted = true
+	bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
+	log.Printf("%s fainted!", slot.mon.Base.Name)
 }

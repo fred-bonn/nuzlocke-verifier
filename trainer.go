@@ -29,7 +29,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		possibleActions = append(possibleActions, &moveAction{
 			userSlot:   slot,
 			targetSlot: opponentSlot,
-			move:       move,
+			move:       &move,
 		})
 	}
 
