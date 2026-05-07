@@ -193,3 +193,7 @@ func (p *Pokemon) ApplyAilment(ailment string) error {
 	p.Ailments[ailment] = GenerateAilment(ailment)
 	return nil
 }
+
+func (p *Pokemon) ChangeHp(change int) {
+	p.Hp = min(p.Hp+change, p.Stats["hp"])
+}

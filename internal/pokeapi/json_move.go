@@ -79,7 +79,7 @@ func (mj moveJSON) toMove() BaseMove {
 		CritRate:      mj.Meta.CritRate,
 		Drain:         mj.Meta.Drain,
 		Heal:          mj.Meta.Heal,
-		FlinchChange:  mj.Meta.FlinchChance,
+		FlinchChance:  mj.Meta.FlinchChance,
 		Contact:       isContact,
 		Ailentment:    mj.Meta.Ailment.Name,
 		AilmentChance: ailmentChance,

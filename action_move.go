@@ -12,6 +12,7 @@ type moveAction struct {
 	userSlot   *slot
 	targetSlot *slot
 	move       *pokeapi.BaseMove
+	Flinch     bool
 }
 
 func (ma *moveAction) prio() int {
@@ -28,6 +29,11 @@ func (ma *moveAction) speed() int {
 
 func (ma *moveAction) invoke(bs battleState) {
 	if ma.userSlot.mon.Fainted {
+		return
+	}
+
+	if ma.Flinch {
+		log.Printf("%s flinched", ma.userSlot.mon.Base.Name)
 		return
 	}
 
@@ -111,10 +117,29 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 	if crit {
 		log.Printf("it was a critical hit!")
 	}
-
-	target.Hp -= int(damage)
+	target.ChangeHp(-damage)
 	if target.Hp <= 0 {
 		ma.monFainted(bs, ma.targetSlot)
+	}
+
+	if ma.move.Drain != 0 {
+		change := damage * ma.move.Drain / 100
+		ma.userSlot.mon.ChangeHp(change)
+		if change >= 0 {
+			log.Printf("%s healed for %d", ma.userSlot.mon.Base.Name, change)
+		} else {
+			log.Printf("%s took recoil for for %d", ma.userSlot.mon.Base.Name, -change)
+			if ma.userSlot.mon.Hp <= 0 {
+				ma.monFainted(bs, ma.userSlot)
+			}
+		}
+	}
+
+	if ma.move.FlinchChance > 0 && !target.Fainted {
+		target_ma := bs.getActions().getMoveActionBy(target)
+		if target_ma != nil && roll(float32(ma.move.FlinchChance)/100.0) {
+			target_ma.Flinch = true
+		}
 	}
 
 	if _, ok := pivotMoves[ma.move.Name]; ok {

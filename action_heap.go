@@ -50,3 +50,12 @@ func (aq *ActionQueue) containstSwitchTo(mon *pokemon.Pokemon) bool {
 	}
 	return false
 }
+
+func (aq *ActionQueue) getMoveActionBy(mon *pokemon.Pokemon) *moveAction {
+	for _, a := range *aq {
+		if ma, ok := a.(*moveAction); ok && mon == ma.userSlot.mon {
+			return ma
+		}
+	}
+	return nil
+}
