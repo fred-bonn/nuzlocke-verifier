@@ -37,6 +37,7 @@ func (sbs *singleBattleState) execute() {
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
 		log.Println("=====")
 		log.Printf("Turn %d:\n", k+1)
+		log.Printf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.Base.Name, sbs.activePlayerSlot.mon.Hp, sbs.activePlayerSlot.mon.Stats["hp"], sbs.activeOpponentSlot.mon.Base.Name, sbs.activeOpponentSlot.mon.Hp, sbs.activeOpponentSlot.mon.Stats["hp"])
 
 		sbs.gatherActions()
 		for sbs.actions.Len() > 0 {

@@ -22,31 +22,8 @@ var confusionMove = pokeapi.BaseMove{
 }
 
 func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokeapi.BaseMove, crit bool, max bool) int {
-	stab := user.HasType(move.Type)
-
-	var offensiveStat, defensiveStat int
-	if move.Class == "physical" {
-		offensiveStat = user.EffectiveStat("attack", crit)
-		defensiveStat = target.EffectiveStat("defense", crit)
-	} else {
-		offensiveStat = user.EffectiveStat("special-attack", crit)
-		defensiveStat = target.EffectiveStat("special-defense", crit)
-	}
-
-	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
-
 	numerator := 1
 	denominator := 1
-
-	if stab {
-		numerator *= 3
-		denominator *= 2
-	}
-
-	if crit {
-		numerator *= 3
-		denominator *= 2
-	}
 
 	applyType := func(mult float64) {
 		switch mult {
@@ -64,6 +41,32 @@ func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokea
 	applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[0]))
 	if len(target.Base.Types) > 1 {
 		applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[1]))
+	}
+	if numerator == 0 {
+		return 0
+	}
+
+	stab := user.HasType(move.Type)
+
+	var offensiveStat, defensiveStat int
+	if move.Class == "physical" {
+		offensiveStat = user.EffectiveStat("attack", crit)
+		defensiveStat = target.EffectiveStat("defense", crit)
+	} else {
+		offensiveStat = user.EffectiveStat("special-attack", crit)
+		defensiveStat = target.EffectiveStat("special-defense", crit)
+	}
+
+	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
+
+	if stab {
+		numerator *= 3
+		denominator *= 2
+	}
+
+	if crit {
+		numerator *= 3
+		denominator *= 2
 	}
 
 	if !max {

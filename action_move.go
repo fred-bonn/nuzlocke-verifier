@@ -109,14 +109,19 @@ func (ma *moveAction) applySwagger(bs battleState, target *pokemon.Pokemon) {
 }
 
 func (ma *moveAction) applyDamageMove(bs battleState) {
+	target := ma.targetSlot.mon
 	crit := roll(1.0 / critRateMap[ma.move.CritRate])
 	damage := calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, crit, false)
-	target := ma.targetSlot.mon
+	if damage == 0 {
+		log.Printf("it does not affect %s", target.Base.Name)
+	}
+	damage = min(damage, target.Hp)
 
 	log.Printf("%s took %d damage", target.Base.Name, int(damage))
 	if crit {
 		log.Printf("it was a critical hit!")
 	}
+
 	target.ChangeHp(-damage)
 	if target.Hp <= 0 {
 		ma.monFainted(bs, ma.targetSlot)
