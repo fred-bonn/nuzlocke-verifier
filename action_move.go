@@ -41,7 +41,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		if turns > 0 {
 			ma.userSlot.mon.Ailments["confusion"] -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
-			if roll(1.0 / 3.0) {
+			if roll(1, 3) {
 				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false)
 				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.Base.Name, damage)
 				ma.userSlot.mon.Hp -= int(damage)
@@ -57,8 +57,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	target := bs.getMon(ma.targetSlot)
-	hitChance := target.EffectiveEvasion() * ma.userSlot.mon.EffectiveAccuracy()
-	if ma.move.Accuracy != 0 && !roll(float32(ma.move.Accuracy)/100.0*hitChance) {
+	if ma.move.Accuracy > 0 && !accuracyRoll(ma.userSlot.mon, target, ma.move.Accuracy) {
 		log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
 		return
 	}
@@ -82,9 +81,15 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon) {
 		return
 	}
 
-	if ma.move.StatChance != 100 && !roll(float32(ma.move.StatChance/100)) {
+	if ma.move.StatChance != 100 && !roll(ma.move.StatChance, 100) {
 		log.Printf("missed")
 		return
+	}
+
+	if ma.move.Heal > 0 {
+		change := target.Stats["hp"] * ma.move.Heal / 100
+		ma.userSlot.mon.ChangeHp(change)
+		log.Printf("%s healed for %d", target.Base.Name, change)
 	}
 
 	for stat, change := range ma.move.StatChanges {
@@ -106,7 +111,10 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 	if target.Fainted {
 		return
 	}
-	crit := roll(1.0 / critRateMap[ma.move.CritRate])
+
+	critRate := ma.move.CritRate
+	crit := roll(1, critRateMap[critRate])
+
 	damage := calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, crit, false)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
@@ -124,7 +132,7 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 	}
 
 	if ma.move.Drain != 0 {
-		change := damage * ma.move.Drain / 100
+		change := max(1, damage*ma.move.Drain/100)
 		ma.userSlot.mon.ChangeHp(change)
 		if change >= 0 {
 			log.Printf("%s healed for %d", ma.userSlot.mon.Base.Name, change)
@@ -136,15 +144,15 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 		}
 	}
 
-	if ma.move.AilmentChance > 0 && !target.Fainted && roll(float32(ma.move.AilmentChance)/100.0) {
+	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
 		if ok := target.ApplyAilment(ma.move.Ailment); ok {
 			log.Printf("%s became afflicted with %s", target.Base.Name, ma.move.Ailment)
 		}
 	}
 
-	if ma.move.FlinchChance > 0 && !target.Fainted {
+	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {
 		target_ma := bs.getActions().getMoveActionBy(target)
-		if target_ma != nil && roll(float32(ma.move.FlinchChance)/100.0) {
+		if target_ma != nil {
 			target_ma.Flinch = true
 		}
 	}

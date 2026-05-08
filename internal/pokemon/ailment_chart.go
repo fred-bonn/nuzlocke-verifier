@@ -10,17 +10,23 @@ var validAilments = map[string]struct{}{
 	"toxic":     {},
 	"burn":      {},
 	"freeze":    {},
-	"sleep":     {},
 	"confusion": {},
 	"trap":      {},
+	"bound":     {},
 }
 
-var NonVolatileStatuses = map[string]struct{}{
+var nonVolatileStatuses = map[string]struct{}{
 	"paralysis": {},
 	"poison":    {},
 	"toxic":     {},
 	"burn":      {},
 	"freeze":    {},
+}
+
+var volatileStatuses = map[string]struct{}{
+	"confusion": {},
+	"trap":      {},
+	"bound":     {},
 }
 
 func GenerateAilment(ailment string) int {
@@ -36,11 +42,4 @@ func GenerateAilment(ailment string) int {
 
 func GenerateTrap(low, high int) int {
 	return rand.Intn(high-low+1) + low
-}
-
-func ValidAilment(ailment string) bool {
-	if _, ok := validAilments[ailment]; ok {
-		return true
-	}
-	return false
 }

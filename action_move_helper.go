@@ -7,11 +7,11 @@ import (
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
-var critRateMap = map[int]float32{
-	0: 16.0,
-	1: 8.0,
-	2: 2.0,
-	3: 1.0,
+var critRateMap = map[int]int{
+	0: 16,
+	1: 8,
+	2: 2,
+	3: 1,
 }
 
 var confusionMove = pokeapi.BaseMove{
@@ -21,7 +21,7 @@ var confusionMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokeapi.BaseMove, crit bool, max bool) int {
+func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
 	numerator := 1
 	denominator := 1
 
@@ -73,20 +73,25 @@ func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokea
 		denominator *= 2
 	}
 
-	if !max {
+	if !maxRoll {
 		randFactor := rand.Intn(16) + 85
 		numerator *= randFactor
 		denominator *= 100
 	}
 
-	damage = damage * numerator / denominator
-	if damage < 1 {
-		damage = 1
-	}
+	damage = max(1, damage*numerator/denominator)
 
 	return damage
 }
 
-func roll(chance float32) bool {
-	return rand.Float32() < chance
+func roll(numerator int, denominator int) bool {
+	return rand.Intn(denominator) < numerator
+}
+
+func accuracyRoll(user *pokemon.Pokemon, target *pokemon.Pokemon, moveAccuracy int) bool {
+	accNum, accDen := user.AccuracyFraction()
+	evNum, evDen := target.EvasionFraction()
+	numerator := moveAccuracy * accNum * evNum
+	denominator := 100 * accDen * evDen
+	return roll(numerator, denominator)
 }

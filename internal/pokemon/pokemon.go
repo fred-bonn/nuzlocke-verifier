@@ -67,8 +67,7 @@ func InitializePokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, 
 
 	res.Hp = max(1, min(res.Stats["hp"], hp))
 
-	_, ok := validAilments[status]
-	if ok && status != "" {
+	if _, ok := nonVolatileStatuses[status]; ok {
 		res.Ailments[status] = GenerateAilment(status)
 	}
 
@@ -149,30 +148,33 @@ func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) EffectiveEvasion() float32 {
+func (p *Pokemon) EvasionFraction() (int, int) {
 	stage := p.Stages["evasion"]
 	if stage == 0 {
-		return 1.0
+		return 3, 3
 	} else if stage > 0 {
-		return float32(3.0 / (3.0 + float32(stage)))
+		return 3, 3 + stage
 	}
-	return float32((3.0 - float32(stage)) / 3.0)
+	return 3 - stage, 3
 }
 
-func (p *Pokemon) EffectiveAccuracy() float32 {
+func (p *Pokemon) AccuracyFraction() (int, int) {
 	stage := p.Stages["accuracy"]
 	if stage == 0 {
-		return 1.0
+		return 3, 3
 	} else if stage > 0 {
-		return float32((3.0 + float32(stage)) / 3.0)
+		return 3 + stage, 3
 	}
-	return float32(3.0 / (3.0 - float32(stage)))
+	return 3, 3 - stage
 }
 
 func (p *Pokemon) SwitchReset() {
 	delete(p.Ailments, "confusion")
 	for stat := range p.Stages {
 		p.Stages[stat] = 0
+	}
+	if _, ok := p.Ailments["toxic"]; ok {
+		p.Ailments["toxic"] = 0
 	}
 }
 
@@ -194,7 +196,7 @@ func (p *Pokemon) ApplyAilment(ailment string) bool {
 	}
 
 	for a := range p.Ailments {
-		if _, ok := NonVolatileStatuses[a]; ok {
+		if _, ok := nonVolatileStatuses[a]; ok {
 			return false
 		}
 	}

@@ -28,7 +28,7 @@ type moveJSON struct {
 		CritRate     int `json:"crit_rate"`
 		Drain        int `json:"drain"`
 		FlinchChance int `json:"flinch_chance"`
-		Heal         int `json:"heal"`
+		Heal         int `json:"healing"`
 		MaxHits      int `json:"max_hits"`
 		MaxTurns     int `json:"max_turns"`
 		MinHits      int `json:"min_hits"`
