@@ -12,6 +12,15 @@ var validAilments = map[string]struct{}{
 	"freeze":    {},
 	"sleep":     {},
 	"confusion": {},
+	"trap":      {},
+}
+
+var NonVolatileStatuses = map[string]struct{}{
+	"paralysis": {},
+	"poison":    {},
+	"toxic":     {},
+	"burn":      {},
+	"freeze":    {},
 }
 
 func GenerateAilment(ailment string) int {

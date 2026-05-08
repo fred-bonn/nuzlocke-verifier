@@ -78,7 +78,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon) {
 	if ma.move.Category == "swagger" {
-		ma.applySwagger(bs, target)
+		ma.applySwagger(target)
 		return
 	}
 
@@ -93,23 +93,19 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon) {
 	}
 }
 
-func (ma *moveAction) applySwagger(bs battleState, target *pokemon.Pokemon) {
-	err := target.ChangeStatStage("attack", 2)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	err = target.ApplyAilment("confusion")
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
+func (ma *moveAction) applySwagger(target *pokemon.Pokemon) {
+	target.ChangeStatStage("attack", 2)
 	log.Printf("%s's attack changed by 2 stages (%d)", target.Base.Name, target.Stages["attack"])
-	log.Printf("%s became confused", target.Base.Name)
+	if ok := target.ApplyAilment("confusion"); ok {
+		log.Printf("%s became afflicted with confusion", target.Base.Name)
+	}
 }
 
 func (ma *moveAction) applyDamageMove(bs battleState) {
 	target := ma.targetSlot.mon
+	if target.Fainted {
+		return
+	}
 	crit := roll(1.0 / critRateMap[ma.move.CritRate])
 	damage := calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, crit, false)
 	if damage == 0 {
@@ -140,6 +136,12 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 		}
 	}
 
+	if ma.move.AilmentChance > 0 && !target.Fainted && roll(float32(ma.move.AilmentChance)/100.0) {
+		if ok := target.ApplyAilment(ma.move.Ailment); ok {
+			log.Printf("%s became afflicted with %s", target.Base.Name, ma.move.Ailment)
+		}
+	}
+
 	if ma.move.FlinchChance > 0 && !target.Fainted {
 		target_ma := bs.getActions().getMoveActionBy(target)
 		if target_ma != nil && roll(float32(ma.move.FlinchChance)/100.0) {
@@ -148,8 +150,7 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 	}
 
 	if _, ok := pivotMoves[ma.move.Name]; ok {
-		trainer := bs.getTrainer(ma.userSlot)
-		if trainer.canReplace(bs) {
+		if trainer := bs.getTrainer(ma.userSlot); trainer.canReplace(bs) {
 			bs.injectReplaceAction(ma.userSlot, trainer, true)
 		}
 	}

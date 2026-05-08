@@ -21,7 +21,7 @@ type BaseMove struct {
 	Heal          int
 	FlinchChance  int
 	Contact       bool
-	Ailentment    string
+	Ailment       string
 	AilmentChance int
 	MaxHits       int
 	MinHits       int

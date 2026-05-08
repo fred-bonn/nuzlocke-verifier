@@ -69,6 +69,10 @@ func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokea
 		denominator *= 2
 	}
 
+	if move.Class == "physical" && user.HasAilment("burn") {
+		denominator *= 2
+	}
+
 	if !max {
 		randFactor := rand.Intn(16) + 85
 		numerator *= randFactor

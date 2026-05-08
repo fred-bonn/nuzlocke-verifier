@@ -119,17 +119,16 @@ func (p *Pokemon) String() string {
 	return fmt.Sprintf("%s (Level %d) - HP: %d/%d\nNature: (%s,%s)\n%s\n%s\n%s\n%s", p.Base.Name, p.Level, p.Hp, p.Stats["hp"], p.Nature[0], p.Nature[1], status, ivs, stats, stages)
 }
 
-func (p *Pokemon) ChangeStatStage(stat string, change int) error {
+func (p *Pokemon) ChangeStatStage(stat string, change int) {
 	if _, ok := p.Stages[stat]; !ok {
-		return fmt.Errorf("invalid stat: %s", stat)
+		panic("invalid stat")
 	}
 	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
-	return nil
 }
 
 func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	if _, ok := p.Stages[stat]; !ok {
-		panic("invalid stat, make this more robust later?")
+		panic("invalid stat")
 	}
 
 	stage := p.Stages[stat]
@@ -186,12 +185,29 @@ func (p *Pokemon) HasType(typeName string) bool {
 	return false
 }
 
-func (p *Pokemon) ApplyAilment(ailment string) error {
+func (p *Pokemon) ApplyAilment(ailment string) bool {
 	if _, ok := validAilments[ailment]; !ok {
-		return fmt.Errorf("invalid ailment: %s", ailment)
+		panic("invalid ailment")
 	}
+	if _, ok := p.Ailments[ailment]; ok {
+		return false
+	}
+
+	for a := range p.Ailments {
+		if _, ok := NonVolatileStatuses[a]; ok {
+			return false
+		}
+	}
+
 	p.Ailments[ailment] = GenerateAilment(ailment)
-	return nil
+	return true
+}
+
+func (p *Pokemon) HasAilment(ailment string) bool {
+	if _, ok := p.Ailments[ailment]; ok {
+		return true
+	}
+	return false
 }
 
 func (p *Pokemon) ChangeHp(change int) {

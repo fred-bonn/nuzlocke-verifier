@@ -61,6 +61,7 @@ func (mj moveJSON) toMove() BaseMove {
 		ailmentChance = 100
 	} else {
 		statChance = mj.Meta.StatChance
+		ailmentChance = mj.Meta.AilmentChance
 	}
 
 	if contactMoves == nil {
@@ -81,7 +82,7 @@ func (mj moveJSON) toMove() BaseMove {
 		Heal:          mj.Meta.Heal,
 		FlinchChance:  mj.Meta.FlinchChance,
 		Contact:       isContact,
-		Ailentment:    mj.Meta.Ailment.Name,
+		Ailment:       mj.Meta.Ailment.Name,
 		AilmentChance: ailmentChance,
 		MaxHits:       mj.Meta.MaxHits,
 		MinHits:       mj.Meta.MinHits,
