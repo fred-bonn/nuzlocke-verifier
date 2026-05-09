@@ -44,6 +44,11 @@ func (sbs *singleBattleState) execute() {
 			action := heap.Pop(sbs.actions).(action)
 			action.invoke(sbs)
 		}
+		resolveEndOfTurn(sbs)
+		for sbs.actions.Len() > 0 {
+			action := heap.Pop(sbs.actions).(action)
+			action.invoke(sbs)
+		}
 	}
 	log.Println("=====")
 	log.Println("Ending battle...")
@@ -78,6 +83,13 @@ func (sbs *singleBattleState) getTrainer(slot *slot) *trainer {
 
 func (sbs *singleBattleState) getActions() *ActionQueue {
 	return sbs.actions
+}
+
+func (sbs *singleBattleState) getAllSlots() []*slot {
+	return []*slot{
+		sbs.activePlayerSlot,
+		sbs.activeOpponentSlot,
+	}
 }
 
 func initSingleBattleState(player, opponent trainer) (*singleBattleState, error) {

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"log"
+
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type battleState interface {
 	setMon(old, new *pokemon.Pokemon)
 	getMon(slot *slot) *pokemon.Pokemon
+	getAllSlots() []*slot
 	getOtherSlots(slot *slot) []*slot
 	injectReplaceAction(slot *slot, trainer *trainer, midTurn bool)
 	getTrainer(slot *slot) *trainer
@@ -17,4 +20,44 @@ type battleState interface {
 
 type slot struct {
 	mon *pokemon.Pokemon
+}
+
+func resolveEndOfTurn(bs battleState) {
+	for _, slot := range bs.getAllSlots() {
+		for ailment := range slot.mon.Ailments {
+			switch ailment {
+			case "burn":
+				takeResidualDamage(bs, slot, ailment, 1, 16)
+			case "poison":
+				takeResidualDamage(bs, slot, ailment, 1, 8)
+			case "toxic":
+				slot.mon.Ailments[ailment]++
+				takeResidualDamage(bs, slot, ailment, slot.mon.Ailments[ailment], 16)
+			case "bound", "trap":
+				slot.mon.Ailments[ailment]--
+				if ailment == "bound" {
+					takeResidualDamage(bs, slot, ailment, 1, 8)
+				}
+				if slot.mon.Ailments[ailment] == 0 {
+					log.Printf("%s was freed", slot.mon.Base.Name)
+					delete(slot.mon.Ailments, ailment)
+				}
+			}
+		}
+	}
+}
+
+func takeResidualDamage(bs battleState, slot *slot, ailment string, num, den int) {
+	if slot.mon.Fainted {
+		return
+	}
+
+	log.Printf("%s took damage from %s", slot.mon.Base.Name, ailment)
+	change := slot.mon.Stats["hp"] * num / den
+	slot.mon.ChangeHp(-change)
+	if slot.mon.Hp <= 0 {
+		slot.mon.Fainted = true
+		bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
+		log.Printf("%s fainted!", slot.mon.Base.Name)
+	}
 }

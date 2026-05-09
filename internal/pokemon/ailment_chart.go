@@ -10,6 +10,7 @@ var validAilments = map[string]struct{}{
 	"toxic":     {},
 	"burn":      {},
 	"freeze":    {},
+	"sleep":     {},
 	"confusion": {},
 	"trap":      {},
 	"bound":     {},
@@ -21,6 +22,7 @@ var nonVolatileStatuses = map[string]struct{}{
 	"toxic":     {},
 	"burn":      {},
 	"freeze":    {},
+	"sleep":     {},
 }
 
 var volatileStatuses = map[string]struct{}{

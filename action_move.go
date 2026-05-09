@@ -32,6 +32,27 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
+	if _, ok := ma.userSlot.mon.Ailments["freeze"]; ok {
+		if roll(1, 5) {
+			log.Printf("%s thawed out", ma.userSlot.mon.Base.Name)
+			delete(ma.userSlot.mon.Ailments, "freeze")
+		} else {
+			log.Printf("%s is frozen", ma.userSlot.mon.Base.Name)
+			return
+		}
+	}
+
+	if turns, ok := ma.userSlot.mon.Ailments["sleep"]; ok {
+		if turns == 0 {
+			log.Printf("%s woke up", ma.userSlot.mon.Base.Name)
+			delete(ma.userSlot.mon.Ailments, "sleep")
+		} else {
+			ma.userSlot.mon.Ailments["sleep"] -= 1
+			log.Printf("%s is asleep", ma.userSlot.mon.Base.Name)
+			return
+		}
+	}
+
 	if ma.Flinch {
 		log.Printf("%s flinched", ma.userSlot.mon.Base.Name)
 		return

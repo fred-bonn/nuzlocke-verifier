@@ -19,13 +19,13 @@ func (ra *replaceAction) speed() int {
 	return ra.oldSlot.mon.EffectiveStat("speed", false)
 }
 
-func (ra *replaceAction) invoke(sbs battleState) {
-	mon := ra.trainer.selectSwitchIn(sbs, ra.oldSlot)
+func (ra *replaceAction) invoke(bs battleState) {
+	mon := ra.trainer.selectSwitchIn(bs, ra.oldSlot)
 	if mon == nil {
 		return
 	}
 
 	ra.oldSlot.mon.SwitchReset()
-	sbs.setMon(ra.oldSlot.mon, mon)
+	bs.setMon(ra.oldSlot.mon, mon)
 	log.Printf("%s was sent out", mon.Base.Name)
 }
