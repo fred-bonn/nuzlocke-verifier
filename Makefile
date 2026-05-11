@@ -1,4 +1,4 @@
-OUT_PATH=./out
+OUT_PATH=./bin/myprog
 
 all: run
 
@@ -10,3 +10,6 @@ build: test
 
 run: build
 	$(OUT_PATH) data/player.txt data/rnb_calvin.txt
+
+verbose: build
+	$(OUT_PATH) -v data/player.txt data/rnb_calvin.txt

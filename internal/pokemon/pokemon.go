@@ -194,10 +194,20 @@ func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) bool {
 	if _, ok := p.Ailments[ailment]; ok {
 		return false
 	}
-
-	for a := range p.Ailments {
-		if _, ok := nonVolatileStatuses[a]; ok {
+	if _, ok := nonVolatileStatuses[ailment]; ok {
+		if ailment == "burn" && p.HasType("fire") {
 			return false
+		}
+		if ailment == "paralysis" && p.HasType("electric") {
+			return false
+		}
+		if (ailment == "toxic" || ailment == "poison") && p.HasType("poison") {
+			return false
+		}
+		for a := range p.Ailments {
+			if _, ok := nonVolatileStatuses[a]; ok {
+				return false
+			}
 		}
 	}
 
@@ -205,7 +215,9 @@ func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) bool {
 		p.Ailments[ailment] = GenerateTrap(move.MinTurns, move.MaxTurns)
 		return true
 	}
-
+	if ailment == "poison" && (move.Name == "toxic" || move.Name == "poison-fang") {
+		ailment = "toxic"
+	}
 	p.Ailments[ailment] = GenerateAilment(ailment)
 	return true
 }

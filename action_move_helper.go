@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
@@ -111,4 +112,10 @@ func determineHits(move *pokeapi.BaseMove) int {
 		}
 	}
 	return move.MaxHits
+}
+
+func monFainted(bs battleState, slot *slot) {
+	slot.mon.Fainted = true
+	bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
+	log.Printf("%s fainted!", slot.mon.Base.Name)
 }
