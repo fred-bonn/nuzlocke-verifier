@@ -22,6 +22,16 @@ type slot struct {
 	mon *pokemon.Pokemon
 }
 
+func (s *slot) isTrapped() bool {
+	if _, ok := s.mon.Ailments["bound"]; ok {
+		return true
+	}
+	if _, ok := s.mon.Ailments["trap"]; ok {
+		return true
+	}
+	return false
+}
+
 func resolveEndOfTurn(bs battleState) {
 	for _, slot := range bs.getAllSlots() {
 		for ailment := range slot.mon.Ailments {
@@ -33,11 +43,9 @@ func resolveEndOfTurn(bs battleState) {
 			case "toxic":
 				slot.mon.Ailments[ailment]++
 				takeResidualDamage(bs, slot, ailment, slot.mon.Ailments[ailment], 16)
-			case "bound", "trap":
+			case "trap":
 				slot.mon.Ailments[ailment]--
-				if ailment == "bound" {
-					takeResidualDamage(bs, slot, ailment, 1, 8)
-				}
+				takeResidualDamage(bs, slot, ailment, 1, 8)
 				if slot.mon.Ailments[ailment] == 0 {
 					log.Printf("%s was freed", slot.mon.Base.Name)
 					delete(slot.mon.Ailments, ailment)

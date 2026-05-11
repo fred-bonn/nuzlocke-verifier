@@ -12,6 +12,7 @@ var critRateMap = map[int]int{
 	1: 8,
 	2: 2,
 	3: 1,
+	6: 1,
 }
 
 var confusionMove = pokeapi.BaseMove{
@@ -94,4 +95,20 @@ func accuracyRoll(user *pokemon.Pokemon, target *pokemon.Pokemon, moveAccuracy i
 	numerator := moveAccuracy * accNum * evNum
 	denominator := 100 * accDen * evDen
 	return roll(numerator, denominator)
+}
+
+func determineHits(move *pokeapi.BaseMove) int {
+	if move.MaxHits == 5 && move.MinHits == 2 {
+		r := rand.Intn(100) + 1
+		if r <= 35 {
+			return 2
+		} else if r <= 70 {
+			return 3
+		} else if r <= 85 {
+			return 4
+		} else {
+			return 5
+		}
+	}
+	return move.MaxHits
 }

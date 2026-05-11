@@ -187,7 +187,7 @@ func (p *Pokemon) HasType(typeName string) bool {
 	return false
 }
 
-func (p *Pokemon) ApplyAilment(ailment string) bool {
+func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) bool {
 	if _, ok := validAilments[ailment]; !ok {
 		panic("invalid ailment")
 	}
@@ -199,6 +199,11 @@ func (p *Pokemon) ApplyAilment(ailment string) bool {
 		if _, ok := nonVolatileStatuses[a]; ok {
 			return false
 		}
+	}
+
+	if ailment == "trap" {
+		p.Ailments[ailment] = GenerateTrap(move.MinTurns, move.MaxTurns)
+		return true
 	}
 
 	p.Ailments[ailment] = GenerateAilment(ailment)

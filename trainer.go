@@ -16,14 +16,16 @@ type trainer struct {
 func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	possibleActions := make([]action, 0)
 	opponentSlot := bs.getOtherSlots(slot)[0] // only works for single battles for now
-	for _, mon := range t.pokemonParty {
-		if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
-			continue
+	if !slot.isTrapped() {
+		for _, mon := range t.pokemonParty {
+			if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
+				continue
+			}
+			possibleActions = append(possibleActions, &switchAction{
+				oldSlot: slot,
+				new:     mon,
+			})
 		}
-		possibleActions = append(possibleActions, &switchAction{
-			oldSlot: slot,
-			new:     mon,
-		})
 	}
 	for _, move := range slot.mon.Moves {
 		possibleActions = append(possibleActions, &moveAction{
@@ -78,5 +80,41 @@ func (ra randomAi) evaluateActions(bs battleState, actions []action) action {
 }
 
 func (ra randomAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon) *pokemon.Pokemon {
+	return mons[rand.Intn(len(mons))]
+}
+
+type rnbAi struct{}
+
+func (rnb rnbAi) evaluateActions(bs battleState, actions []action) action {
+	scores := make([]int, len(actions))
+
+	for i, action := range actions {
+		scores[i] = 0
+		switch a := action.(type) {
+		case *moveAction:
+			scores[i] = calculateDamage(a.userSlot.mon, a.targetSlot.mon, a.move, false, false)
+			if a.move.MaxHits == 0 {
+				continue
+			}
+			if a.move.MaxHits == 5 {
+				scores[i] *= 3
+			} else {
+				scores[i] *= a.move.MaxHits
+			}
+		case *switchAction:
+			scores[i] = 0
+		}
+	}
+
+	maxIndex := 0
+	for j := 1; j < len(scores); j++ {
+		if scores[j] > scores[maxIndex] {
+			maxIndex = j
+		}
+	}
+	return actions[maxIndex]
+}
+
+func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon) *pokemon.Pokemon {
 	return mons[rand.Intn(len(mons))]
 }
