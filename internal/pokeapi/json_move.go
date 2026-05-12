@@ -75,6 +75,7 @@ func (mj moveJSON) toMove() BaseMove {
 		Type:          mj.Type.Name,
 		Power:         mj.Power,
 		Accuracy:      mj.Accuracy,
+		PP:            mj.PP,
 		Class:         mj.DamageClass.Name,
 		Priority:      mj.Priority,
 		CritRate:      mj.Meta.CritRate,

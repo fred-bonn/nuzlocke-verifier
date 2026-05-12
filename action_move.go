@@ -53,10 +53,19 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
+	if _, ok := ma.userSlot.mon.Ailments["paralysis"]; ok {
+		if roll(1, 4) {
+			log.Printf("%s is paralysed", ma.userSlot.mon.Base.Name)
+			return
+		}
+	}
+
 	if ma.Flinch {
 		log.Printf("%s flinched", ma.userSlot.mon.Base.Name)
 		return
 	}
+
+	ma.move.PP--
 
 	if turns, ok := ma.userSlot.mon.Ailments["confusion"]; ok {
 		if turns > 0 {

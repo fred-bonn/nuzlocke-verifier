@@ -14,6 +14,7 @@ type BaseMove struct {
 	Type          string
 	Power         int
 	Accuracy      int
+	PP            int
 	Class         string
 	Priority      int
 	CritRate      int

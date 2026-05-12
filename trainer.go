@@ -28,6 +28,9 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		}
 	}
 	for _, move := range slot.mon.Moves {
+		if move.PP <= 0 {
+			continue
+		}
 		possibleActions = append(possibleActions, &moveAction{
 			userSlot:   slot,
 			targetSlot: opponentSlot,
