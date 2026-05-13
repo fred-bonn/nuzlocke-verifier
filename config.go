@@ -138,6 +138,10 @@ func (cfg *config) loadMove(name string) (pokeapi.BaseMove, error) {
 		writeToFile(fmt.Sprintf("data/moves/%s.json", name), data)
 	}
 
+	if mb, ok := pokemon.MoveBalanceMap[move.Name]; ok {
+		mb.Apply(&move)
+	}
+
 	return move, nil
 }
 
