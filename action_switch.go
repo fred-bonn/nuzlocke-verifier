@@ -24,3 +24,7 @@ func (sa *switchAction) prio() int {
 func (sa *switchAction) speed() int {
 	return sa.oldSlot.mon.EffectiveStat("speed", false)
 }
+
+func (sa *switchAction) score(bs battleState) (int, bool) {
+	return 0, false
+}

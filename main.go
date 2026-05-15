@@ -34,7 +34,7 @@ func main() {
 
 	sbs, err := initSingleBattleState(trainer{
 		pokemonParty: playerParty,
-		ai:           randomAi{},
+		ai:           rnbAi{},
 		player:       true,
 	}, trainer{
 		pokemonParty: opponentParty,

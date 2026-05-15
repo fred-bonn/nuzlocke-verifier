@@ -29,3 +29,7 @@ func (ra *replaceAction) invoke(bs battleState) {
 	bs.setMon(ra.oldSlot.mon, mon)
 	log.Printf("%s was sent out", mon.Base.Name)
 }
+
+func (ra *replaceAction) score(bs battleState) (int, bool) {
+	return 0, false
+}
