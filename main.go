@@ -38,7 +38,7 @@ func main() {
 		player:       true,
 	}, trainer{
 		pokemonParty: opponentParty,
-		ai:           randomAi{},
+		ai:           rnbAi{},
 	})
 	if err != nil {
 		log.Fatalf("error: failed initializing battle state: %s", err)

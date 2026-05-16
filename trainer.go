@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
@@ -116,18 +117,17 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAct
 			}
 			continue
 		}
-		if canHighestKill && !kill[i] {
-			scores[i] = 0
-			continue
-		}
-		if highestDamageIndex == -1 || damage[i] >= damage[highestDamageIndex] {
-			if highestDamageIndex != -1 {
-				scores[highestDamageIndex] = 0
-			}
+
+		if highestDamageIndex == -1 || (!canHighestKill && damage[i] > damage[highestDamageIndex]) {
 			highestDamageIndex = i
-			scores[i] = 6 + 2*rollInt(1, 5)
 		}
 	}
+
+	if highestDamageIndex != -1 && !canHighestKill {
+		scores[highestDamageIndex] = 6 + 2*rollInt(1, 5)
+	}
+
+	log.Println(scores)
 
 	maxScore := scores[0]
 	for _, score := range scores {
@@ -147,6 +147,68 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAct
 }
 
 func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, opponentSlot *slot) *pokemon.Pokemon {
-	// this should select a switch in smartly
-	return mons[rand.Intn(len(mons))]
+	scores := make([]int, len(mons))
+	opponent := opponentSlot.mon
+
+	for i, mon := range mons {
+		if mon.Base.Name == "ditto" || mon.Base.Name == "wobbufet" {
+			scores[i] = 2
+			continue
+		}
+
+		monSpeed := mon.EffectiveStat("speed", false)
+		opponentSpeed := opponent.EffectiveStat("speed", false)
+		outspeeds := monSpeed >= opponentSpeed
+
+		var monDamage, opponentDamage int
+		for _, move := range mon.Moves {
+			if move.PP > 0 && move.Class != "status" {
+				dmg := calculateDamage(mon, opponent, &move, move.CritRate >= 4, true)
+				if dmg > monDamage {
+					monDamage = dmg
+				}
+			}
+		}
+		for _, move := range opponent.Moves {
+			if move.PP > 0 && move.Class != "status" {
+				dmg := calculateDamage(opponent, mon, &move, move.CritRate >= 4, true)
+				if dmg > opponentDamage {
+					opponentDamage = dmg
+				}
+			}
+		}
+
+		killsOpponent := monDamage >= opponent.Hp
+		monKilled := opponentDamage >= mon.Hp
+
+		monDamagePercent := monDamage * 100 / opponent.Hp
+		opponentDamagePercent := opponentDamage * 100 / mon.Hp
+
+		if outspeeds && killsOpponent {
+			scores[i] = 5
+		} else if !outspeeds && killsOpponent && !monKilled {
+			scores[i] = 4
+		} else if outspeeds && monDamagePercent > opponentDamagePercent {
+			scores[i] = 3
+		} else if !outspeeds && monDamagePercent > opponentDamagePercent {
+			scores[i] = 2
+		} else if outspeeds {
+			scores[i] = 1
+		} else if !outspeeds && monKilled {
+			scores[i] = -1
+		}
+	}
+
+	maxScore := scores[0]
+	bestIndex := 0
+	for i := 1; i < len(scores); i++ {
+		if scores[i] > maxScore {
+			maxScore = scores[i]
+			bestIndex = i
+		}
+	}
+
+	log.Println(scores[bestIndex])
+
+	return mons[bestIndex]
 }
