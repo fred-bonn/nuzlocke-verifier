@@ -96,7 +96,7 @@ type rnbAi struct{}
 func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAction {
 	scores := make([]int, len(actions))
 	damage := make([]int, len(actions))
-	kill := make([]bool, len(actions))
+	kills := false
 	highestDamageIndex := -1
 	canHighestKill := false
 
@@ -106,8 +106,8 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAct
 			continue
 		}
 
-		damage[i], kill[i] = action.score(bs)
-		if kill[i] {
+		damage[i], kills = action.score(bs)
+		if kills {
 			canHighestKill = true
 			highestDamageIndex = i
 			if action.move.Priority > 0 || action.userSlot.mon.EffectiveStat("speed", false) >= action.targetSlot.mon.EffectiveStat("speed", false) {
