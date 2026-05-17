@@ -148,6 +148,19 @@ func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
+func (p *Pokemon) EffectiveSpeed() int {
+	stage := p.Stages["speed"]
+	base := p.Stats["speed"]
+	if _, ok := p.Ailments["paralysis"]; ok {
+		base = base / 4
+	}
+
+	if stage >= 0 {
+		return base * (2 + stage) / 2
+	}
+	return base * 2 / (2 - stage)
+}
+
 func (p *Pokemon) EvasionFraction() (int, int) {
 	stage := p.Stages["evasion"]
 	if stage == 0 {
