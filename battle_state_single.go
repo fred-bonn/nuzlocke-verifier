@@ -4,8 +4,6 @@ import (
 	"container/heap"
 	"fmt"
 	"log"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type singleBattleState struct {
@@ -14,21 +12,6 @@ type singleBattleState struct {
 	player             *trainer
 	opponent           *trainer
 	actions            *ActionQueue
-}
-
-func (sbs *singleBattleState) setMon(old, new *pokemon.Pokemon) {
-	if old == sbs.activePlayerSlot.mon {
-		sbs.activePlayerSlot.mon = new
-	} else {
-		sbs.activeOpponentSlot.mon = new
-	}
-}
-
-func (sbs *singleBattleState) getMon(slot *slot) *pokemon.Pokemon {
-	if slot == sbs.activePlayerSlot {
-		return sbs.activePlayerSlot.mon
-	}
-	return sbs.activeOpponentSlot.mon
 }
 
 func (sbs *singleBattleState) execute() {
@@ -98,10 +81,16 @@ func initSingleBattleState(player, opponent trainer) (*singleBattleState, error)
 	}
 
 	return &singleBattleState{
-		activePlayerSlot:   &slot{mon: player.pokemonParty[0]},
-		activeOpponentSlot: &slot{mon: opponent.pokemonParty[0]},
-		player:             &player,
-		opponent:           &opponent,
-		actions:            &ActionQueue{},
+		activePlayerSlot: &slot{
+			mon:       player.pokemonParty[0],
+			firstTurn: true,
+		},
+		activeOpponentSlot: &slot{
+			mon:       opponent.pokemonParty[0],
+			firstTurn: true,
+		},
+		player:   &player,
+		opponent: &opponent,
+		actions:  &ActionQueue{},
 	}, nil
 }

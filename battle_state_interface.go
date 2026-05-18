@@ -7,8 +7,6 @@ import (
 )
 
 type battleState interface {
-	setMon(old, new *pokemon.Pokemon)
-	getMon(slot *slot) *pokemon.Pokemon
 	getAllSlots() []*slot
 	getOtherSlots(slot *slot) []*slot
 	injectReplaceAction(slot *slot, trainer *trainer, midTurn bool)
@@ -19,7 +17,14 @@ type battleState interface {
 }
 
 type slot struct {
-	mon *pokemon.Pokemon
+	mon       *pokemon.Pokemon
+	firstTurn bool
+}
+
+func (s *slot) setMon(new *pokemon.Pokemon) {
+	s.mon.SwitchReset()
+	s.firstTurn = true
+	s.mon = new
 }
 
 func (s *slot) isTrapped() bool {

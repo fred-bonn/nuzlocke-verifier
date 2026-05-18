@@ -32,6 +32,8 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
+	ma.userSlot.firstTurn = false
+
 	if _, ok := ma.userSlot.mon.Ailments["freeze"]; ok {
 		if roll(1, 5) {
 			log.Printf("%s thawed out", ma.userSlot.mon.Base.Name)
@@ -86,7 +88,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	target := bs.getMon(ma.targetSlot)
+	target := ma.targetSlot.mon
 	if ma.move.Accuracy > 0 && !accuracyRoll(ma.userSlot.mon, target, ma.move.Accuracy) {
 		log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
 		return

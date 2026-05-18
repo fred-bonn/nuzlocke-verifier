@@ -148,6 +148,10 @@ func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
+func (p *Pokemon) IsFasterThan(mon *Pokemon) bool {
+	return p.EffectiveSpeed() >= mon.EffectiveSpeed()
+}
+
 func (p *Pokemon) EffectiveSpeed() int {
 	stage := p.Stages["speed"]
 	base := p.Stats["speed"]

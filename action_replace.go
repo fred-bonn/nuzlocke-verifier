@@ -25,7 +25,6 @@ func (ra *replaceAction) invoke(bs battleState) {
 		return
 	}
 
-	ra.oldSlot.mon.SwitchReset()
-	bs.setMon(ra.oldSlot.mon, mon)
+	ra.oldSlot.setMon(mon)
 	log.Printf("%s was sent out", mon.Base.Name)
 }

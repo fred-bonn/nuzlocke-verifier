@@ -12,6 +12,7 @@ type rnbAi struct{}
 func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAction {
 	scores := make([]int, len(actions))
 	damage := make([]int, len(actions))
+	fastDeadTo := make(map[string]bool)
 	kills := false
 	highestDamageIndex := -1
 	canHighestKill := false
@@ -22,14 +23,46 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAct
 			continue
 		}
 
+		isFastDead := false
+		if deadTo, ok := fastDeadTo[action.targetSlot.mon.Base.Name]; ok && deadTo && action.move.Priority > 0 && action.targetSlot.mon.IsFasterThan(action.userSlot.mon) {
+			isFastDead = true
+		} else {
+			for _, move := range action.targetSlot.mon.Moves {
+				if move.PP > 0 && move.Class != "status" {
+					dmg := calculateDamage(action.targetSlot.mon, action.userSlot.mon, &move, move.CritRate >= 4, true)
+					if action.userSlot.mon.Hp <= dmg {
+						isFastDead = true
+						fastDeadTo[action.targetSlot.mon.Base.Name] = true
+						break
+					}
+				}
+			}
+			fastDeadTo[action.targetSlot.mon.Base.Name] = false
+		}
+
 		damage[i], kills = action.score(bs)
+
+		if action.move.Name == "fake-out" {
+			if action.userSlot.firstTurn {
+				scores[i] = 9
+			} else {
+				scores[i] = -20
+				continue
+			}
+		} else if action.move.Name == "first-impression" && !action.userSlot.firstTurn {
+			scores[i] = -20
+			continue
+		} else if action.move.Priority > 0 && isFastDead && action.userSlot.mon.EffectiveSpeed() < action.targetSlot.mon.EffectiveSpeed() {
+			scores[i] = 9
+		}
+
 		if kills {
 			canHighestKill = true
 			highestDamageIndex = i
 			if action.move.Priority > 0 || action.userSlot.mon.EffectiveSpeed() >= action.targetSlot.mon.EffectiveSpeed() {
-				scores[i] = 12 + 2*rollInt(1, 5)
+				scores[i] += 12 + 2*rollInt(1, 5)
 			} else {
-				scores[i] = 9 + 2*rollInt(1, 5)
+				scores[i] += 9 + 2*rollInt(1, 5)
 			}
 			continue
 		} else if _, ok := action.targetSlot.mon.Ailments["trap"]; !ok && action.move.Ailment == "trap" {
@@ -42,7 +75,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) *moveAct
 	}
 
 	if highestDamageIndex != -1 && !canHighestKill {
-		scores[highestDamageIndex] = 6 + 2*rollInt(1, 5)
+		scores[highestDamageIndex] += 6 + 2*rollInt(1, 5)
 	}
 
 	log.Println(scores)
