@@ -15,20 +15,6 @@ type trainer struct {
 
 func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	opponentSlot := bs.getOtherSlots(slot)[0] // only works for single battles for now
-	willSwitch := roll(1, 3) && slot.mon.Hp > slot.mon.Stats["hp"]/2 && bs.getTrainer(slot).canReplace(bs)
-	if willSwitch && !slot.isTrapped() {
-		var possibleMons []*pokemon.Pokemon
-		for _, mon := range t.pokemonParty {
-			if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
-				continue
-			}
-			possibleMons = append(possibleMons, mon)
-		}
-		return &switchAction{
-			oldSlot: slot,
-			new:     t.ai.evaluteSwitchIns(bs, possibleMons, opponentSlot),
-		}
-	}
 
 	possibleActions := make([]*moveAction, 0)
 	for _, move := range slot.mon.Moves {
@@ -42,7 +28,25 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		})
 	}
 
-	return t.ai.evaluateActions(bs, possibleActions)
+	action, score := t.ai.evaluateActions(bs, possibleActions)
+	if score > 0 {
+		return action
+	}
+	if roll(1, 2) || slot.mon.Hp <= slot.mon.Stats["hp"]/2 || !bs.getTrainer(slot).canReplace(bs) || slot.isTrapped() {
+		return action
+	}
+
+	var possibleMons []*pokemon.Pokemon
+	for _, mon := range t.pokemonParty {
+		if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
+			continue
+		}
+		possibleMons = append(possibleMons, mon)
+	}
+	return &switchAction{
+		oldSlot: slot,
+		new:     t.ai.evaluteSwitchIns(bs, possibleMons, opponentSlot),
+	}
 }
 
 func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *pokemon.Pokemon {
@@ -76,14 +80,14 @@ func (t *trainer) canReplace(bs battleState) bool {
 }
 
 type ai interface {
-	evaluateActions(bs battleState, actions []*moveAction) *moveAction
+	evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int)
 	evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, opponentSlot *slot) *pokemon.Pokemon
 }
 
 type randomAi struct{}
 
-func (ra randomAi) evaluateActions(bs battleState, actions []*moveAction) *moveAction {
-	return actions[rand.Intn(len(actions))]
+func (ra randomAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int) {
+	return actions[rand.Intn(len(actions))], 1
 }
 
 func (ra randomAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, opponentSlot *slot) *pokemon.Pokemon {

@@ -180,7 +180,14 @@ func (ma *moveAction) resolveDamage(bs battleState, target *pokemon.Pokemon) boo
 	}
 
 	if ma.move.Drain != 0 {
-		change := max(1, damage*ma.move.Drain/100)
+		change := damage * ma.move.Drain / 100
+		if change == 0 {
+			if ma.move.Drain > 0 {
+				change = 1
+			}
+			change = -1
+		}
+
 		ma.userSlot.mon.ChangeHp(change)
 		if change >= 0 {
 			log.Printf("%s healed for %d", ma.userSlot.mon.Base.Name, change)
