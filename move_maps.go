@@ -10,3 +10,11 @@ var pivotMoves = map[string]struct{}{
 	"baton-pass":       {},
 	"shed-tail":        {},
 }
+
+var speedControlMoves = map[string]struct{}{
+	"electroweb": {},
+	"icy-wind":   {},
+	"low-sweep":  {},
+	"mud-shot":   {},
+	"rock-tomb":  {},
+}

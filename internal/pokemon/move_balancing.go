@@ -5,10 +5,11 @@ import (
 )
 
 type MoveBalance struct {
-	Power    *int
-	Accuracy *int
-	PP       *int
-	Type     *string
+	Power        *int
+	Accuracy     *int
+	PP           *int
+	EffectChance *int
+	Type         *string
 }
 
 func (mb MoveBalance) Apply(m *pokeapi.BaseMove) {
@@ -20,6 +21,9 @@ func (mb MoveBalance) Apply(m *pokeapi.BaseMove) {
 	}
 	if mb.PP != nil {
 		m.PP = *mb.PP
+	}
+	if mb.EffectChance != nil {
+		m.StatChance = *mb.EffectChance
 	}
 	if mb.Type != nil {
 		m.Type = *mb.Type
@@ -82,8 +86,9 @@ var MoveBalanceMap = map[string]*MoveBalance{
 		PP: new(5),
 	},
 	"charge-beam": {
-		Power:    new(40),
-		Accuracy: new(100),
+		Power:        new(40),
+		Accuracy:     new(100),
+		EffectChance: new(100),
 	},
 	"charm": {
 		PP: new(5),
@@ -272,7 +277,8 @@ var MoveBalanceMap = map[string]*MoveBalance{
 		Accuracy: new(100),
 	},
 	"leaf-tornado": {
-		Accuracy: new(100),
+		Accuracy:     new(100),
+		EffectChance: new(30),
 	},
 	"leech-seed": {
 		Accuracy: new(100),
@@ -318,13 +324,15 @@ var MoveBalanceMap = map[string]*MoveBalance{
 		Accuracy: new(100),
 	},
 	"mirror-shot": {
-		Accuracy: new(100),
+		Accuracy:     new(100),
+		EffectChance: new(20),
 	},
 	"misty-explosion": {
 		Power: new(200),
 	},
 	"mud-bomb": {
-		Accuracy: new(100),
+		Accuracy:     new(100),
+		EffectChance: new(20),
 	},
 	"muddy-water": {
 		Accuracy: new(95),
@@ -333,14 +341,16 @@ var MoveBalanceMap = map[string]*MoveBalance{
 		Accuracy: new(100),
 	},
 	"night-daze": {
-		Accuracy: new(100),
+		Accuracy:     new(100),
+		EffectChance: new(30),
 	},
 	"noble-roar": {
 		PP: new(10),
 	},
 	"octazooka": {
-		Power:    new(80),
-		Accuracy: new(100),
+		Power:        new(80),
+		Accuracy:     new(100),
+		EffectChance: new(30),
 	},
 	"origin-pulse": {
 		Accuracy: new(100),
@@ -389,6 +399,9 @@ var MoveBalanceMap = map[string]*MoveBalance{
 	},
 	"rock-slide": {
 		Accuracy: new(100),
+	},
+	"rock-smash": {
+		EffectChance: new(100),
 	},
 	"rock-throw": {
 		Accuracy: new(100),

@@ -82,6 +82,8 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 
 		if highestDamageIndex == -1 || (!canHighestKill && damage[i] > damage[highestDamageIndex]) {
 			highestDamageIndex = i
+		} else if _, ok := speedControlMoves[action.move.Name]; ok && !kills && !user.IsFasterThan(target) {
+			scores[i] += 6
 		}
 	}
 
@@ -161,11 +163,11 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, oppon
 }
 
 func calculateMaxDamage(user, target *pokemon.Pokemon) int {
-	var maxDmg int
+	var maxDmg, dmg int
+	rolls := 1
 	for _, move := range user.Moves {
 		if move.PP > 0 && move.Class != "status" {
-			dmg := 0
-			rolls := 1
+			rolls = 1
 			if move.MaxHits == 5 {
 				rolls = 3
 			} else if move.MaxHits > 0 {
