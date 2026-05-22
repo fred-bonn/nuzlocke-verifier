@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type battleState interface {
@@ -17,11 +15,11 @@ type battleState interface {
 }
 
 type slot struct {
-	mon       *pokemon.Pokemon
+	mon       *Pokemon
 	firstTurn bool
 }
 
-func (s *slot) setMon(new *pokemon.Pokemon) {
+func (s *slot) setMon(new *Pokemon) {
 	s.mon.SwitchReset()
 	s.firstTurn = true
 	s.mon = new

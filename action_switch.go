@@ -2,13 +2,11 @@ package main
 
 import (
 	"log"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type switchAction struct {
 	oldSlot *slot
-	new     *pokemon.Pokemon
+	new     *Pokemon
 }
 
 func (sa *switchAction) invoke(bs battleState) {

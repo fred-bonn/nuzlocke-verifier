@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/heap"
-	"fmt"
 	"log"
 )
 
@@ -75,22 +74,16 @@ func (sbs *singleBattleState) getAllSlots() []*slot {
 	}
 }
 
-func initSingleBattleState(player, opponent trainer) (*singleBattleState, error) {
-	if len(player.pokemonParty) == 0 || len(opponent.pokemonParty) == 0 {
-		return nil, fmt.Errorf("player or opponent has no pokemon in their party")
-	}
-
+func initSingleBattleState(player, opponent trainer) *singleBattleState {
 	return &singleBattleState{
 		activePlayerSlot: &slot{
-			mon:       player.pokemonParty[0],
 			firstTurn: true,
 		},
 		activeOpponentSlot: &slot{
-			mon:       opponent.pokemonParty[0],
 			firstTurn: true,
 		},
 		player:   &player,
 		opponent: &opponent,
 		actions:  &ActionQueue{},
-	}, nil
+	}
 }

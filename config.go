@@ -16,7 +16,7 @@ type config struct {
 	client pokeapi.Client
 }
 
-func (cfg *config) validateInput(trainerPath string) ([]*pokemon.Pokemon, error) {
+func (cfg *config) validateInput(bs battleState, trainerPath string) ([]*Pokemon, error) {
 	trainerFullPath, err := filepath.Abs(trainerPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting absolute path: %w", err)
@@ -30,7 +30,7 @@ func (cfg *config) validateInput(trainerPath string) ([]*pokemon.Pokemon, error)
 		return nil, err
 	}
 
-	trainerParty, err := cfg.loadShowdown(trainerPokemon)
+	trainerParty, err := cfg.loadShowdown(bs, trainerPokemon)
 	if err != nil {
 		return nil, fmt.Errorf("failed loading showdown file: %w", err)
 	}
@@ -38,8 +38,8 @@ func (cfg *config) validateInput(trainerPath string) ([]*pokemon.Pokemon, error)
 	return trainerParty, nil
 }
 
-func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon.Pokemon, error) {
-	var res []*pokemon.Pokemon
+func (cfg *config) loadShowdown(bs battleState, mons []parser.ParsedPokemon) ([]*Pokemon, error) {
+	var res []*Pokemon
 
 	for _, mon := range mons {
 		var moves []pokeapi.BaseMove
@@ -60,10 +60,16 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon.Pokemon
 			moves = append(moves, baseMove)
 		}
 
-		finalPokemon, err := pokemon.InitializePokemon(basePokemon, mon.Level, mon.IVs, mon.Nature, moves, mon.HP, mon.Item, mon.Status)
+		finalPokemon, err := InitializePokemon(basePokemon, mon.Level, mon.IVs, mon.Nature, moves, mon.HP, mon.Status)
 		if err != nil {
 			return nil, err
 		}
+
+		item, err := registerItem(bs, cleanName(mon.Item), &finalPokemon)
+		if err != nil {
+			return nil, err
+		}
+		finalPokemon.Item = item
 
 		res = append(res, &finalPokemon)
 	}

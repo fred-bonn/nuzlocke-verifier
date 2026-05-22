@@ -2,8 +2,6 @@ package main
 
 import (
 	"math/rand"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type action interface {
@@ -55,7 +53,7 @@ func (aq *ActionQueue) Pop() any {
 	return action
 }
 
-func (aq *ActionQueue) containstSwitchTo(mon *pokemon.Pokemon) bool {
+func (aq *ActionQueue) containstSwitchTo(mon *Pokemon) bool {
 	for _, a := range *aq {
 		if sa, ok := a.(*switchAction); ok && sa.new == mon {
 			return true
@@ -64,7 +62,7 @@ func (aq *ActionQueue) containstSwitchTo(mon *pokemon.Pokemon) bool {
 	return false
 }
 
-func (aq *ActionQueue) getMoveActionBy(mon *pokemon.Pokemon) *moveAction {
+func (aq *ActionQueue) getMoveActionBy(mon *Pokemon) *moveAction {
 	for _, a := range *aq {
 		if ma, ok := a.(*moveAction); ok && mon == ma.userSlot.mon {
 			return ma

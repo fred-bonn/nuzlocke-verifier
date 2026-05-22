@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type moveAction struct {
@@ -107,7 +106,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 }
 
-func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon) {
+func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 	if ma.move.Category == "swagger" {
 		ma.applySwagger(target)
 		return
@@ -130,7 +129,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon.Pokemon) {
 	}
 }
 
-func (ma *moveAction) applySwagger(target *pokemon.Pokemon) {
+func (ma *moveAction) applySwagger(target *Pokemon) {
 	target.ChangeStatStage("attack", 2)
 	log.Printf("%s's attack changed by 2 stages (%d)", target.Base.Name, target.Stages["attack"])
 	if ok := target.ApplyAilment("confusion", ma.move); ok {
@@ -160,13 +159,17 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 	}
 }
 
-func (ma *moveAction) resolveDamage(bs battleState, target *pokemon.Pokemon) bool {
+func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
 	crit := roll(1, critRateMap[ma.move.CritRate])
 
 	damage := calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, crit, false)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
 		return false
+	}
+
+	if target.Item != nil {
+		target.Item.checkTrigger(true, ma.move.Type, &damage)
 	}
 
 	damage = min(damage, target.Hp)
@@ -213,7 +216,7 @@ func (ma *moveAction) resolveDamage(bs battleState, target *pokemon.Pokemon) boo
 	}
 
 	if ma.move.StatChance > 0 && roll(ma.move.StatChance, 100) {
-		var mon *pokemon.Pokemon
+		var mon *Pokemon
 		switch ma.move.Category {
 		case "damage-raise":
 			mon = ma.userSlot.mon

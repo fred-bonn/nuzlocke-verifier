@@ -23,7 +23,7 @@ var confusionMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user *pokemon.Pokemon, target *pokemon.Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
+func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
 	numerator := 1
 	denominator := 1
 
@@ -90,7 +90,7 @@ func roll(numerator int, denominator int) bool {
 	return rand.Intn(denominator) < numerator
 }
 
-func accuracyRoll(user *pokemon.Pokemon, target *pokemon.Pokemon, moveAccuracy int) bool {
+func accuracyRoll(user *Pokemon, target *Pokemon, moveAccuracy int) bool {
 	accNum, accDen := user.AccuracyFraction()
 	evNum, evDen := target.EvasionFraction()
 	numerator := moveAccuracy * accNum * evNum

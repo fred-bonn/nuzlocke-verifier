@@ -4,7 +4,7 @@ import (
 	"math/rand"
 )
 
-var validAilments = map[string]struct{}{
+var ValidAilments = map[string]struct{}{
 	"paralysis": {},
 	"poison":    {},
 	"toxic":     {},
@@ -16,7 +16,7 @@ var validAilments = map[string]struct{}{
 	"bound":     {},
 }
 
-var nonVolatileStatuses = map[string]struct{}{
+var NonVolatileStatuses = map[string]struct{}{
 	"paralysis": {},
 	"poison":    {},
 	"toxic":     {},
@@ -25,7 +25,7 @@ var nonVolatileStatuses = map[string]struct{}{
 	"sleep":     {},
 }
 
-var volatileStatuses = map[string]struct{}{
+var VolatileStatuses = map[string]struct{}{
 	"confusion": {},
 	"trap":      {},
 	"bound":     {},

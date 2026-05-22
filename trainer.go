@@ -2,12 +2,10 @@ package main
 
 import (
 	"math/rand"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type trainer struct {
-	pokemonParty []*pokemon.Pokemon
+	pokemonParty []*Pokemon
 	player       bool
 	ai           ai
 	lost         bool
@@ -36,7 +34,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		return action
 	}
 
-	var possibleMons []*pokemon.Pokemon
+	var possibleMons []*Pokemon
 	for _, mon := range t.pokemonParty {
 		if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
 			continue
@@ -49,8 +47,8 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	}
 }
 
-func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *pokemon.Pokemon {
-	var possibleMons []*pokemon.Pokemon
+func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *Pokemon {
+	var possibleMons []*Pokemon
 	for _, mon := range t.pokemonParty {
 		if mon == slot.mon || mon.Fainted {
 			continue
@@ -81,7 +79,7 @@ func (t *trainer) canReplace(bs battleState) bool {
 
 type ai interface {
 	evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int)
-	evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, opponentSlot *slot) *pokemon.Pokemon
+	evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot *slot) *Pokemon
 }
 
 type randomAi struct{}
@@ -90,6 +88,6 @@ func (ra randomAi) evaluateActions(bs battleState, actions []*moveAction) (*move
 	return actions[rand.Intn(len(actions))], 1
 }
 
-func (ra randomAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, opponentSlot *slot) *pokemon.Pokemon {
+func (ra randomAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
 	return mons[rand.Intn(len(mons))]
 }

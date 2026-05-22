@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"math/rand"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type rnbAi struct{}
@@ -12,8 +10,8 @@ type rnbAi struct{}
 func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int) {
 	scores := make([]int, len(actions))
 	damage := make([]int, len(actions))
-	var target *pokemon.Pokemon
-	var user *pokemon.Pokemon
+	var target *Pokemon
+	var user *Pokemon
 	fastDeadTo := make(map[string]bool)
 	kills := false
 	highestDamageIndex := -1
@@ -112,7 +110,11 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 	return actions[bestIndices[resultIndex]], scores[bestIndices[resultIndex]]
 }
 
-func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, opponentSlot *slot) *pokemon.Pokemon {
+func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
+	if len(mons) == 1 {
+		return mons[0]
+	}
+
 	scores := make([]int, len(mons))
 	opponent := opponentSlot.mon
 
@@ -146,6 +148,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, oppon
 		} else if !outspeeds && monKilled {
 			scores[i] = -1
 		}
+		log.Printf("%s switch in: outspeeds=%t, monDamage=%d, opponentDamage=%d, killsOpponent=%t, monKilled=%t, monDamagePercent=%d, opponentDamagePercent=%d, score=%d\n", mon.Base.Name, outspeeds, monDamage, opponentDamage, killsOpponent, monKilled, monDamagePercent, opponentDamagePercent, scores[i])
 	}
 
 	maxScore := scores[0]
@@ -162,7 +165,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon.Pokemon, oppon
 	return mons[bestIndex]
 }
 
-func calculateMaxDamage(user, target *pokemon.Pokemon) int {
+func calculateMaxDamage(user, target *Pokemon) int {
 	var maxDmg, dmg int
 	rolls := 1
 	for _, move := range user.Moves {
@@ -174,13 +177,14 @@ func calculateMaxDamage(user, target *pokemon.Pokemon) int {
 				rolls = move.MaxHits
 			}
 			for i := 0; i < rolls; i++ {
-				dmg += calculateDamage(user, target, &move, move.CritRate >= 4, false)
+				dmg += calculateDamage(user, target, &move, move.CritRate >= 4, true)
 			}
 
 			if dmg > maxDmg {
 				maxDmg = dmg
 			}
 		}
+		dmg = 0
 	}
 	return maxDmg
 }

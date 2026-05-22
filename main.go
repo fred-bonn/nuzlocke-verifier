@@ -23,26 +23,29 @@ func main() {
 		client: pokeapi.NewClient(),
 	}
 
-	playerParty, err := cfg.validateInput(args[0])
+	sbs := initSingleBattleState(
+		trainer{
+			ai:     rnbAi{},
+			player: true,
+		},
+		trainer{
+			ai: rnbAi{},
+		},
+	)
+
+	playerParty, err := cfg.validateInput(sbs, args[0])
 	if err != nil {
 		log.Fatalf("error: failed validating input '%s': %s", args[0], err)
 	}
-	opponentParty, err := cfg.validateInput(args[1])
+	opponentParty, err := cfg.validateInput(sbs, args[1])
 	if err != nil {
 		log.Fatalf("error: failed validating input '%s': %s", args[1], err)
 	}
 
-	sbs, err := initSingleBattleState(trainer{
-		pokemonParty: playerParty,
-		ai:           rnbAi{},
-		player:       true,
-	}, trainer{
-		pokemonParty: opponentParty,
-		ai:           rnbAi{},
-	})
-	if err != nil {
-		log.Fatalf("error: failed initializing battle state: %s", err)
-	}
+	sbs.player.pokemonParty = playerParty
+	sbs.opponent.pokemonParty = opponentParty
+	sbs.activePlayerSlot.mon = playerParty[0]
+	sbs.activeOpponentSlot.mon = opponentParty[0]
 
 	if !*verbose {
 		log.SetOutput(io.Discard)
