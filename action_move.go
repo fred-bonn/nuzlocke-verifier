@@ -169,7 +169,9 @@ func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
 	}
 
 	if target.Item != nil {
-		target.Item.checkTrigger(true, ma.move.Type, &damage)
+		target.Item.checkTrigger(true, resistBerryEvent{
+			typeName: ma.move.Type,
+		})
 	}
 
 	damage = min(damage, target.Hp)

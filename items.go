@@ -6,39 +6,56 @@ import (
 )
 
 type item struct {
-	trigger  func(...any) bool
-	activate func(...any)
+	trigger  func(any) bool
+	activate func(any)
 	consumed bool
 }
 
-func (i *item) checkTrigger(consume bool, params ...any) {
+func (i *item) checkTrigger(consume bool, event any) {
 	if i.trigger == nil || i.consumed {
 		return
 	}
 
-	if i.trigger(params...) {
+	if i.trigger(event) {
 		if consume {
 			i.consumed = true
 		}
-		i.activate(params...)
+		i.activate(event)
 	}
 }
 
-type ItemFactoryBuilder func(battleState, *Pokemon) *item
+type ItemFactoryBuilder func(*Pokemon) *item
 
 var itemBuilders = map[string]ItemFactoryBuilder{
 	"oran-berry":   makeOranBerry,
 	"sitrus-berry": makeSitrusBerry,
+	"babiri-berry": makeResistBerryMiddleWare("steel"),
 	"chilan-berry": makeResistBerryMiddleWare("normal"),
+	"charti-berry": makeResistBerryMiddleWare("rock"),
+	"chople-berry": makeResistBerryMiddleWare("fighting"),
+	"coba-berry":   makeResistBerryMiddleWare("coba"),
+	"colbur-berry": makeResistBerryMiddleWare("dark"),
+	"haban-berry":  makeResistBerryMiddleWare("dragon"),
+	"kasib-berry":  makeResistBerryMiddleWare("ghost"),
+	"kebia-berry":  makeResistBerryMiddleWare("poison"),
+	"occa-berry":   makeResistBerryMiddleWare("fire"),
+	"passho-berry": makeResistBerryMiddleWare("water"),
+	"payapa-berry": makeResistBerryMiddleWare("psychic"),
+	"rindo-berry":  makeResistBerryMiddleWare("grass"),
+	"roseli-berry": makeResistBerryMiddleWare("fairy"),
+	"shuca-berry":  makeResistBerryMiddleWare("ground"),
+	"tanga-berry":  makeResistBerryMiddleWare("bug"),
+	"wacan-berry":  makeResistBerryMiddleWare("electric"),
+	"yache-berry":  makeResistBerryMiddleWare("ice"),
 }
 
-func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func(battleState) *item {
-	return func(bs battleState) *item {
-		return builder(bs, mon)
+func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func() *item {
+	return func() *item {
+		return builder(mon)
 	}
 }
 
-func registerItem(bs battleState, itemName string, mon *Pokemon, params ...any) (*item, error) {
+func registerItem(itemName string, mon *Pokemon) (*item, error) {
 	if itemName == "" {
 		return nil, nil
 	}
@@ -49,10 +66,10 @@ func registerItem(bs battleState, itemName string, mon *Pokemon, params ...any) 
 	}
 
 	factory := createItemFactory(builder, mon)
-	return factory(bs), nil
+	return factory(), nil
 }
 
-func checkItemTriggers(bs battleState, params ...any) {
+func checkItemTriggers(bs battleState, event any) {
 	slots := bs.getAllSlots()
 	for _, slot := range slots {
 		item := slot.mon.Item
@@ -60,28 +77,28 @@ func checkItemTriggers(bs battleState, params ...any) {
 			continue
 		}
 
-		item.checkTrigger(true, params...)
+		item.checkTrigger(true, event)
 	}
 }
 
-func makeOranBerry(bs battleState, mon *Pokemon) *item {
+func makeOranBerry(mon *Pokemon) *item {
 	return &item{
-		trigger: func(...any) bool {
+		trigger: func(any) bool {
 			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
-		activate: func(...any) {
+		activate: func(any) {
 			mon.ChangeHp(10)
 			log.Printf("%s ate its berry and restored 10 hp", mon.Base.Name)
 		},
 	}
 }
 
-func makeSitrusBerry(bs battleState, mon *Pokemon) *item {
+func makeSitrusBerry(mon *Pokemon) *item {
 	return &item{
-		trigger: func(...any) bool {
+		trigger: func(any) bool {
 			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
-		activate: func(...any) {
+		activate: func(any) {
 			restore := mon.Stats["hp"] / 4
 			mon.ChangeHp(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
@@ -89,19 +106,23 @@ func makeSitrusBerry(bs battleState, mon *Pokemon) *item {
 	}
 }
 
-func makeResistBerryMiddleWare(typeName string) func(bs battleState, mon *Pokemon) *item {
-	return func(bs battleState, mon *Pokemon) *item {
+func makeResistBerryMiddleWare(typeName string) func(mon *Pokemon) *item {
+	return func(mon *Pokemon) *item {
 		return &item{
-			trigger: func(p ...any) bool {
-				if len(p) != 2 {
+			trigger: func(e any) bool {
+				event, ok := e.(resistBerryEvent)
+				if !ok {
 					return false
 				}
-				return p[0].(string) == typeName
+				return event.typeName == typeName
 			},
-			activate: func(p ...any) {
-				damage := p[1].(*int)
-				*damage = *damage / 2
-				log.Printf("%s ate its berry and reduced the damage", mon.Base.Name)
+			activate: func(e any) {
+				denominator := e.(resistBerryEvent).denominator
+				if denominator == nil {
+					log.Printf("%s ate its berry and reduced the damage", mon.Base.Name)
+				} else {
+					*denominator *= 2
+				}
 			},
 		}
 	}

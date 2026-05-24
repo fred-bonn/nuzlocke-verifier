@@ -31,7 +31,6 @@ func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, cri
 		switch mult {
 		case 0:
 			numerator = 0
-			denominator = 1
 		case 0.5:
 			denominator *= 2
 		case 1:
@@ -75,9 +74,13 @@ func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, cri
 		denominator *= 2
 	}
 
+	target.Item.checkTrigger(false, resistBerryEvent{
+		typeName:    move.Type,
+		denominator: &denominator,
+	})
+
 	if !maxRoll {
-		randFactor := rand.Intn(16) + 85
-		numerator *= randFactor
+		numerator *= rand.Intn(16) + 85
 		denominator *= 100
 	}
 

@@ -260,6 +260,6 @@ func (p *Pokemon) HasAilment(ailment string) bool {
 func (p *Pokemon) ChangeHp(change int) {
 	p.Hp = min(p.Hp+change, p.Stats["hp"])
 	if p.Item != nil {
-		p.Item.checkTrigger(true)
+		p.Item.checkTrigger(true, nil)
 	}
 }
