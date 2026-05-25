@@ -44,7 +44,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	if turns, ok := ma.userSlot.mon.Ailments["sleep"]; ok {
-		if turns == 0 {
+		if turns <= 0 {
 			log.Printf("%s woke up", ma.userSlot.mon.Base.Name)
 			delete(ma.userSlot.mon.Ailments, "sleep")
 		} else {
@@ -132,9 +132,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 func (ma *moveAction) applySwagger(target *Pokemon) {
 	target.ChangeStatStage("attack", 2)
 	log.Printf("%s's attack changed by 2 stages (%d)", target.Base.Name, target.Stages["attack"])
-	if ok := target.ApplyAilment("confusion", ma.move); ok {
-		log.Printf("%s became afflicted with confusion", target.Base.Name)
-	}
+	target.ApplyAilment("confusion", ma.move)
 }
 
 func (ma *moveAction) applyDamageMove(bs battleState) {
@@ -205,9 +203,7 @@ func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
 	}
 
 	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
-		if ok := target.ApplyAilment(ma.move.Ailment, ma.move); ok {
-			log.Printf("%s became afflicted with %s", target.Base.Name, ma.move.Ailment)
-		}
+		target.ApplyAilment(ma.move.Ailment, ma.move)
 	}
 
 	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
@@ -113,22 +114,6 @@ func calculateStats(pokemon *Pokemon) {
 	}
 }
 
-func (p *Pokemon) String() string {
-	status := "Status: "
-	if len(p.Ailments) == 0 {
-		status += "None"
-	} else {
-		for ailment, duration := range p.Ailments {
-			status += fmt.Sprintf("%s (%d turns) ", ailment, duration)
-		}
-	}
-	ivs := fmt.Sprintf("IVS:    (%d, %d, %d, %d, %d, %d)", p.IVs["hp"], p.IVs["attack"], p.IVs["defense"], p.IVs["special-attack"], p.IVs["special-defense"], p.IVs["speed"])
-	stats := fmt.Sprintf("Stats:  (%d, %d, %d, %d, %d, %d)", p.Stats["hp"], p.Stats["attack"], p.Stats["defense"], p.Stats["special-attack"], p.Stats["special-defense"], p.Stats["speed"])
-	stages := fmt.Sprintf("Stages: (%d, %d, %d, %d, %d, %d, %d)", p.Stages["attack"], p.Stages["defense"], p.Stages["special-attack"], p.Stages["special-defense"], p.Stages["speed"], p.Stages["accuracy"], p.Stages["evasion"])
-
-	return fmt.Sprintf("%s (Level %d) - HP: %d/%d\nNature: (%s,%s)\n%s\n%s\n%s\n%s", p.Base.Name, p.Level, p.Hp, p.Stats["hp"], p.Nature[0], p.Nature[1], status, ivs, stats, stages)
-}
-
 func (p *Pokemon) ChangeStatStage(stat string, change int) {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat")
@@ -215,44 +200,54 @@ func (p *Pokemon) HasType(typeName string) bool {
 	return false
 }
 
-func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) bool {
+func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) {
 	if _, ok := pokemon.ValidAilments[ailment]; !ok {
 		panic("invalid ailment")
 	}
 	if _, ok := p.Ailments[ailment]; ok {
-		return false
+		return
 	}
 	if _, ok := pokemon.NonVolatileStatuses[ailment]; ok {
 		if ailment == "burn" && p.HasType("fire") {
-			return false
+			return
 		}
 		if ailment == "paralysis" && p.HasType("electric") {
-			return false
+			return
 		}
-		if (ailment == "toxic" || ailment == "poison") && p.HasType("poison") {
-			return false
+		if ailment == "poison" && p.HasType("poison") {
+			return
 		}
 		for a := range p.Ailments {
 			if _, ok := pokemon.NonVolatileStatuses[a]; ok {
-				return false
+				return
 			}
 		}
 	}
 
 	if ailment == "trap" {
 		p.Ailments[ailment] = pokemon.GenerateTrap(move.MinTurns, move.MaxTurns)
-		return true
+		return
 	}
 	if ailment == "poison" && (move.Name == "toxic" || move.Name == "poison-fang") {
 		ailment = "toxic"
 	}
 	p.Ailments[ailment] = pokemon.GenerateAilment(ailment)
-	return true
+	log.Printf("%s became afflicted with %s", p.Base.Name, ailment)
+	p.Item.checkTrigger(true, nil)
 }
 
 func (p *Pokemon) HasAilment(ailment string) bool {
 	if _, ok := p.Ailments[ailment]; ok {
 		return true
+	}
+	return false
+}
+
+func (p *Pokemon) HasNonVolatileAilment() bool {
+	for ailment := range pokemon.NonVolatileStatuses {
+		if p.HasAilment(ailment) {
+			return true
+		}
 	}
 	return false
 }

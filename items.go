@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type item struct {
@@ -29,6 +31,7 @@ type ItemFactoryBuilder func(*Pokemon) *item
 var itemBuilders = map[string]ItemFactoryBuilder{
 	"oran-berry":   makeOranBerry,
 	"sitrus-berry": makeSitrusBerry,
+	"lum-berry":    makeLumBerry,
 	"babiri-berry": makeResistBerryMiddleWare("steel"),
 	"chilan-berry": makeResistBerryMiddleWare("normal"),
 	"charti-berry": makeResistBerryMiddleWare("rock"),
@@ -107,6 +110,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 }
 
 func makeResistBerryMiddleWare(typeName string) func(mon *Pokemon) *item {
+	var d *int
 	return func(mon *Pokemon) *item {
 		return &item{
 			trigger: func(e any) bool {
@@ -114,16 +118,37 @@ func makeResistBerryMiddleWare(typeName string) func(mon *Pokemon) *item {
 				if !ok {
 					return false
 				}
+				d = event.denominator
 				return event.typeName == typeName
 			},
 			activate: func(e any) {
-				denominator := e.(resistBerryEvent).denominator
-				if denominator == nil {
+				if d == nil {
 					log.Printf("%s ate its berry and reduced the damage", mon.Base.Name)
 				} else {
-					*denominator *= 2
+					*d *= 2
 				}
 			},
 		}
+	}
+}
+
+func makeLumBerry(mon *Pokemon) *item {
+	return &item{
+		trigger: func(any) bool {
+			return mon.HasNonVolatileAilment() || mon.HasAilment("confusion")
+		},
+		activate: func(any) {
+			log.Printf("%s ate its lum berry", mon.Base.Name)
+			for ailment := range pokemon.NonVolatileStatuses {
+				if mon.HasAilment(ailment) {
+					delete(mon.Ailments, ailment)
+					log.Printf("%s had its %s removed", mon.Base.Name, ailment)
+				}
+			}
+			if mon.HasAilment("confusion") {
+				delete(mon.Ailments, "confusion")
+				log.Printf("%s had its confusion removed", mon.Base.Name)
+			}
+		},
 	}
 }

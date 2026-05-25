@@ -47,6 +47,22 @@ func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, cri
 		return 0
 	}
 
+	if move.Name == "psywave" {
+		if maxRoll {
+			return user.Level
+		}
+		return (user.Level * (rand.Intn(100) + 51)) / 100
+	}
+	if move.Name == "seismic-toss" || move.Name == "night-shade" {
+		return user.Level
+	}
+	if move.Name == "sonic-boom" {
+		return 20
+	}
+	if move.Name == "dragon-rage" {
+		return 40
+	}
+
 	stab := user.HasType(move.Type)
 
 	var offensiveStat, defensiveStat int
