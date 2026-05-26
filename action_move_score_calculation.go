@@ -20,5 +20,52 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 }
 
 func (ma *moveAction) scoreStatusMove(bs battleState) int {
+	if ma.move.Category == "heal" {
+		if ma.userSlot.mon.Hp > ma.userSlot.mon.Stats["hp"]*85/100 {
+			return -20
+		}
+		if ma.shouldMonHeal(bs) {
+			return 7
+		}
+		return 5
+	}
+
+	if ma.move.Name == "sticky-web" {
+		if ma.userSlot.firstTurn {
+			return 9 + 3*rollInt(3, 4)
+		}
+		return 6 + 3*rollInt(3, 4)
+	}
 	return 6
+}
+
+func (ma *moveAction) shouldMonHeal(bs battleState) bool {
+	if ma.userSlot.mon.HasAilment("toxic") {
+		return false
+	}
+
+	maxDmg := calculateMaxDamage(ma.targetSlot.mon, ma.userSlot.mon)
+	if maxDmg >= ma.userSlot.mon.Stats["hp"]*ma.move.Heal/100 {
+		return false
+	}
+
+	if ma.userSlot.mon.IsFasterThan(ma.targetSlot.mon) {
+		if maxDmg < min(ma.userSlot.mon.Stats["hp"], ma.userSlot.mon.Hp+ma.userSlot.mon.Stats["hp"]*ma.move.Heal/100) {
+			return true
+		} else {
+			if ma.userSlot.mon.Hp < ma.userSlot.mon.Stats["hp"]*40/100 {
+				return true
+			} else if ma.userSlot.mon.Hp <= ma.userSlot.mon.Stats["hp"]*66/100 {
+				return roll(1, 2)
+			}
+		}
+	} else {
+		if ma.userSlot.mon.Hp < ma.userSlot.mon.Stats["hp"]*50/100 {
+			return true
+		} else if ma.userSlot.mon.Hp <= ma.userSlot.mon.Stats["hp"]*70/100 {
+			return roll(3, 4)
+		}
+	}
+
+	return false
 }

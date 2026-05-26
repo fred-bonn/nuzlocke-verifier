@@ -23,6 +23,11 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			continue
 		}
 
+		if action.move.Name == "rollout" {
+			scores[i] = 7
+			continue
+		}
+
 		target = action.targetSlot.mon
 		user = action.userSlot.mon
 		isFastDead := false
