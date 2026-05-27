@@ -18,6 +18,11 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 	canHighestKill := false
 
 	for i, action := range actions {
+		if action.move.PP <= 0 {
+			scores[i] = -64
+			continue
+		}
+
 		if action.move.Class == "status" {
 			scores[i], _ = action.scoreActionMove(bs)
 			continue
@@ -87,6 +92,12 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			highestDamageIndex = i
 		} else if _, ok := speedControlMoves[action.move.Name]; ok && !kills && !user.IsFasterThan(target) {
 			scores[i] += 6
+		} else if category, ok := offenseControlMoves[action.move.Name]; ok {
+			if target.HasMoveClass(category) {
+				scores[i] += 6
+			} else {
+				scores[i] += 5
+			}
 		}
 	}
 

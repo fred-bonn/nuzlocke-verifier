@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type item struct {
 	trigger  func(any) bool
-	activate func(any)
+	activate func()
 	consumed bool
 }
 
@@ -22,7 +23,7 @@ func (i *item) checkTrigger(consume bool, event any) {
 		if consume {
 			i.consumed = true
 		}
-		i.activate(event)
+		i.activate()
 	}
 }
 
@@ -32,6 +33,7 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"oran-berry":   makeOranBerry,
 	"sitrus-berry": makeSitrusBerry,
 	"lum-berry":    makeLumBerry,
+	"leppa-berry":  makeLeppaBerry,
 	"babiri-berry": makeResistBerryMiddleWare("steel"),
 	"chilan-berry": makeResistBerryMiddleWare("normal"),
 	"charti-berry": makeResistBerryMiddleWare("rock"),
@@ -60,7 +62,7 @@ func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func() *item {
 
 func registerItem(itemName string, mon *Pokemon) (*item, error) {
 	if itemName == "" {
-		return nil, nil
+		return &item{}, nil
 	}
 
 	builder, ok := itemBuilders[itemName]
@@ -89,7 +91,7 @@ func makeOranBerry(mon *Pokemon) *item {
 		trigger: func(any) bool {
 			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
-		activate: func(any) {
+		activate: func() {
 			mon.ChangeHp(10)
 			log.Printf("%s ate its berry and restored 10 hp", mon.Base.Name)
 		},
@@ -101,7 +103,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 		trigger: func(any) bool {
 			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
-		activate: func(any) {
+		activate: func() {
 			restore := mon.Stats["hp"] / 4
 			mon.ChangeHp(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
@@ -121,7 +123,7 @@ func makeResistBerryMiddleWare(typeName string) func(mon *Pokemon) *item {
 				d = event.denominator
 				return event.typeName == typeName
 			},
-			activate: func(e any) {
+			activate: func() {
 				if d == nil {
 					log.Printf("%s ate its berry and reduced the damage", mon.Base.Name)
 				} else {
@@ -137,7 +139,7 @@ func makeLumBerry(mon *Pokemon) *item {
 		trigger: func(any) bool {
 			return mon.HasNonVolatileAilment() || mon.HasAilment("confusion")
 		},
-		activate: func(any) {
+		activate: func() {
 			log.Printf("%s ate its lum berry", mon.Base.Name)
 			for ailment := range pokemon.NonVolatileStatuses {
 				if mon.HasAilment(ailment) {
@@ -149,6 +151,23 @@ func makeLumBerry(mon *Pokemon) *item {
 				delete(mon.Ailments, "confusion")
 				log.Printf("%s had its confusion removed", mon.Base.Name)
 			}
+		},
+	}
+}
+
+func makeLeppaBerry(mon *Pokemon) *item {
+	var m *pokeapi.BaseMove
+	return &item{
+		trigger: func(e any) bool {
+			event, ok := e.(leppaBerryEvent)
+			if !ok {
+				return false
+			}
+			m = event.move
+			return event.move.PP <= 0
+		},
+		activate: func() {
+			m.PP += min(10, m.MaxPP)
 		},
 	}
 }

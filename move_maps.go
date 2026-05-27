@@ -17,4 +17,17 @@ var speedControlMoves = map[string]struct{}{
 	"low-sweep":  {},
 	"mud-shot":   {},
 	"rock-tomb":  {},
+	"bulldoze":   {},
+	"glaciate":   {},
+}
+
+var offenseControlMoves = map[string]string{
+	"mystical-fire":  "special",
+	"skitter-smack":  "special",
+	"breaking-swipe": "physical",
+	"snarl":          "special",
+	"struggle-bug":   "special",
+	"trop-kick":      "special",
+	"chilling-water": "physical",
+	"lunge":          "physical",
 }

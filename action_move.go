@@ -104,6 +104,10 @@ func (ma *moveAction) invoke(bs battleState) {
 	} else {
 		ma.applyDamageMove(bs)
 	}
+
+	ma.userSlot.mon.Item.checkTrigger(true, leppaBerryEvent{
+		move: ma.move,
+	})
 }
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {

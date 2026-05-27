@@ -252,6 +252,15 @@ func (p *Pokemon) HasNonVolatileAilment() bool {
 	return false
 }
 
+func (p *Pokemon) HasMoveClass(c string) bool {
+	for _, m := range p.Moves {
+		if m.Class == c {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Pokemon) ChangeHp(change int) {
 	p.Hp = min(p.Hp+change, p.Stats["hp"])
 	if p.Item != nil {

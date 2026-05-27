@@ -22,7 +22,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 func (ma *moveAction) scoreStatusMove(bs battleState) int {
 	if ma.move.Category == "heal" {
 		if ma.userSlot.mon.Hp > ma.userSlot.mon.Stats["hp"]*85/100 {
-			return -20
+			return -64
 		}
 		if ma.shouldMonHeal(bs) {
 			return 7
