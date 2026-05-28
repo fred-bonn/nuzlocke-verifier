@@ -10,99 +10,138 @@ type rnbAi struct{}
 func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int) {
 	scores := make([]int, len(actions))
 	damage := make([]int, len(actions))
-	var target *Pokemon
-	var user *Pokemon
-	fastDeadTo := make(map[string]bool)
-	kills := false
+	kills := make([]bool, len(actions))
 	highestDamageIndex := -1
 	canHighestKill := false
 
-	for i, action := range actions {
-		if action.move.PP <= 0 {
+	for i, a := range actions {
+		if a.move.PP <= 0 {
+			damage[i] = -1
 			scores[i] = -64
 			continue
 		}
-
-		if action.move.Class == "status" {
-			scores[i], _ = action.scoreActionMove(bs)
+		if a.move.Class == "status" {
+			damage[i] = -1
+			scores[i], _ = a.scoreActionMove(bs)
 			continue
 		}
-
-		if action.move.Name == "rollout" {
+		if a.move.Name == "rollout" {
+			damage[i] = -1
 			scores[i] = 7
 			continue
 		}
+		if a.move.Name == "fake-out" {
+			if a.userSlot.firstTurn {
+				scores[i] = 9
+			} else {
+				damage[i] = -1
+				scores[i] = -64
+				continue
+			}
+		}
+		if a.move.Name == "first-impression" && !a.userSlot.firstTurn {
+			damage[i] = -1
+			scores[i] = -64
+			continue
+		}
+		if a.move.Ailment == "trap" {
+			damage[i] = -1
+			if _, ok := a.targetSlot.mon.Ailments["trap"]; !ok {
+				scores[i] = 6 + 2*rollInt(1, 5)
+			}
+			continue
+		}
 
-		target = action.targetSlot.mon
-		user = action.userSlot.mon
-		isFastDead := false
-		if deadTo, ok := fastDeadTo[target.Base.Name]; ok {
-			isFastDead = deadTo && action.move.Priority > 0
-		} else {
-			fastDeadTo[target.Base.Name] = false
-			if !user.IsFasterThan(target) {
-				for _, move := range target.Moves {
-					if move.PP > 0 && move.Class != "status" {
-						dmg := calculateDamage(target, user, &move, move.CritRate >= 4, true)
-						if user.Hp <= dmg {
-							isFastDead = true
-							fastDeadTo[target.Base.Name] = true
-							break
-						}
+		damage[i], kills[i] = a.scoreActionMove(bs)
+		if damage[i] == 0 {
+			damage[i] = -1
+			scores[i] = -64
+		}
+
+		canHighestKill = canHighestKill || kills[i]
+		if !canHighestKill && (highestDamageIndex == -1 || damage[highestDamageIndex] < damage[i]) {
+			highestDamageIndex = i
+		}
+	}
+
+	for i, a := range actions {
+		if damage[i] == -1 {
+			continue
+		}
+
+		// add additional scoring to damaging moves
+		if a.move.Name == "fell-stinger" && kills[i] {
+			if a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+				scores[i] = 21 + 2*rollInt(1, 5)
+			} else {
+				scores[i] = 15 + 2*rollInt(1, 5)
+			}
+		} else if a.move.Name == "acid-spray" {
+			scores[i] = 6
+		} else if a.move.Name == "future-sight" {
+			// needs 8 score instead if faster and dead to target
+			scores[i] = 6
+		} else if a.move.Name == "pursuit" {
+			if kills[i] {
+				scores[i] = 10
+			} else {
+				if a.targetSlot.mon.Hp < a.targetSlot.mon.Stats["hp"]*20/100 {
+					scores[i] = 10
+				} else if a.targetSlot.mon.Hp < a.targetSlot.mon.Stats["hp"]*40/100 {
+					scores[i] = 8 * rollInt(1, 2)
+				}
+			}
+			if a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+				scores[i] += 3
+			}
+		}
+
+		// add score if fast dead and the move has priority
+		if a.move.Priority > 0 && !a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+			for _, move := range a.targetSlot.mon.Moves {
+				if move.PP > 0 && move.Class != "status" {
+					dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, &move, move.CritRate >= 4, true)
+					if a.userSlot.mon.Hp <= dmg {
+						scores[i] += 11
+						break
 					}
 				}
 			}
 		}
 
-		damage[i], kills = action.scoreActionMove(bs)
-
-		if damage[i] == 0 {
-			scores[i] = -64
-			continue
-		}
-
-		if action.move.Name == "fake-out" {
-			if action.userSlot.firstTurn {
-				scores[i] = 9
-			} else {
-				scores[i] = -64
+		// if the highest damaging move kills then we only have to consider moves that can kill
+		if canHighestKill {
+			if !kills[i] {
 				continue
 			}
-		} else if action.move.Name == "first-impression" && !action.userSlot.firstTurn {
-			scores[i] = -64
-			continue
-		} else if action.move.Priority > 0 && isFastDead && target.IsFasterThan(user) {
-			scores[i] = 9
-		}
-
-		if kills {
-			canHighestKill = true
-			highestDamageIndex = i
-			if action.move.Priority > 0 || user.IsFasterThan(target) {
+			if a.move.Priority > 0 || a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
 				scores[i] += 12 + 2*rollInt(1, 5)
 			} else {
 				scores[i] += 9 + 2*rollInt(1, 5)
 			}
 			continue
-		} else if _, ok := target.Ailments["trap"]; !ok && action.move.Ailment == "trap" {
-			scores[i] = 6 + 2*rollInt(1, 5)
 		}
 
-		if highestDamageIndex == -1 || (!canHighestKill && damage[i] > damage[highestDamageIndex]) {
-			highestDamageIndex = i
-		} else if _, ok := speedControlMoves[action.move.Name]; ok && !kills && !user.IsFasterThan(target) {
-			scores[i] += 6
-		} else if category, ok := offenseControlMoves[action.move.Name]; ok {
-			if target.HasMoveClass(category) {
-				scores[i] += 6
+		// if no moves kills then the highest damaging moves gets additional score
+		if highestDamageIndex == i {
+			scores[i] += 6 + 2*rollInt(1, 5)
+			continue
+		}
+
+		// moves from this point that gets a base score if and only if it neither kills or is highest damage
+		if _, ok := speedControlMoves[a.move.Name]; ok && !a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+			scores[i] = 6
+			continue
+		}
+
+		if c, ok := offenseControlMoves[a.move.Name]; ok {
+			if a.targetSlot.mon.HasMoveClass(c) {
+				scores[i] = 6
 			} else {
-				scores[i] += 5
+				scores[i] = 5
 			}
+			continue
 		}
-	}
-
-	if highestDamageIndex != -1 && !canHighestKill {
-		scores[highestDamageIndex] += 6 + 2*rollInt(1, 5)
 	}
 
 	log.Println(scores)
