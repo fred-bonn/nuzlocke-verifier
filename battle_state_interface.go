@@ -15,13 +15,15 @@ type battleState interface {
 }
 
 type slot struct {
-	mon       *Pokemon
-	firstTurn bool
+	mon         *Pokemon
+	firstTurn   bool
+	suckerPunch bool
 }
 
 func (s *slot) setMon(new *Pokemon) {
 	s.mon.SwitchReset()
 	s.firstTurn = true
+	s.suckerPunch = false
 	s.mon = new
 }
 

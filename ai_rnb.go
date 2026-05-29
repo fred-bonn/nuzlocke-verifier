@@ -51,6 +51,9 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			}
 			continue
 		}
+		if a.move.Name == "sucker-punch" && a.userSlot.suckerPunch && roll(1, 2) {
+			scores[i] = -20
+		}
 
 		damage[i], kills[i] = a.scoreActionMove(bs)
 		if damage[i] == 0 {

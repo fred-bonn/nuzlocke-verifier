@@ -33,6 +33,17 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	ma.userSlot.firstTurn = false
 
+	if ma.move.Name == "sucker-punch" {
+		ma.userSlot.suckerPunch = true
+		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
+		if targetMove != nil && targetMove.move.Class != "status" {
+			log.Printf("%s used sucker punch but it failed", ma.userSlot.mon.Base.Name)
+			return
+		}
+	} else {
+		ma.userSlot.suckerPunch = false
+	}
+
 	if _, ok := ma.userSlot.mon.Ailments["freeze"]; ok {
 		if roll(1, 5) {
 			log.Printf("%s thawed out", ma.userSlot.mon.Base.Name)
@@ -211,9 +222,9 @@ func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
 	}
 
 	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {
-		target_ma := bs.getActions().getMoveActionBy(target)
-		if target_ma != nil {
-			target_ma.Flinch = true
+		targetMove := bs.getActions().getMoveActionBy(target)
+		if targetMove != nil {
+			targetMove.Flinch = true
 		}
 	}
 
