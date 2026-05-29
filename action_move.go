@@ -19,11 +19,7 @@ func (ma *moveAction) prio() int {
 }
 
 func (ma *moveAction) speed() int {
-	speed := ma.userSlot.mon.EffectiveStat("speed", false)
-	if _, ok := ma.userSlot.mon.Ailments["paralysis"]; ok {
-		return speed / 4
-	}
-	return speed
+	return ma.userSlot.mon.EffectiveSpeed()
 }
 
 func (ma *moveAction) invoke(bs battleState) {

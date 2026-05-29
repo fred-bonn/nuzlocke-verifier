@@ -28,6 +28,9 @@ func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, cri
 	denominator := 1
 
 	applyType := func(mult float64) {
+		if target.IsGrounded() && target.HasType("flying") && move.Type == "ground" {
+			return
+		}
 		switch mult {
 		case 0:
 			numerator = 0

@@ -24,6 +24,7 @@ func (s *slot) setMon(new *Pokemon) {
 	s.mon.SwitchReset()
 	s.firstTurn = true
 	s.suckerPunch = false
+	s.mon.grounded = false
 	s.mon = new
 }
 

@@ -9,6 +9,7 @@ import (
 )
 
 type item struct {
+	name     string
 	trigger  func(any) bool
 	activate func()
 	consumed bool
@@ -52,6 +53,7 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"tanga-berry":  makeResistBerryMiddleWare("bug"),
 	"wacan-berry":  makeResistBerryMiddleWare("electric"),
 	"yache-berry":  makeResistBerryMiddleWare("ice"),
+	"iron-ball":    makePassiveItemMiddleWare("iron-ball"),
 }
 
 func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func() *item {
@@ -74,7 +76,7 @@ func registerItem(itemName string, mon *Pokemon) (*item, error) {
 	return factory(), nil
 }
 
-func checkItemTriggers(bs battleState, event any) {
+func checkItemTriggers(bs battleState, e any) {
 	slots := bs.getAllSlots()
 	for _, slot := range slots {
 		item := slot.mon.Item
@@ -82,7 +84,7 @@ func checkItemTriggers(bs battleState, event any) {
 			continue
 		}
 
-		item.checkTrigger(true, event)
+		item.checkTrigger(true, e)
 	}
 }
 
@@ -169,5 +171,16 @@ func makeLeppaBerry(mon *Pokemon) *item {
 		activate: func() {
 			m.PP += min(10, m.MaxPP)
 		},
+	}
+}
+
+func makePassiveItemMiddleWare(itemName string) func(mon *Pokemon) *item {
+	return func(mon *Pokemon) *item {
+		return &item{
+			name: itemName,
+			trigger: func(e any) bool {
+				return false
+			},
+		}
 	}
 }

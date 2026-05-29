@@ -20,6 +20,7 @@ type Pokemon struct {
 	Fainted  bool
 	Ailments map[string]int
 	Item     *item
+	grounded bool
 }
 
 var ivMap = map[string]string{
@@ -151,8 +152,11 @@ func (p *Pokemon) IsFasterThan(mon *Pokemon) bool {
 func (p *Pokemon) EffectiveSpeed() int {
 	stage := p.Stages["speed"]
 	base := p.Stats["speed"]
+	if p.Item.name == "iron-ball" {
+		base /= 2
+	}
 	if _, ok := p.Ailments["paralysis"]; ok {
-		base = base / 4
+		base /= 4
 	}
 
 	if stage >= 0 {
@@ -259,6 +263,10 @@ func (p *Pokemon) HasMoveClass(c string) bool {
 		}
 	}
 	return false
+}
+
+func (p *Pokemon) IsGrounded() bool {
+	return p.grounded || (p.Item != nil && p.Item.name == "iron-ball")
 }
 
 func (p *Pokemon) ChangeHp(change int) {
