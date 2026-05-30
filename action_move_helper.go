@@ -23,6 +23,13 @@ var confusionMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
+var struggleMove = pokeapi.BaseMove{
+	Name:  "struggle",
+	Type:  "no-type",
+	Power: 50,
+	Class: "physical",
+}
+
 func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
 	numerator := 1
 	denominator := 1

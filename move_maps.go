@@ -31,3 +31,8 @@ var offenseControlMoves = map[string]string{
 	"chilling-water": "physical",
 	"lunge":          "physical",
 }
+
+var protectMoves = map[string]struct{}{
+	"protect": {},
+	"detect":  {},
+}

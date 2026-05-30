@@ -15,9 +15,11 @@ type battleState interface {
 }
 
 type slot struct {
-	mon         *Pokemon
-	firstTurn   bool
-	suckerPunch bool
+	mon          *Pokemon
+	firstTurn    bool
+	suckerPunch  bool
+	protected    bool
+	protectTurns int
 }
 
 func (s *slot) setMon(new *Pokemon) {
@@ -36,6 +38,20 @@ func (s *slot) isTrapped() bool {
 		return true
 	}
 	return false
+}
+
+func (s *slot) resolveProtect() {
+	denominator := 1
+	for i := 0; i < s.protectTurns; i++ {
+		denominator *= 3
+	}
+	if roll(1, denominator) {
+		s.protected = true
+		s.protectTurns++
+	} else {
+		log.Println("but it failed")
+		s.protectTurns = 0
+	}
 }
 
 func resolveEndOfTurn(bs battleState) {
@@ -58,6 +74,7 @@ func resolveEndOfTurn(bs battleState) {
 				}
 			}
 		}
+		slot.protected = false
 	}
 }
 

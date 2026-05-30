@@ -26,6 +26,14 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		})
 	}
 
+	if len(possibleActions) == 0 {
+		possibleActions = append(possibleActions, &moveAction{
+			userSlot:   slot,
+			targetSlot: opponentSlot,
+			move:       &struggleMove,
+		})
+	}
+
 	action, score := t.ai.evaluateActions(bs, possibleActions)
 	if score > 0 {
 		return action

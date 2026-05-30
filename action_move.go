@@ -102,6 +102,15 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
 
+	if ma.move.Name == "struggle" {
+		ma.userSlot.mon.ChangeHp(-(ma.userSlot.mon.Stats["hp"] / 4))
+	}
+
+	if ma.targetSlot.protected {
+		log.Printf("but it failed")
+		return
+	}
+
 	if ma.move.Class == "status" {
 		if strings.HasPrefix(ma.move.Target, "user") {
 			ma.applyStatusMove(bs, ma.userSlot.mon)
@@ -112,12 +121,22 @@ func (ma *moveAction) invoke(bs battleState) {
 		ma.applyDamageMove(bs)
 	}
 
+	if ma.userSlot.mon.Hp <= 0 {
+		monFainted(bs, ma.userSlot)
+		return
+	}
+
 	ma.userSlot.mon.Item.checkTrigger(true, leppaBerryEvent{
 		move: ma.move,
 	})
 }
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
+
+	if _, ok := protectMoves[ma.move.Name]; ok {
+		ma.userSlot.resolveProtect()
+	}
+
 	if ma.move.Category == "swagger" {
 		ma.applySwagger(target)
 		return
