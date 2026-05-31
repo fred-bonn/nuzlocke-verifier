@@ -31,6 +31,12 @@ var struggleMove = pokeapi.BaseMove{
 }
 
 func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
+	if move.Name == "acrobatics" {
+		if user.Item.consumed {
+			move.Power = 110
+		}
+	}
+
 	numerator := 1
 	denominator := 1
 

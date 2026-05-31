@@ -7,6 +7,11 @@ type resistBerryEvent struct {
 	denominator *int
 }
 
+type gemEvent struct {
+	typeName  string
+	numerator *int
+}
+
 type leppaBerryEvent struct {
 	move *pokeapi.BaseMove
 }
