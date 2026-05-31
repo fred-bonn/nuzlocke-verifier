@@ -103,7 +103,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		if a.move.Priority > 0 && !a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
 			for _, move := range a.targetSlot.mon.Moves {
 				if move.PP > 0 && move.Class != "status" {
-					dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, &move, move.CritRate >= 4, true)
+					dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, move.CritRate >= 4, true)
 					if a.userSlot.mon.Hp <= dmg {
 						scores[i] += 11
 						break
@@ -235,7 +235,7 @@ func calculateMaxDamage(user, target *Pokemon) int {
 				rolls = move.MaxHits
 			}
 			for i := 0; i < rolls; i++ {
-				dmg += calculateDamage(user, target, &move, move.CritRate >= 4, true)
+				dmg += calculateDamage(user, target, move, move.CritRate >= 4, true)
 			}
 
 			if dmg > maxDmg {

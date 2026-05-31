@@ -36,6 +36,26 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		}
 		return 6 + 3*rollInt(3, 4)
 	}
+
+	if _, ok := protectMoves[ma.move.Name]; ok {
+		// still needs to return if user is dead to secondary damage, and minus score if other volatile status are active
+		if ma.userSlot.protectTurns == 2 || (ma.userSlot.protectTurns == 1 && roll(1, 2)) {
+			return -64
+		}
+
+		score := 6
+		if ma.userSlot.firstTurn {
+			score--
+		}
+		if ma.targetSlot.mon.HasAilment("poison") || ma.targetSlot.mon.HasAilment("toxic") || ma.targetSlot.mon.HasAilment("burn") {
+			score++
+		}
+		if ma.userSlot.mon.HasAilment("poison") || ma.userSlot.mon.HasAilment("toxic") || ma.userSlot.mon.HasAilment("burn") {
+			score -= 2
+		}
+		return score
+	}
+
 	return 6
 }
 

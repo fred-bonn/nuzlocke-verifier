@@ -50,12 +50,12 @@ func (s *slot) resolveProtect() {
 		s.protectTurns++
 	} else {
 		log.Println("but it failed")
-		s.protectTurns = 0
 	}
 }
 
 func resolveEndOfTurn(bs battleState) {
 	for _, slot := range bs.getAllSlots() {
+		// resolve end of return effects from ailments and statuses
 		for ailment := range slot.mon.Ailments {
 			switch ailment {
 			case "burn":
@@ -74,7 +74,13 @@ func resolveEndOfTurn(bs battleState) {
 				}
 			}
 		}
-		slot.protected = false
+
+		// reset protect counter if the slot was not protected this turn
+		if !slot.protected {
+			slot.protectTurns = 0
+		} else {
+			slot.protected = false
+		}
 	}
 }
 

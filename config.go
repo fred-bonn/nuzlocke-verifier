@@ -42,7 +42,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*Pokemon, error)
 	var res []*Pokemon
 
 	for _, mon := range mons {
-		var moves []pokeapi.BaseMove
+		var moves []*pokeapi.BaseMove
 
 		cleanedMonName := cleanName(mon.Name)
 		basePokemon, err := cfg.loadPokemon(cleanedMonName)
@@ -57,7 +57,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*Pokemon, error)
 				return nil, err
 			}
 
-			moves = append(moves, baseMove)
+			moves = append(moves, &baseMove)
 		}
 
 		finalPokemon, err := InitializePokemon(basePokemon, mon.Level, mon.IVs, mon.Nature, moves, mon.HP, mon.Status)
