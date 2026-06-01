@@ -54,6 +54,24 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"wacan-berry":  makeResistBerryMiddleWare("wacan-berry", "electric"),
 	"yache-berry":  makeResistBerryMiddleWare("yache-berry", "ice"),
 	"iron-ball":    makePassiveItemMiddleWare("iron-ball"),
+	"normal-gem":   makeGemMiddleWare("normal"),
+	"fire-gem":     makeGemMiddleWare("fire"),
+	"fighting-gem": makeGemMiddleWare("fighting"),
+	"water-gem":    makeGemMiddleWare("water"),
+	"flying-gem":   makeGemMiddleWare("flying"),
+	"grass-gem":    makeGemMiddleWare("grass"),
+	"poison-gem":   makeGemMiddleWare("poison"),
+	"electric-gem": makeGemMiddleWare("electric"),
+	"ground-gem":   makeGemMiddleWare("ground"),
+	"psychic-gem":  makeGemMiddleWare("psychic"),
+	"rock-gem":     makeGemMiddleWare("rock"),
+	"ice-gem":      makeGemMiddleWare("ice"),
+	"bug-gem":      makeGemMiddleWare("bug"),
+	"dragon-gem":   makeGemMiddleWare("dragon"),
+	"ghost-gem":    makeGemMiddleWare("ghost"),
+	"dark-gem":     makeGemMiddleWare("dark"),
+	"steel-gem":    makeGemMiddleWare("steel"),
+	"fairy-gem":    makeGemMiddleWare("fairy"),
 }
 
 func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func() *item {
@@ -141,24 +159,27 @@ func makeResistBerryMiddleWare(name, typeName string) func(mon *Pokemon) *item {
 	}
 }
 
-func makeGemMiddleWare(name, typeName string) func(mon *Pokemon) *item {
+func makeGemMiddleWare(typeName string) func(mon *Pokemon) *item {
+	var d *int
 	var n *int
 	return func(mon *Pokemon) *item {
 		return &item{
-			name: name,
+			name: fmt.Sprintf("%s-gem", typeName),
 			trigger: func(e any) bool {
 				event, ok := e.(gemEvent)
 				if !ok {
 					return false
 				}
+				d = event.denominator
 				n = event.numerator
 				return event.typeName == typeName
 			},
 			activate: func() {
 				if n == nil {
-					log.Printf("%s consumed its %s and boosted the damage", mon.Base.Name, name)
+					log.Printf("%s consumed its %s gem and boosted the damage", mon.Base.Name, typeName)
 				} else {
-					*n *= 2
+					*n *= 3
+					*d *= 2
 				}
 			},
 		}

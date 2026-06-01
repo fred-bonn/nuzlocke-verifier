@@ -8,8 +8,9 @@ type resistBerryEvent struct {
 }
 
 type gemEvent struct {
-	typeName  string
-	numerator *int
+	typeName    string
+	denominator *int
+	numerator   *int
 }
 
 type leppaBerryEvent struct {

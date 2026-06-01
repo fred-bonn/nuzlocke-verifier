@@ -30,18 +30,16 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
-	if move.Name == "acrobatics" {
-		if user.Item.consumed {
-			move.Power = 110
-		}
-	}
-
+func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
 	numerator := 1
 	denominator := 1
 
+	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
+		numerator *= 2
+	}
+
 	applyType := func(mult float64) {
-		if target.IsGrounded() && target.HasType("flying") && move.Type == "ground" {
+		if target.isGrounded() && target.HasType("flying") && move.Type == "ground" {
 			return
 		}
 		switch mult {
@@ -109,6 +107,12 @@ func calculateDamage(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove, cri
 	target.Item.checkTrigger(false, resistBerryEvent{
 		typeName:    move.Type,
 		denominator: &denominator,
+	})
+
+	user.Item.checkTrigger(false, gemEvent{
+		typeName:    move.Type,
+		denominator: &denominator,
+		numerator:   &numerator,
 	})
 
 	if !maxRoll {

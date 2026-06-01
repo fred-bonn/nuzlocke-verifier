@@ -176,25 +176,35 @@ func (ma *moveAction) applyDamageMove(bs battleState) {
 		hits = determineHits(ma.move)
 	}
 
-	if ok := ma.resolveDamage(bs, target); !ok {
+	if ok := ma.resolveDamage(bs); !ok {
 		return
 	}
 
 	for i := 1; i < hits; i++ {
-		if ok := ma.resolveDamage(bs, target); !ok {
+		if ok := ma.resolveDamage(bs); !ok {
 			return
 		}
 	}
 }
 
-func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
+func (ma *moveAction) resolveDamage(bs battleState) bool {
+	user := ma.userSlot.mon
+	target := ma.targetSlot.mon
+
 	crit := roll(1, critRateMap[ma.move.CritRate])
 
-	damage := calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, crit, false)
+	damage := calculateDamage(user, target, ma.move, crit, false)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
 		return false
 	}
+
+	target.Item.checkTrigger(true, resistBerryEvent{
+		typeName: ma.move.Type,
+	})
+	user.Item.checkTrigger(true, gemEvent{
+		typeName: ma.move.Type,
+	})
 
 	if target.Item != nil {
 		target.Item.checkTrigger(true, resistBerryEvent{
@@ -221,12 +231,12 @@ func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
 			change = -1
 		}
 
-		ma.userSlot.mon.ChangeHp(change)
+		user.ChangeHp(change)
 		if change >= 0 {
-			log.Printf("%s healed for %d", ma.userSlot.mon.Base.Name, change)
+			log.Printf("%s healed for %d", user.Base.Name, change)
 		} else {
-			log.Printf("%s took recoil for for %d", ma.userSlot.mon.Base.Name, -change)
-			if ma.userSlot.mon.Hp <= 0 {
+			log.Printf("%s took recoil for for %d", user.Base.Name, -change)
+			if user.Hp <= 0 {
 				monFainted(bs, ma.userSlot)
 			}
 		}
@@ -247,7 +257,7 @@ func (ma *moveAction) resolveDamage(bs battleState, target *Pokemon) bool {
 		var mon *Pokemon
 		switch ma.move.Category {
 		case "damage-raise":
-			mon = ma.userSlot.mon
+			mon = user
 		case "damage-lower":
 			mon = target
 		}
