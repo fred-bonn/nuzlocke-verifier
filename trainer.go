@@ -13,6 +13,10 @@ type trainer struct {
 }
 
 func (t *trainer) nextAction(bs battleState, slot *slot) action {
+	if slot.invulnerableAction != nil {
+		return slot.invulnerableAction
+	}
+
 	opponentSlot := bs.getOtherSlots(slot)[0] // only works for single battles for now
 
 	possibleActions := make([]*moveAction, 0)
@@ -38,6 +42,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		}
 	}
 
+	// if there are no possible moves, struggle
 	if len(possibleActions) == 0 {
 		possibleActions = append(possibleActions, &moveAction{
 			userSlot:   slot,

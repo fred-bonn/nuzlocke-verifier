@@ -36,3 +36,7 @@ var protectMoves = map[string]struct{}{
 	"protect": {},
 	"detect":  {},
 }
+
+var multipleTurnMoves = map[string]struct{}{
+	"bounce": {},
+}

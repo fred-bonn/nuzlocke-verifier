@@ -29,16 +29,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	ma.userSlot.firstTurn = false
 
-	if ma.move.Name == "sucker-punch" {
-		ma.userSlot.suckerPunch = true
-		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
-		if targetMove != nil && targetMove.move.Class != "status" {
-			log.Printf("%s used sucker punch but it failed", ma.userSlot.mon.Base.Name)
-			return
-		}
-	} else {
-		ma.userSlot.suckerPunch = false
-	}
+	ma.userSlot.suckerPunch = ma.move.Name == "sucker-punch"
 
 	if _, ok := ma.userSlot.mon.Ailments["freeze"]; ok {
 		if roll(1, 5) {
@@ -94,6 +85,24 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
+	if _, ok := multipleTurnMoves[ma.move.Name]; ok {
+		if ma.userSlot.invulnerableAction == nil {
+			ma.move.PP++
+			ma.userSlot.invulnerableAction = ma
+			log.Printf("%s used %s and became invulnerable", ma.userSlot.mon.Base.Name, ma.move.Name)
+			return
+		}
+		ma.userSlot.invulnerableAction = nil
+	}
+
+	if ma.userSlot.suckerPunch {
+		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
+		if targetMove == nil || targetMove.move.Class == "status" {
+			log.Printf("%s used sucker punch but it failed", ma.userSlot.mon.Base.Name)
+			return
+		}
+	}
+
 	target := ma.targetSlot.mon
 	if ma.move.Accuracy > 0 && !accuracyRoll(ma.userSlot.mon, target, ma.move.Accuracy) {
 		log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
@@ -106,7 +115,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		ma.userSlot.mon.changeHp(-(ma.userSlot.mon.Stats["hp"] / 4))
 	}
 
-	if ma.targetSlot.protected {
+	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
 		log.Printf("but it failed")
 		return
 	}

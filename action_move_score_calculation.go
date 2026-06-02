@@ -68,7 +68,7 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 		return false
 	}
 
-	maxDmg := calculateMaxDamage(ma.targetSlot.mon, ma.userSlot.mon)
+	maxDmg := calculateMaxDamage(ma.targetSlot.mon, ma.userSlot.mon, true)
 	if maxDmg >= ma.userSlot.mon.Stats["hp"]*ma.move.Heal/100 {
 		return false
 	}

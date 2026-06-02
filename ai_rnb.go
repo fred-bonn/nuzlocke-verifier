@@ -102,12 +102,16 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		// add score if fast dead and the move has priority
 		if a.move.Priority > 0 && !a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
 			for _, move := range a.targetSlot.mon.Moves {
-				if move.PP > 0 && move.Class != "status" {
-					dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, move.CritRate >= 4, true)
-					if a.userSlot.mon.Hp <= dmg {
-						scores[i] += 11
-						break
-					}
+				if move.PP <= 0 || move.Class == "status" {
+					continue
+				}
+				if a.targetSlot.mon.LockedMove != nil && a.targetSlot.mon.LockedMove != move {
+					continue
+				}
+				dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, move.CritRate >= 4, true)
+				if a.userSlot.mon.Hp <= dmg {
+					scores[i] += 11
+					break
 				}
 			}
 		}
@@ -184,8 +188,8 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 
 		outspeeds := mon.isFasterThan(opponent)
 
-		monDamage := calculateMaxDamage(mon, opponent)
-		opponentDamage := calculateMaxDamage(opponent, mon)
+		monDamage := calculateMaxDamage(mon, opponent, false)
+		opponentDamage := calculateMaxDamage(opponent, mon, false)
 
 		killsOpponent := monDamage >= opponent.Hp
 		monKilled := opponentDamage >= mon.Hp
@@ -223,28 +227,33 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 	return mons[bestIndex]
 }
 
-func calculateMaxDamage(user, target *Pokemon) int {
+func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
 	var maxDmg, dmg int
 	rolls := 1
 	for _, move := range user.Moves {
-		if move.PP > 0 && move.Class != "status" {
-			rolls = 1
-			if move.MaxHits == 5 {
-				rolls = 3
-			} else if move.MaxHits > 0 {
-				rolls = move.MaxHits
-			}
-			for i := 0; i < rolls; i++ {
-				dmg += calculateDamage(user, target, move, move.CritRate >= 4, true)
-			}
+		if move.PP <= 0 || move.Class == "status" {
+			continue
+		}
+		if checkChoice && user.LockedMove != nil && user.LockedMove != move {
+			continue
+		}
 
-			target.Item.checkTrigger(false, focusSashEvent{
-				damage: &dmg,
-			})
+		rolls = 1
+		if move.MaxHits == 5 {
+			rolls = 3
+		} else if move.MaxHits > 0 {
+			rolls = move.MaxHits
+		}
+		for i := 0; i < rolls; i++ {
+			dmg += calculateDamage(user, target, move, move.CritRate >= 4, true)
+		}
 
-			if dmg > maxDmg {
-				maxDmg = dmg
-			}
+		target.Item.checkTrigger(false, focusSashEvent{
+			damage: &dmg,
+		})
+
+		if dmg > maxDmg {
+			maxDmg = dmg
 		}
 		dmg = 0
 	}
