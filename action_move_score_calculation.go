@@ -16,6 +16,10 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, ma.move.CritRate >= 4, false)
 	}
 
+	ma.targetSlot.mon.Item.checkTrigger(false, focusSashEvent{
+		damage: &damageRoll,
+	})
+
 	return damageRoll, damageRoll >= ma.targetSlot.mon.Hp
 }
 

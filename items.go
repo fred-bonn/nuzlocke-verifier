@@ -72,6 +72,11 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"dark-gem":     makeGemMiddleWare("dark"),
 	"steel-gem":    makeGemMiddleWare("steel"),
 	"fairy-gem":    makeGemMiddleWare("fairy"),
+	"choice-scarf": makeChoiceScarf,
+	"assault-vest": makeAssaultVest,
+	"choice-band":  makeChoiceBand,
+	"choice-specs": makeChoiceSpecs,
+	"focus-sash":   makeFocusSash,
 }
 
 func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func() *item {
@@ -232,5 +237,90 @@ func makePassiveItemMiddleWare(itemName string) func(mon *Pokemon) *item {
 				return false
 			},
 		}
+	}
+}
+
+func makeChoiceScarf(mon *Pokemon) *item {
+	mon.Stats["speed"] = mon.Stats["speed"] * 3 / 2
+	return &item{
+		name: "choice-scarf",
+	}
+}
+
+func makeAssaultVest(mon *Pokemon) *item {
+	mon.Stats["special-defense"] = mon.Stats["special-defense"] * 3 / 2
+	return &item{
+		name: "assault-vest",
+	}
+}
+
+func makeChoiceBand(mon *Pokemon) *item {
+	var d *int
+	var n *int
+	return &item{
+		name: "choice-band",
+		trigger: func(e any) bool {
+			event, ok := e.(choiceItemEvent)
+			if !ok {
+				return false
+			}
+			if event.move.Class != "physical" {
+				return false
+			}
+			d = event.denominator
+			n = event.numerator
+			return true
+		},
+		activate: func() {
+			*n *= 3
+			*d *= 2
+		},
+	}
+}
+
+func makeChoiceSpecs(mon *Pokemon) *item {
+	var d *int
+	var n *int
+	return &item{
+		name: "choice-specs",
+		trigger: func(e any) bool {
+			event, ok := e.(choiceItemEvent)
+			if !ok {
+				return false
+			}
+			if event.move.Class != "special" {
+				return false
+			}
+			d = event.denominator
+			n = event.numerator
+			return true
+		},
+		activate: func() {
+			*n *= 3
+			*d *= 2
+		},
+	}
+}
+
+func makeFocusSash(mon *Pokemon) *item {
+	var dmg *int
+	var c bool
+	return &item{
+		trigger: func(e any) bool {
+			event, ok := e.(focusSashEvent)
+			if !ok {
+				return false
+			}
+			dmg = event.damage
+			c = event.consume
+			return mon.Hp == mon.Stats["hp"] && *event.damage >= mon.Hp
+		},
+		activate: func() {
+			if c {
+				log.Printf("%s held on with its focus sash", mon.Base.Name)
+			}
+			*dmg = mon.Hp - 1
+			dmg = nil
+		},
 	}
 }

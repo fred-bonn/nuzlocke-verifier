@@ -202,15 +202,13 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	target.Item.checkTrigger(true, resistBerryEvent{
 		typeName: ma.move.Type,
 	})
+	target.Item.checkTrigger(true, focusSashEvent{
+		damage:  &damage,
+		consume: true,
+	})
 	user.Item.checkTrigger(true, gemEvent{
 		typeName: ma.move.Type,
 	})
-
-	if target.Item != nil {
-		target.Item.checkTrigger(true, resistBerryEvent{
-			typeName: ma.move.Type,
-		})
-	}
 
 	damage = min(damage, target.Hp)
 	log.Printf("%s took %d damage", target.Base.Name, int(damage))

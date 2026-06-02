@@ -238,6 +238,10 @@ func calculateMaxDamage(user, target *Pokemon) int {
 				dmg += calculateDamage(user, target, move, move.CritRate >= 4, true)
 			}
 
+			target.Item.checkTrigger(false, focusSashEvent{
+				damage: &dmg,
+			})
+
 			if dmg > maxDmg {
 				maxDmg = dmg
 			}

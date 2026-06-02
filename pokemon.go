@@ -9,17 +9,18 @@ import (
 )
 
 type Pokemon struct {
-	Base     pokeapi.BasePokemon
-	Level    int
-	IVs      map[string]int
-	Nature   []string
-	Moves    []*pokeapi.BaseMove
-	Stats    map[string]int
-	Stages   map[string]int
-	Hp       int
-	Fainted  bool
-	Ailments map[string]int
-	Item     *item
+	Base       pokeapi.BasePokemon
+	Level      int
+	IVs        map[string]int
+	Nature     []string
+	Moves      []*pokeapi.BaseMove
+	LockedMove *pokeapi.BaseMove
+	Stats      map[string]int
+	Stages     map[string]int
+	Hp         int
+	Fainted    bool
+	Ailments   map[string]int
+	Item       *item
 }
 
 var ivMap = map[string]string{
@@ -192,6 +193,7 @@ func (p *Pokemon) switchReset() {
 	if _, ok := p.Ailments["toxic"]; ok {
 		p.Ailments["toxic"] = 0
 	}
+	p.LockedMove = nil
 }
 
 func (p *Pokemon) hasType(typeName string) bool {

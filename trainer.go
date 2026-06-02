@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"strings"
 )
 
 type trainer struct {
@@ -15,15 +16,26 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	opponentSlot := bs.getOtherSlots(slot)[0] // only works for single battles for now
 
 	possibleActions := make([]*moveAction, 0)
-	for _, move := range slot.mon.Moves {
-		if move.PP <= 0 {
-			continue
-		}
+	if slot.mon.LockedMove != nil && slot.mon.LockedMove.PP > 0 {
 		possibleActions = append(possibleActions, &moveAction{
 			userSlot:   slot,
 			targetSlot: opponentSlot,
-			move:       move,
+			move:       slot.mon.LockedMove,
 		})
+	} else {
+		for _, move := range slot.mon.Moves {
+			if move.PP <= 0 {
+				continue
+			}
+			if slot.mon.Item.name == "assault-vest" && move.Class != "status" {
+				continue
+			}
+			possibleActions = append(possibleActions, &moveAction{
+				userSlot:   slot,
+				targetSlot: opponentSlot,
+				move:       move,
+			})
+		}
 	}
 
 	if len(possibleActions) == 0 {
@@ -35,6 +47,9 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	}
 
 	action, score := t.ai.evaluateActions(bs, possibleActions)
+	if strings.HasPrefix(slot.mon.Item.name, "choice") {
+		slot.mon.LockedMove = action.move
+	}
 	if score > 0 {
 		return action
 	}

@@ -16,3 +16,14 @@ type gemEvent struct {
 type leppaBerryEvent struct {
 	move *pokeapi.BaseMove
 }
+
+type choiceItemEvent struct {
+	move        *pokeapi.BaseMove
+	denominator *int
+	numerator   *int
+}
+
+type focusSashEvent struct {
+	damage  *int
+	consume bool
+}

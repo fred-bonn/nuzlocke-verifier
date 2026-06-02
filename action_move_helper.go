@@ -38,6 +38,23 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 		numerator *= 2
 	}
 
+	if move.Name == "flail" {
+		res := int(48 * (float64(user.Hp) / float64(user.Stats["hp"])))
+		if res <= 1 {
+			move.Power = 200
+		} else if res <= 4 {
+			move.Power = 150
+		} else if res <= 9 {
+			move.Power = 100
+		} else if res <= 16 {
+			move.Power = 80
+		} else if res <= 32 {
+			move.Power = 40
+		} else {
+			move.Power = 20
+		}
+	}
+
 	applyType := func(mult float64) {
 		if target.isGrounded() && target.hasType("flying") && move.Type == "ground" {
 			return
@@ -111,6 +128,12 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 
 	user.Item.checkTrigger(false, gemEvent{
 		typeName:    move.Type,
+		denominator: &denominator,
+		numerator:   &numerator,
+	})
+
+	user.Item.checkTrigger(false, choiceItemEvent{
+		move:        move,
 		denominator: &denominator,
 		numerator:   &numerator,
 	})
