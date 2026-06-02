@@ -39,7 +39,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 	}
 
 	applyType := func(mult float64) {
-		if target.isGrounded() && target.HasType("flying") && move.Type == "ground" {
+		if target.isGrounded() && target.hasType("flying") && move.Type == "ground" {
 			return
 		}
 		switch mult {
@@ -77,15 +77,15 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 		return 40
 	}
 
-	stab := user.HasType(move.Type)
+	stab := user.hasType(move.Type)
 
 	var offensiveStat, defensiveStat int
 	if move.Class == "physical" {
-		offensiveStat = user.EffectiveStat("attack", crit)
-		defensiveStat = target.EffectiveStat("defense", crit)
+		offensiveStat = user.effectiveStat("attack", crit)
+		defensiveStat = target.effectiveStat("defense", crit)
 	} else {
-		offensiveStat = user.EffectiveStat("special-attack", crit)
-		defensiveStat = target.EffectiveStat("special-defense", crit)
+		offensiveStat = user.effectiveStat("special-attack", crit)
+		defensiveStat = target.effectiveStat("special-defense", crit)
 	}
 
 	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
@@ -100,7 +100,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 		denominator *= 2
 	}
 
-	if move.Class == "physical" && user.HasAilment("burn") {
+	if move.Class == "physical" && user.hasAilment("burn") {
 		denominator *= 2
 	}
 
@@ -130,8 +130,8 @@ func roll(numerator int, denominator int) bool {
 }
 
 func accuracyRoll(user *Pokemon, target *Pokemon, moveAccuracy int) bool {
-	accNum, accDen := user.AccuracyFraction()
-	evNum, evDen := target.EvasionFraction()
+	accNum, accDen := user.accuracyFraction()
+	evNum, evDen := target.evasionFraction()
 	numerator := moveAccuracy * accNum * evNum
 	denominator := 100 * accDen * evDen
 	return roll(numerator, denominator)

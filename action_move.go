@@ -19,7 +19,7 @@ func (ma *moveAction) prio() int {
 }
 
 func (ma *moveAction) speed() int {
-	return ma.userSlot.mon.EffectiveSpeed()
+	return ma.userSlot.mon.effectiveSpeed()
 }
 
 func (ma *moveAction) invoke(bs battleState) {
@@ -103,7 +103,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
 
 	if ma.move.Name == "struggle" {
-		ma.userSlot.mon.ChangeHp(-(ma.userSlot.mon.Stats["hp"] / 4))
+		ma.userSlot.mon.changeHp(-(ma.userSlot.mon.Stats["hp"] / 4))
 	}
 
 	if ma.targetSlot.protected {
@@ -149,7 +149,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 
 	if ma.move.Heal > 0 {
 		change := target.Stats["hp"] * ma.move.Heal / 100
-		ma.userSlot.mon.ChangeHp(change)
+		ma.userSlot.mon.changeHp(change)
 		log.Printf("%s healed for %d", target.Base.Name, change)
 	}
 
@@ -160,9 +160,9 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 }
 
 func (ma *moveAction) applySwagger(target *Pokemon) {
-	target.ChangeStatStage("attack", 2)
+	target.changeStatStage("attack", 2)
 	log.Printf("%s's attack changed by 2 stages (%d)", target.Base.Name, target.Stages["attack"])
-	target.ApplyAilment("confusion", ma.move)
+	target.applyAilment("confusion", ma.move)
 }
 
 func (ma *moveAction) applyDamageMove(bs battleState) {
@@ -217,7 +217,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if crit {
 		log.Printf("it was a critical hit!")
 	}
-	target.ChangeHp(-damage)
+	target.changeHp(-damage)
 	if target.Hp <= 0 {
 		monFainted(bs, ma.targetSlot)
 	}
@@ -231,7 +231,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 			change = -1
 		}
 
-		user.ChangeHp(change)
+		user.changeHp(change)
 		if change >= 0 {
 			log.Printf("%s healed for %d", user.Base.Name, change)
 		} else {
@@ -243,7 +243,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
-		target.ApplyAilment(ma.move.Ailment, ma.move)
+		target.applyAilment(ma.move.Ailment, ma.move)
 	}
 
 	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {

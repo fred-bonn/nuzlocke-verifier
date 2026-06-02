@@ -31,7 +31,7 @@ var ivMap = map[string]string{
 	"spe": "speed",
 }
 
-func InitializePokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature string, moves []*pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
+func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature string, moves []*pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
 	if level < 1 || level > 100 {
 		return Pokemon{}, fmt.Errorf("invalid level: %d", level)
 	}
@@ -114,14 +114,14 @@ func calculateStats(pokemon *Pokemon) {
 	}
 }
 
-func (p *Pokemon) ChangeStatStage(stat string, change int) {
+func (p *Pokemon) changeStatStage(stat string, change int) {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat")
 	}
 	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
 }
 
-func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
+func (p *Pokemon) effectiveStat(stat string, crit bool) int {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat")
 	}
@@ -144,11 +144,11 @@ func (p *Pokemon) EffectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) IsFasterThan(mon *Pokemon) bool {
-	return p.EffectiveSpeed() >= mon.EffectiveSpeed()
+func (p *Pokemon) isFasterThan(mon *Pokemon) bool {
+	return p.effectiveSpeed() >= mon.effectiveSpeed()
 }
 
-func (p *Pokemon) EffectiveSpeed() int {
+func (p *Pokemon) effectiveSpeed() int {
 	stage := p.Stages["speed"]
 	base := p.Stats["speed"]
 	if p.Item.name == "iron-ball" {
@@ -164,7 +164,7 @@ func (p *Pokemon) EffectiveSpeed() int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) EvasionFraction() (int, int) {
+func (p *Pokemon) evasionFraction() (int, int) {
 	stage := p.Stages["evasion"]
 	if stage == 0 {
 		return 3, 3
@@ -174,7 +174,7 @@ func (p *Pokemon) EvasionFraction() (int, int) {
 	return 3 - stage, 3
 }
 
-func (p *Pokemon) AccuracyFraction() (int, int) {
+func (p *Pokemon) accuracyFraction() (int, int) {
 	stage := p.Stages["accuracy"]
 	if stage == 0 {
 		return 3, 3
@@ -184,7 +184,7 @@ func (p *Pokemon) AccuracyFraction() (int, int) {
 	return 3, 3 - stage
 }
 
-func (p *Pokemon) SwitchReset() {
+func (p *Pokemon) switchReset() {
 	delete(p.Ailments, "confusion")
 	for stat := range p.Stages {
 		p.Stages[stat] = 0
@@ -194,7 +194,7 @@ func (p *Pokemon) SwitchReset() {
 	}
 }
 
-func (p *Pokemon) HasType(typeName string) bool {
+func (p *Pokemon) hasType(typeName string) bool {
 	for _, t := range p.Base.Types {
 		if typeName == t {
 			return true
@@ -203,7 +203,7 @@ func (p *Pokemon) HasType(typeName string) bool {
 	return false
 }
 
-func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) {
+func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove) {
 	if _, ok := pokemon.ValidAilments[ailment]; !ok {
 		panic("invalid ailment")
 	}
@@ -211,13 +211,13 @@ func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) {
 		return
 	}
 	if _, ok := pokemon.NonVolatileStatuses[ailment]; ok {
-		if ailment == "burn" && p.HasType("fire") {
+		if ailment == "burn" && p.hasType("fire") {
 			return
 		}
-		if ailment == "paralysis" && p.HasType("electric") {
+		if ailment == "paralysis" && p.hasType("electric") {
 			return
 		}
-		if ailment == "poison" && p.HasType("poison") {
+		if ailment == "poison" && p.hasType("poison") {
 			return
 		}
 		for a := range p.Ailments {
@@ -239,23 +239,23 @@ func (p *Pokemon) ApplyAilment(ailment string, move *pokeapi.BaseMove) {
 	p.Item.checkTrigger(true, nil)
 }
 
-func (p *Pokemon) HasAilment(ailment string) bool {
+func (p *Pokemon) hasAilment(ailment string) bool {
 	if _, ok := p.Ailments[ailment]; ok {
 		return true
 	}
 	return false
 }
 
-func (p *Pokemon) HasNonVolatileAilment() bool {
+func (p *Pokemon) hasNonVolatileAilment() bool {
 	for ailment := range pokemon.NonVolatileStatuses {
-		if p.HasAilment(ailment) {
+		if p.hasAilment(ailment) {
 			return true
 		}
 	}
 	return false
 }
 
-func (p *Pokemon) HasMoveClass(c string) bool {
+func (p *Pokemon) hasMoveClass(c string) bool {
 	for _, m := range p.Moves {
 		if m.Class == c {
 			return true
@@ -265,13 +265,13 @@ func (p *Pokemon) HasMoveClass(c string) bool {
 }
 
 func (p *Pokemon) isGrounded() bool {
-	if p.HasType("flying") && p.Item.name != "iron-ball" {
+	if p.hasType("flying") && p.Item.name != "iron-ball" {
 		return false
 	}
 	return true
 }
 
-func (p *Pokemon) ChangeHp(change int) {
+func (p *Pokemon) changeHp(change int) {
 	p.Hp = min(p.Hp+change, p.Stats["hp"])
 	if p.Item != nil {
 		p.Item.checkTrigger(true, nil)

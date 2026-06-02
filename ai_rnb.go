@@ -74,7 +74,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 
 		// add additional scoring to damaging moves
 		if a.move.Name == "fell-stinger" && kills[i] {
-			if a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+			if a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
 				scores[i] = 21 + 2*rollInt(1, 5)
 			} else {
 				scores[i] = 15 + 2*rollInt(1, 5)
@@ -94,13 +94,13 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 					scores[i] = 8 * rollInt(1, 2)
 				}
 			}
-			if a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+			if a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
 				scores[i] += 3
 			}
 		}
 
 		// add score if fast dead and the move has priority
-		if a.move.Priority > 0 && !a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+		if a.move.Priority > 0 && !a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
 			for _, move := range a.targetSlot.mon.Moves {
 				if move.PP > 0 && move.Class != "status" {
 					dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, move.CritRate >= 4, true)
@@ -117,7 +117,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			if !kills[i] {
 				continue
 			}
-			if a.move.Priority > 0 || a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+			if a.move.Priority > 0 || a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
 				scores[i] += 12 + 2*rollInt(1, 5)
 			} else {
 				scores[i] += 9 + 2*rollInt(1, 5)
@@ -132,13 +132,13 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		// moves from this point that gets a base score if and only if it neither kills or is highest damage
-		if _, ok := speedControlMoves[a.move.Name]; ok && !a.userSlot.mon.IsFasterThan(a.targetSlot.mon) {
+		if _, ok := speedControlMoves[a.move.Name]; ok && !a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
 			scores[i] = 6
 			continue
 		}
 
 		if c, ok := offenseControlMoves[a.move.Name]; ok {
-			if a.targetSlot.mon.HasMoveClass(c) {
+			if a.targetSlot.mon.hasMoveClass(c) {
 				scores[i] = 6
 			} else {
 				scores[i] = 5
@@ -182,7 +182,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 			continue
 		}
 
-		outspeeds := mon.IsFasterThan(opponent)
+		outspeeds := mon.isFasterThan(opponent)
 
 		monDamage := calculateMaxDamage(mon, opponent)
 		opponentDamage := calculateMaxDamage(opponent, mon)

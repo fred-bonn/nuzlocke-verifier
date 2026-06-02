@@ -115,7 +115,7 @@ func makeOranBerry(mon *Pokemon) *item {
 			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
 		activate: func() {
-			mon.ChangeHp(10)
+			mon.changeHp(10)
 			log.Printf("%s ate its berry and restored 10 hp", mon.Base.Name)
 		},
 	}
@@ -129,7 +129,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 		},
 		activate: func() {
 			restore := mon.Stats["hp"] / 4
-			mon.ChangeHp(restore)
+			mon.changeHp(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
 		},
 	}
@@ -189,17 +189,17 @@ func makeGemMiddleWare(typeName string) func(mon *Pokemon) *item {
 func makeLumBerry(mon *Pokemon) *item {
 	return &item{
 		trigger: func(any) bool {
-			return mon.HasNonVolatileAilment() || mon.HasAilment("confusion")
+			return mon.hasNonVolatileAilment() || mon.hasAilment("confusion")
 		},
 		activate: func() {
 			log.Printf("%s ate its lum berry", mon.Base.Name)
 			for ailment := range pokemon.NonVolatileStatuses {
-				if mon.HasAilment(ailment) {
+				if mon.hasAilment(ailment) {
 					delete(mon.Ailments, ailment)
 					log.Printf("%s had its %s removed", mon.Base.Name, ailment)
 				}
 			}
-			if mon.HasAilment("confusion") {
+			if mon.hasAilment("confusion") {
 				delete(mon.Ailments, "confusion")
 				log.Printf("%s had its confusion removed", mon.Base.Name)
 			}

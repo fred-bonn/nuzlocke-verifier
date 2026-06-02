@@ -23,7 +23,7 @@ type slot struct {
 }
 
 func (s *slot) setMon(new *Pokemon) {
-	s.mon.SwitchReset()
+	s.mon.switchReset()
 	s.firstTurn = true
 	s.suckerPunch = false
 	s.mon = new
@@ -90,7 +90,7 @@ func takeResidualDamage(bs battleState, slot *slot, ailment string, num, den int
 
 	log.Printf("%s took damage from %s", slot.mon.Base.Name, ailment)
 	change := slot.mon.Stats["hp"] * num / den
-	slot.mon.ChangeHp(-change)
+	slot.mon.changeHp(-change)
 	if slot.mon.Hp <= 0 {
 		slot.mon.Fainted = true
 		bs.injectReplaceAction(slot, bs.getTrainer(slot), false)

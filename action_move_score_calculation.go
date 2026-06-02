@@ -47,10 +47,10 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		if ma.userSlot.firstTurn {
 			score--
 		}
-		if ma.targetSlot.mon.HasAilment("poison") || ma.targetSlot.mon.HasAilment("toxic") || ma.targetSlot.mon.HasAilment("burn") {
+		if ma.targetSlot.mon.hasAilment("poison") || ma.targetSlot.mon.hasAilment("toxic") || ma.targetSlot.mon.hasAilment("burn") {
 			score++
 		}
-		if ma.userSlot.mon.HasAilment("poison") || ma.userSlot.mon.HasAilment("toxic") || ma.userSlot.mon.HasAilment("burn") {
+		if ma.userSlot.mon.hasAilment("poison") || ma.userSlot.mon.hasAilment("toxic") || ma.userSlot.mon.hasAilment("burn") {
 			score -= 2
 		}
 		return score
@@ -60,7 +60,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 }
 
 func (ma *moveAction) shouldMonHeal(bs battleState) bool {
-	if ma.userSlot.mon.HasAilment("toxic") {
+	if ma.userSlot.mon.hasAilment("toxic") {
 		return false
 	}
 
@@ -69,7 +69,7 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 		return false
 	}
 
-	if ma.userSlot.mon.IsFasterThan(ma.targetSlot.mon) {
+	if ma.userSlot.mon.isFasterThan(ma.targetSlot.mon) {
 		if maxDmg < min(ma.userSlot.mon.Stats["hp"], ma.userSlot.mon.Hp+ma.userSlot.mon.Stats["hp"]*ma.move.Heal/100) {
 			return true
 		} else {
