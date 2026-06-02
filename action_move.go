@@ -242,7 +242,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		if change >= 0 {
 			log.Printf("%s healed for %d", user.Base.Name, change)
 		} else {
-			log.Printf("%s took recoil for for %d", user.Base.Name, -change)
+			log.Printf("%s took recoil for %d", user.Base.Name, -change)
 			if user.Hp <= 0 {
 				monFainted(bs, ma.userSlot)
 			}
