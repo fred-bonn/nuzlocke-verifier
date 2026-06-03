@@ -36,6 +36,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			log.Printf("%s thawed out", ma.userSlot.mon.Base.Name)
 			delete(ma.userSlot.mon.Ailments, "freeze")
 		} else {
+			ma.userSlot.invulnerableAction = nil
 			log.Printf("%s is frozen", ma.userSlot.mon.Base.Name)
 			return
 		}
@@ -47,6 +48,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			delete(ma.userSlot.mon.Ailments, "sleep")
 		} else {
 			ma.userSlot.mon.Ailments["sleep"] -= 1
+			ma.userSlot.invulnerableAction = nil
 			log.Printf("%s is asleep", ma.userSlot.mon.Base.Name)
 			return
 		}
@@ -54,6 +56,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	if _, ok := ma.userSlot.mon.Ailments["paralysis"]; ok {
 		if roll(1, 4) {
+			ma.userSlot.invulnerableAction = nil
 			log.Printf("%s is paralysed", ma.userSlot.mon.Base.Name)
 			return
 		}
@@ -72,6 +75,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
 			if roll(1, 3) {
 				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false)
+				ma.userSlot.invulnerableAction = nil
 				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.Base.Name, damage)
 				ma.userSlot.mon.Hp -= int(damage)
 				if ma.userSlot.mon.Hp <= 0 {
