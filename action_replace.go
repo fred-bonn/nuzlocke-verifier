@@ -25,7 +25,7 @@ func (ra *replaceAction) invoke(bs battleState) {
 		return
 	}
 	for _, slot := range bs.getOtherSlots(ra.oldSlot) {
-		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == ra.oldSlot.mon {
+		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
 			delete(slot.mon.Ailments, "infatuation")
 		}
 	}

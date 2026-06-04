@@ -116,13 +116,6 @@ func calculateStats(pokemon *Pokemon) {
 	}
 }
 
-func (p *Pokemon) changeStatStage(stat string, change int) {
-	if _, ok := p.Stages[stat]; !ok {
-		panic("invalid stat")
-	}
-	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
-}
-
 func (p *Pokemon) effectiveStat(stat string, crit bool) int {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat")
@@ -211,10 +204,13 @@ func (p *Pokemon) hasType(typeName string) bool {
 	return false
 }
 
-func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflictedBy *Pokemon) {
-	if _, ok := validAilments[ailment]; !ok {
-		panic("invalid ailment")
+func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflictedBy *slot) {
+	if _, ok := volatileStatuses[ailment]; !ok {
+		if _, ok := nonVolatileStatuses[ailment]; !ok {
+			panic("invalid ailment")
+		}
 	}
+
 	if _, ok := p.Ailments[ailment]; ok {
 		return
 	}
@@ -270,13 +266,18 @@ func (p *Pokemon) isGrounded() bool {
 	return true
 }
 
-func (p *Pokemon) changeHp(change int) {
+func (p *Pokemon) changeHpBy(change int) {
 	p.Hp = min(p.Hp+change, p.Stats["hp"])
 	if p.Item != nil {
 		p.Item.checkTrigger(true, nil)
 	}
 }
 
-func (p *Pokemon) hasMove(f func(*pokeapi.BaseMove) bool) bool {
+func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
 	return slices.ContainsFunc(p.Moves, f)
+}
+
+func (p *Pokemon) changeStatStageBy(stat string, change int) {
+	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
+	log.Printf("%s's %s changed by %d stages (%d)", p.Base.Name, stat, change, p.Stages[stat])
 }

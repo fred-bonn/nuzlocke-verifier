@@ -138,7 +138,7 @@ func makeOranBerry(mon *Pokemon) *item {
 			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
 		activate: func() {
-			mon.changeHp(10)
+			mon.changeHpBy(10)
 			log.Printf("%s ate its berry and restored 10 hp", mon.Base.Name)
 		},
 	}
@@ -152,7 +152,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 		},
 		activate: func() {
 			restore := mon.Stats["hp"] / 4
-			mon.changeHp(restore)
+			mon.changeHpBy(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
 		},
 	}
@@ -270,8 +270,8 @@ func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 				return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/4
 			},
 			activate: func() {
-				mon.Stages[stat] = min(6, mon.Stages[stat]+1)
 				log.Printf("%s ate its %s", mon.Base.Name, name)
+				mon.changeStatStageBy(stat, 1)
 			},
 		}
 	}

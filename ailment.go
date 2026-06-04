@@ -7,20 +7,7 @@ import (
 type Ailment struct {
 	Name        string
 	Turns       int
-	AfflictedBy *Pokemon
-}
-
-var validAilments = map[string]struct{}{
-	"paralysis":   {},
-	"poison":      {},
-	"toxic":       {},
-	"burn":        {},
-	"freeze":      {},
-	"sleep":       {},
-	"confusion":   {},
-	"trap":        {},
-	"bound":       {},
-	"infatuation": {},
+	AfflictedBy *slot
 }
 
 var nonVolatileStatuses = map[string]struct{}{
@@ -37,9 +24,10 @@ var volatileStatuses = map[string]struct{}{
 	"confusion":   {},
 	"trap":        {},
 	"bound":       {},
+	"leech-seed":  {},
 }
 
-func generateAilment(ailment string, afflictedBy *Pokemon) *Ailment {
+func generateAilment(ailment string, afflictedBy *slot) *Ailment {
 	res := Ailment{
 		Name:        ailment,
 		AfflictedBy: afflictedBy,
@@ -55,7 +43,7 @@ func generateAilment(ailment string, afflictedBy *Pokemon) *Ailment {
 	return &res
 }
 
-func generateTrap(low, high int, mon *Pokemon) *Ailment {
+func generateTrap(low, high int, mon *slot) *Ailment {
 	return &Ailment{
 		Name:        "trap",
 		Turns:       rand.Intn(high-low+1) + low,

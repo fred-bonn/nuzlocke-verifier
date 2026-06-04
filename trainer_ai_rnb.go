@@ -153,7 +153,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if c, ok := offenseControlMoves[a.move.Name]; ok {
-			if a.targetSlot.mon.hasMove(func(m *pokeapi.BaseMove) bool {
+			if a.targetSlot.mon.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
 				return m.Class == c
 			}) {
 				scores[i] = 6

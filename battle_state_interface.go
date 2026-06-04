@@ -31,13 +31,7 @@ func (s *slot) setMon(new *Pokemon) {
 }
 
 func (s *slot) isTrapped() bool {
-	if _, ok := s.mon.Ailments["bound"]; ok {
-		return true
-	}
-	if _, ok := s.mon.Ailments["trap"]; ok {
-		return true
-	}
-	return false
+	return s.mon.hasAilment("trap") != nil || s.mon.hasAilment("bound") != nil
 }
 
 func (s *slot) resolveProtect() {
@@ -56,22 +50,26 @@ func (s *slot) resolveProtect() {
 func resolveEndOfTurn(bs battleState) {
 	for _, slot := range bs.getAllSlots() {
 		// resolve end of return effects from ailments and statuses
-		for ailment := range slot.mon.Ailments {
-			switch ailment {
+		for _, ailment := range slot.mon.Ailments {
+			switch ailment.Name {
 			case "burn":
 				takeResidualDamage(bs, slot, ailment, 1, 16)
 			case "poison":
 				takeResidualDamage(bs, slot, ailment, 1, 8)
 			case "toxic":
-				slot.mon.Ailments[ailment].Turns++
+				ailment.Turns++
 				takeResidualDamage(bs, slot, ailment, 1, 16)
 			case "trap":
-				slot.mon.Ailments[ailment].Turns--
+				ailment.Turns--
 				takeResidualDamage(bs, slot, ailment, 1, 8)
-				if slot.mon.Ailments[ailment].Turns == 0 {
+				if ailment.Turns <= 0 {
 					log.Printf("%s was freed", slot.mon.Base.Name)
-					delete(slot.mon.Ailments, ailment)
+					delete(slot.mon.Ailments, ailment.Name)
 				}
+			case "leech-seed":
+				log.Printf("%s leeched health from %s", ailment.AfflictedBy.mon.Base.Name, slot.mon.Base.Name)
+				dmg := takeResidualDamage(bs, slot, ailment, 1, 8)
+				ailment.AfflictedBy.mon.changeHpBy(dmg)
 			}
 		}
 
@@ -84,17 +82,18 @@ func resolveEndOfTurn(bs battleState) {
 	}
 }
 
-func takeResidualDamage(bs battleState, slot *slot, residual string, num, den int) {
+func takeResidualDamage(bs battleState, slot *slot, ailment *Ailment, num, den int) int {
 	if slot.mon.Fainted {
-		return
+		return 0
 	}
 
-	log.Printf("%s took damage from %s", slot.mon.Base.Name, residual)
+	log.Printf("%s took damage from %s", slot.mon.Base.Name, ailment.Name)
 	change := slot.mon.Stats["hp"] * num / den
-	slot.mon.changeHp(-change)
+	slot.mon.changeHpBy(-change)
 	if slot.mon.Hp <= 0 {
 		slot.mon.Fainted = true
 		bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
 		log.Printf("%s fainted!", slot.mon.Base.Name)
 	}
+	return change
 }

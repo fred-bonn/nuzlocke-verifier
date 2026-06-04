@@ -36,13 +36,6 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return 5
 	}
 
-	if ma.move.Name == "sticky-web" {
-		if ma.userSlot.firstTurn {
-			return 9 + 3*rollInt(3, 4)
-		}
-		return 6 + 3*rollInt(3, 4)
-	}
-
 	if _, ok := paralysisMoves[ma.move.Name]; ok {
 		return ma.scoreParalysisMove()
 	}
@@ -51,8 +44,18 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return ma.scoreProtectMove(bs)
 	}
 
-	if ma.move.Name == "attract" {
-		if _, ok := ma.targetSlot.mon.Ailments["infatuation"]; ok {
+	switch ma.move.Name {
+	case "sticky-web":
+		if ma.userSlot.firstTurn {
+			return 9 + 3*rollInt(3, 4)
+		}
+		return 6 + 3*rollInt(3, 4)
+	case "attract":
+		if ma.targetSlot.mon.hasAilment("infatuation") != nil {
+			return -64
+		}
+	case "leech-seed":
+		if ma.targetSlot.mon.hasAilment("leech-seed") != nil || ma.targetSlot.mon.hasType("grass") {
 			return -64
 		}
 	}
@@ -99,7 +102,7 @@ func (ma *moveAction) scoreParalysisMove() int {
 	bonus := 0
 	if ma.targetSlot.mon.isFasterThan(ma.userSlot.mon) && ma.userSlot.mon.effectiveSpeed() > ma.targetSlot.mon.effectiveSpeed()/4 {
 		bonus++
-	} else if ma.userSlot.mon.hasMove(func(m *pokeapi.BaseMove) bool {
+	} else if ma.userSlot.mon.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
 		return m.Name == "hex" || m.FlinchChance > 0
 	}) {
 		bonus++

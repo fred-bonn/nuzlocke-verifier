@@ -85,7 +85,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	if infatuation := ma.userSlot.mon.hasAilment("infatuation"); infatuation != nil {
 		if roll(1, 2) {
 			ma.userSlot.invulnerableAction = nil
-			log.Printf("%s is infatuated with %s", ma.userSlot.mon.Base.Name, infatuation.AfflictedBy.Base.Name)
+			log.Printf("%s is infatuated with %s", ma.userSlot.mon.Base.Name, infatuation.AfflictedBy.mon.Base.Name)
 			return
 		}
 	}
@@ -124,7 +124,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
 
 	if ma.move.Name == "struggle" {
-		ma.userSlot.mon.changeHp(-(ma.userSlot.mon.Stats["hp"] / 4))
+		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.Stats["hp"] / 4))
 	}
 
 	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
@@ -156,33 +156,28 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 
 	if _, ok := protectMoves[ma.move.Name]; ok {
 		ma.userSlot.resolveProtect()
+		return
 	}
 
-	if ma.move.Category == "swagger" {
-		ma.applySwagger(target)
+	if ma.move.Name == "swagger" {
+		target.changeStatStageBy("attack", 2)
+		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
 	}
 
 	if ma.move.Heal > 0 {
 		change := target.Stats["hp"] * ma.move.Heal / 100
-		ma.userSlot.mon.changeHp(change)
+		ma.userSlot.mon.changeHpBy(change)
 		log.Printf("%s healed for %d", target.Base.Name, change)
 	}
 
 	if ma.move.AilmentChance == 100 || roll(ma.move.AilmentChance, 100) {
-		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot.mon)
+		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
 	for stat, change := range ma.move.StatChanges {
-		target.Stages[stat] = max(-6, min(6, target.Stages[stat]+change))
-		log.Printf("%s's %s changed by %d stages (%d)", target.Base.Name, stat, change, target.Stages[stat])
+		target.changeStatStageBy(stat, change)
 	}
-}
-
-func (ma *moveAction) applySwagger(target *Pokemon) {
-	target.changeStatStage("attack", 2)
-	log.Printf("%s's attack changed by 2 stages (%d)", target.Base.Name, target.Stages["attack"])
-	target.applyAilment("confusion", ma.move, ma.userSlot.mon)
 }
 
 func (ma *moveAction) applyDamageMove(bs battleState) {
@@ -235,7 +230,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if crit {
 		log.Printf("it was a critical hit!")
 	}
-	target.changeHp(-damage)
+	target.changeHpBy(-damage)
 	if target.Hp <= 0 {
 		monFainted(bs, ma.targetSlot)
 	}
@@ -249,7 +244,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 			change = -1
 		}
 
-		user.changeHp(change)
+		user.changeHpBy(change)
 		if change >= 0 {
 			log.Printf("%s healed for %d", user.Base.Name, change)
 		} else {
@@ -261,7 +256,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
-		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot.mon)
+		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
 	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {
@@ -281,8 +276,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		}
 
 		for stat, change := range ma.move.StatChanges {
-			mon.Stages[stat] = max(-6, min(6, mon.Stages[stat]+change))
-			log.Printf("%s's %s changed by %d stages (%d)", mon.Base.Name, stat, change, mon.Stages[stat])
+			mon.changeStatStageBy(stat, change)
 		}
 	}
 
