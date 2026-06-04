@@ -85,6 +85,8 @@ func resolveEndOfTurn(bs battleState) {
 			log.Printf("%s harvested its %s", slot.mon.Base.Name, slot.mon.Item.name)
 			slot.mon.Item.consumed = false
 			slot.mon.Item.checkTrigger(true, nil)
+		} else if slot.mon.Ability == "speed-boost" && !slot.firstTurn {
+			slot.mon.changeStatStageBy("speed", 1)
 		}
 	}
 }

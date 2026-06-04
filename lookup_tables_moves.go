@@ -33,8 +33,9 @@ var offenseControlMoves = map[string]string{
 }
 
 var protectMoves = map[string]struct{}{
-	"protect": {},
-	"detect":  {},
+	"protect":      {},
+	"detect":       {},
+	"kings-shield": {},
 }
 
 var multipleTurnMoves = map[string]struct{}{

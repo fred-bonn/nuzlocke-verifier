@@ -97,7 +97,7 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 }
 
 func (ma *moveAction) scoreParalysisMove() int {
-	if ma.targetSlot.mon.hasNonVolatileAilment() || ma.targetSlot.mon.hasType("electric") {
+	if ma.targetSlot.mon.hasNonVolatileAilment() || ma.targetSlot.mon.hasType("electric") || ma.targetSlot.mon.Ability == "limber" {
 		return -64
 	}
 

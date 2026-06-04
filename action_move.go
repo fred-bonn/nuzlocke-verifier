@@ -206,7 +206,12 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	user := ma.userSlot.mon
 	target := ma.targetSlot.mon
 
-	crit := roll(1, critRateMap[ma.move.CritRate])
+	var crit bool
+	if _, ok := critBlockingAbilities[target.Ability]; ok {
+		crit = false
+	} else {
+		crit = roll(1, critRateMap[ma.move.CritRate])
+	}
 
 	damage := calculateDamage(user, target, ma.move, crit, false)
 	if damage == 0 {
@@ -240,6 +245,16 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	target.changeHpBy(-damage)
 	if target.Hp <= 0 {
 		monFainted(bs, ma.targetSlot)
+	}
+
+	if f, ok := contactAbilities[target.Ability]; ok && ma.move.Contact {
+		f(ma.userSlot, ma.targetSlot)
+		if user.Hp <= 0 {
+			monFainted(bs, ma.userSlot)
+		}
+	}
+	if user.Ability == "poison-touch" && ma.move.Contact && roll(30, 100) {
+		target.applyAilment("poison", nil, ma.userSlot)
 	}
 
 	if ma.move.Drain != 0 {

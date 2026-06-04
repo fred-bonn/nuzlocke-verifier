@@ -219,7 +219,7 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		if ailment == "burn" && p.hasType("fire") {
 			return
 		}
-		if ailment == "paralysis" && p.hasType("electric") {
+		if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
 			return
 		}
 		if ailment == "poison" && p.hasType("poison") {
@@ -236,7 +236,7 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		p.Ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
 	}
-	if ailment == "poison" && (move.Name == "toxic" || move.Name == "poison-fang") {
+	if ailment == "poison" && move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
 		ailment = "toxic"
 	}
 	p.Ailments[ailment] = generateAilment(ailment, afflictedBy)
