@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math/rand"
+	"strings"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
@@ -22,21 +23,22 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			scores[i] = -64
 			continue
 		}
+
 		if a.move.Class == "status" {
 			damage[i] = -1
 			scores[i], _ = a.scoreActionMove(bs)
 			continue
 		}
+
 		if a.move.Name == "nuzzle" {
 			damage[i] = -1
 			scores[i] = a.scoreParalysisMove()
-		}
-		if a.move.Name == "rollout" {
+			continue
+		} else if a.move.Name == "rollout" {
 			damage[i] = -1
 			scores[i] = 7
 			continue
-		}
-		if a.move.Name == "fake-out" {
+		} else if a.move.Name == "fake-out" {
 			if a.userSlot.firstTurn {
 				scores[i] = 9
 			} else {
@@ -44,21 +46,24 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				scores[i] = -64
 				continue
 			}
-		}
-		if a.move.Name == "first-impression" && !a.userSlot.firstTurn {
+		} else if a.move.Name == "first-impression" && !a.userSlot.firstTurn {
 			damage[i] = -1
 			scores[i] = -64
 			continue
+		} else if a.move.Name == "belch" && (!strings.HasSuffix(a.userSlot.mon.Item.name, "berry") || !a.userSlot.mon.Item.consumed) {
+			damage[i] = -1
+			scores[i] = -64
+			continue
+		} else if a.move.Name == "sucker-punch" && a.userSlot.suckerPunch && roll(1, 2) {
+			scores[i] = -20
 		}
+
 		if a.move.Ailment == "trap" {
 			damage[i] = -1
 			if _, ok := a.targetSlot.mon.Ailments["trap"]; !ok {
 				scores[i] = 6 + 2*rollInt(1, 5)
 			}
 			continue
-		}
-		if a.move.Name == "sucker-punch" && a.userSlot.suckerPunch && roll(1, 2) {
-			scores[i] = -20
 		}
 
 		damage[i], kills[i] = a.scoreActionMove(bs)

@@ -39,43 +39,48 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"pecha-berry":  makePechaBerry,
 	"rawst-berry":  makeRawstBerry,
 	"aspear-berry": makeAspearBerry,
-	"babiri-berry": makeResistBerryMiddleWare("babiri-berry", "steel"),
-	"chilan-berry": makeResistBerryMiddleWare("chilan-berry", "normal"),
-	"charti-berry": makeResistBerryMiddleWare("charti-berry", "rock"),
-	"chople-berry": makeResistBerryMiddleWare("chople-berry", "fighting"),
-	"coba-berry":   makeResistBerryMiddleWare("coba-berry", "coba"),
-	"colbur-berry": makeResistBerryMiddleWare("colbur-berry", "dark"),
-	"haban-berry":  makeResistBerryMiddleWare("haban-berry", "dragon"),
-	"kasib-berry":  makeResistBerryMiddleWare("kasib-berry", "ghost"),
-	"kebia-berry":  makeResistBerryMiddleWare("kebia-berry", "poison"),
-	"occa-berry":   makeResistBerryMiddleWare("occa-berry", "fire"),
-	"passho-berry": makeResistBerryMiddleWare("passho-berry", "water"),
-	"payapa-berry": makeResistBerryMiddleWare("payapa-berry", "psychic"),
-	"rindo-berry":  makeResistBerryMiddleWare("rindo-berry", "grass"),
-	"roseli-berry": makeResistBerryMiddleWare("roseli-berry", "fairy"),
-	"shuca-berry":  makeResistBerryMiddleWare("shuca-berry", "ground"),
-	"tanga-berry":  makeResistBerryMiddleWare("tanga-berry", "bug"),
-	"wacan-berry":  makeResistBerryMiddleWare("wacan-berry", "electric"),
-	"yache-berry":  makeResistBerryMiddleWare("yache-berry", "ice"),
-	"iron-ball":    makePassiveItemMiddleWare("iron-ball"),
-	"normal-gem":   makeGemMiddleWare("normal"),
-	"fire-gem":     makeGemMiddleWare("fire"),
-	"fighting-gem": makeGemMiddleWare("fighting"),
-	"water-gem":    makeGemMiddleWare("water"),
-	"flying-gem":   makeGemMiddleWare("flying"),
-	"grass-gem":    makeGemMiddleWare("grass"),
-	"poison-gem":   makeGemMiddleWare("poison"),
-	"electric-gem": makeGemMiddleWare("electric"),
-	"ground-gem":   makeGemMiddleWare("ground"),
-	"psychic-gem":  makeGemMiddleWare("psychic"),
-	"rock-gem":     makeGemMiddleWare("rock"),
-	"ice-gem":      makeGemMiddleWare("ice"),
-	"bug-gem":      makeGemMiddleWare("bug"),
-	"dragon-gem":   makeGemMiddleWare("dragon"),
-	"ghost-gem":    makeGemMiddleWare("ghost"),
-	"dark-gem":     makeGemMiddleWare("dark"),
-	"steel-gem":    makeGemMiddleWare("steel"),
-	"fairy-gem":    makeGemMiddleWare("fairy"),
+	"liechi-berry": makeStatBoostBerryMiddleware("liechi-berry", "attack"),
+	"ganlon-berry": makeStatBoostBerryMiddleware("ganlon-berry", "defense"),
+	"salac-berry":  makeStatBoostBerryMiddleware("salac-berry", "speed"),
+	"petaya-berry": makeStatBoostBerryMiddleware("petaya-berry", "special-attack"),
+	"apicot-berry": makeStatBoostBerryMiddleware("apicot-berry", "special-defense"),
+	"babiri-berry": makeResistBerryMiddleware("babiri-berry", "steel"),
+	"chilan-berry": makeResistBerryMiddleware("chilan-berry", "normal"),
+	"charti-berry": makeResistBerryMiddleware("charti-berry", "rock"),
+	"chople-berry": makeResistBerryMiddleware("chople-berry", "fighting"),
+	"coba-berry":   makeResistBerryMiddleware("coba-berry", "coba"),
+	"colbur-berry": makeResistBerryMiddleware("colbur-berry", "dark"),
+	"haban-berry":  makeResistBerryMiddleware("haban-berry", "dragon"),
+	"kasib-berry":  makeResistBerryMiddleware("kasib-berry", "ghost"),
+	"kebia-berry":  makeResistBerryMiddleware("kebia-berry", "poison"),
+	"occa-berry":   makeResistBerryMiddleware("occa-berry", "fire"),
+	"passho-berry": makeResistBerryMiddleware("passho-berry", "water"),
+	"payapa-berry": makeResistBerryMiddleware("payapa-berry", "psychic"),
+	"rindo-berry":  makeResistBerryMiddleware("rindo-berry", "grass"),
+	"roseli-berry": makeResistBerryMiddleware("roseli-berry", "fairy"),
+	"shuca-berry":  makeResistBerryMiddleware("shuca-berry", "ground"),
+	"tanga-berry":  makeResistBerryMiddleware("tanga-berry", "bug"),
+	"wacan-berry":  makeResistBerryMiddleware("wacan-berry", "electric"),
+	"yache-berry":  makeResistBerryMiddleware("yache-berry", "ice"),
+	"iron-ball":    makePassiveItemMiddleware("iron-ball"),
+	"normal-gem":   makeGemMiddleware("normal"),
+	"fire-gem":     makeGemMiddleware("fire"),
+	"fighting-gem": makeGemMiddleware("fighting"),
+	"water-gem":    makeGemMiddleware("water"),
+	"flying-gem":   makeGemMiddleware("flying"),
+	"grass-gem":    makeGemMiddleware("grass"),
+	"poison-gem":   makeGemMiddleware("poison"),
+	"electric-gem": makeGemMiddleware("electric"),
+	"ground-gem":   makeGemMiddleware("ground"),
+	"psychic-gem":  makeGemMiddleware("psychic"),
+	"rock-gem":     makeGemMiddleware("rock"),
+	"ice-gem":      makeGemMiddleware("ice"),
+	"bug-gem":      makeGemMiddleware("bug"),
+	"dragon-gem":   makeGemMiddleware("dragon"),
+	"ghost-gem":    makeGemMiddleware("ghost"),
+	"dark-gem":     makeGemMiddleware("dark"),
+	"steel-gem":    makeGemMiddleware("steel"),
+	"fairy-gem":    makeGemMiddleware("fairy"),
 	"choice-scarf": makeChoiceScarf,
 	"assault-vest": makeAssaultVest,
 	"choice-band":  makeChoiceBand,
@@ -106,14 +111,23 @@ func registerItem(itemName string, mon *Pokemon) (*item, error) {
 }
 
 func checkItemTriggers(bs battleState, e any) {
-	slots := bs.getAllSlots()
-	for _, slot := range slots {
+	for _, slot := range bs.getAllSlots() {
 		item := slot.mon.Item
 		if slot.mon.Item == nil {
 			continue
 		}
-
 		item.checkTrigger(true, e)
+	}
+}
+
+func makePassiveItemMiddleware(itemName string) func(mon *Pokemon) *item {
+	return func(mon *Pokemon) *item {
+		return &item{
+			name: itemName,
+			trigger: func(e any) bool {
+				return false
+			},
+		}
 	}
 }
 
@@ -141,57 +155,6 @@ func makeSitrusBerry(mon *Pokemon) *item {
 			mon.changeHp(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
 		},
-	}
-}
-
-func makeResistBerryMiddleWare(name, typeName string) func(mon *Pokemon) *item {
-	var d *int
-	return func(mon *Pokemon) *item {
-		return &item{
-			name: name,
-			trigger: func(e any) bool {
-				event, ok := e.(resistBerryEvent)
-				if !ok {
-					return false
-				}
-				d = event.denominator
-				return event.typeName == typeName
-			},
-			activate: func() {
-				if d == nil {
-					log.Printf("%s ate its %s and reduced the damage", mon.Base.Name, name)
-				} else {
-					*d *= 2
-				}
-			},
-		}
-	}
-}
-
-func makeGemMiddleWare(typeName string) func(mon *Pokemon) *item {
-	var d *int
-	var n *int
-	return func(mon *Pokemon) *item {
-		return &item{
-			name: fmt.Sprintf("%s-gem", typeName),
-			trigger: func(e any) bool {
-				event, ok := e.(gemEvent)
-				if !ok {
-					return false
-				}
-				d = event.denominator
-				n = event.numerator
-				return event.typeName == typeName
-			},
-			activate: func() {
-				if n == nil {
-					log.Printf("%s consumed its %s gem and boosted the damage", mon.Base.Name, typeName)
-				} else {
-					*n *= 3
-					*d *= 2
-				}
-			},
-		}
 	}
 }
 
@@ -299,12 +262,67 @@ func makeLeppaBerry(mon *Pokemon) *item {
 	}
 }
 
-func makePassiveItemMiddleWare(itemName string) func(mon *Pokemon) *item {
+func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 	return func(mon *Pokemon) *item {
 		return &item{
-			name: itemName,
+			name: name,
+			trigger: func(any) bool {
+				return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/4
+			},
+			activate: func() {
+				mon.Stages[stat] = min(6, mon.Stages[stat]+1)
+				log.Printf("%s ate its %s", mon.Base.Name, name)
+			},
+		}
+	}
+}
+
+func makeResistBerryMiddleware(name, typeName string) func(mon *Pokemon) *item {
+	var d *int
+	return func(mon *Pokemon) *item {
+		return &item{
+			name: name,
 			trigger: func(e any) bool {
-				return false
+				event, ok := e.(resistBerryEvent)
+				if !ok {
+					return false
+				}
+				d = event.denominator
+				return event.typeName == typeName
+			},
+			activate: func() {
+				if d == nil {
+					log.Printf("%s ate its %s and reduced the damage", mon.Base.Name, name)
+				} else {
+					*d *= 2
+				}
+			},
+		}
+	}
+}
+
+func makeGemMiddleware(typeName string) func(mon *Pokemon) *item {
+	var d *int
+	var n *int
+	return func(mon *Pokemon) *item {
+		return &item{
+			name: fmt.Sprintf("%s-gem", typeName),
+			trigger: func(e any) bool {
+				event, ok := e.(gemEvent)
+				if !ok {
+					return false
+				}
+				d = event.denominator
+				n = event.numerator
+				return event.typeName == typeName
+			},
+			activate: func() {
+				if n == nil {
+					log.Printf("%s consumed its %s gem and boosted the damage", mon.Base.Name, typeName)
+				} else {
+					*n *= 3
+					*d *= 2
+				}
 			},
 		}
 	}
