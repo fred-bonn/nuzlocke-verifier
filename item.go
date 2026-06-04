@@ -34,6 +34,11 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"sitrus-berry": makeSitrusBerry,
 	"lum-berry":    makeLumBerry,
 	"leppa-berry":  makeLeppaBerry,
+	"cheri-berry":  makeCheriBerry,
+	"chesto-berry": makeChestoBerry,
+	"pecha-berry":  makePechaBerry,
+	"rawst-berry":  makeRawstBerry,
+	"aspear-berry": makeAspearBerry,
 	"babiri-berry": makeResistBerryMiddleWare("babiri-berry", "steel"),
 	"chilan-berry": makeResistBerryMiddleWare("chilan-berry", "normal"),
 	"charti-berry": makeResistBerryMiddleWare("charti-berry", "rock"),
@@ -187,6 +192,72 @@ func makeGemMiddleWare(typeName string) func(mon *Pokemon) *item {
 				}
 			},
 		}
+	}
+}
+
+func makeCheriBerry(mon *Pokemon) *item {
+	return &item{
+		name: "cheri-berry",
+		trigger: func(any) bool {
+			return mon.hasAilment("paralysis") != nil
+		},
+		activate: func() {
+			log.Printf("%s ate its cheri berry", mon.Base.Name)
+			delete(mon.Ailments, "paralysis")
+		},
+	}
+}
+
+func makeChestoBerry(mon *Pokemon) *item {
+	return &item{
+		name: "chesto-berry",
+		trigger: func(any) bool {
+			return mon.hasAilment("sleep") != nil
+		},
+		activate: func() {
+			log.Printf("%s ate its chesto berry", mon.Base.Name)
+			delete(mon.Ailments, "sleep")
+		},
+	}
+}
+
+func makePechaBerry(mon *Pokemon) *item {
+	return &item{
+		name: "pecha-berry",
+		trigger: func(any) bool {
+			return mon.hasAilment("poison") != nil || mon.hasAilment("toxic") != nil
+		},
+		activate: func() {
+			log.Printf("%s ate its pecha berry", mon.Base.Name)
+			delete(mon.Ailments, "poison")
+			delete(mon.Ailments, "toxic")
+		},
+	}
+}
+
+func makeRawstBerry(mon *Pokemon) *item {
+	return &item{
+		name: "rawst-berry",
+		trigger: func(any) bool {
+			return mon.hasAilment("burn") != nil
+		},
+		activate: func() {
+			log.Printf("%s ate its rawst berry", mon.Base.Name)
+			delete(mon.Ailments, "burn")
+		},
+	}
+}
+
+func makeAspearBerry(mon *Pokemon) *item {
+	return &item{
+		name: "aspear-berry",
+		trigger: func(any) bool {
+			return mon.hasAilment("bufreezern") != nil
+		},
+		activate: func() {
+			log.Printf("%s ate its aspear berry", mon.Base.Name)
+			delete(mon.Ailments, "freeze")
+		},
 	}
 }
 
