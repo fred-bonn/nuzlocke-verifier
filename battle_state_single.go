@@ -27,6 +27,7 @@ func (sbs *singleBattleState) execute() {
 			action.invoke(sbs)
 		}
 		resolveEndOfTurn(sbs)
+		// if the end of turn causes mons to faint, empty the queue for replace actions
 		for sbs.actions.Len() > 0 {
 			action := heap.Pop(sbs.actions).(action)
 			action.invoke(sbs)
