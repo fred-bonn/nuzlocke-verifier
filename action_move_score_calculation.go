@@ -1,5 +1,7 @@
 package main
 
+import "github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
+
 func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 	if ma.move.Class == "status" {
 		return ma.scoreStatusMove(bs), false
@@ -41,30 +43,25 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return 6 + 3*rollInt(3, 4)
 	}
 
+	if _, ok := paralysisMoves[ma.move.Name]; ok {
+		return ma.scoreParalysisMove()
+	}
+
 	if _, ok := protectMoves[ma.move.Name]; ok {
-		// still needs to return if user is dead to secondary damage, and minus score if other volatile status are active
-		if ma.userSlot.protectTurns == 2 || (ma.userSlot.protectTurns == 1 && roll(1, 2)) {
+		return ma.scoreProtectMove(bs)
+	}
+
+	if ma.move.Name == "attract" {
+		if _, ok := ma.targetSlot.mon.Ailments["infatuation"]; ok {
 			return -64
 		}
-
-		score := 6
-		if ma.userSlot.firstTurn {
-			score--
-		}
-		if ma.targetSlot.mon.hasAilment("poison") || ma.targetSlot.mon.hasAilment("toxic") || ma.targetSlot.mon.hasAilment("burn") {
-			score++
-		}
-		if ma.userSlot.mon.hasAilment("poison") || ma.userSlot.mon.hasAilment("toxic") || ma.userSlot.mon.hasAilment("burn") {
-			score -= 2
-		}
-		return score
 	}
 
 	return 6
 }
 
 func (ma *moveAction) shouldMonHeal(bs battleState) bool {
-	if ma.userSlot.mon.hasAilment("toxic") {
+	if ma.userSlot.mon.hasAilment("toxic") != nil {
 		return false
 	}
 
@@ -92,4 +89,45 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 	}
 
 	return false
+}
+
+func (ma *moveAction) scoreParalysisMove() int {
+	if ma.targetSlot.mon.hasNonVolatileAilment() || ma.targetSlot.mon.hasType("electric") {
+		return -64
+	}
+
+	bonus := 0
+	if ma.targetSlot.mon.isFasterThan(ma.userSlot.mon) && ma.userSlot.mon.effectiveSpeed() > ma.targetSlot.mon.effectiveSpeed()/4 {
+		bonus++
+	} else if ma.userSlot.mon.hasMove(func(m *pokeapi.BaseMove) bool {
+		return m.Name == "hex" || m.FlinchChance > 0
+	}) {
+		bonus++
+	} else if ma.targetSlot.mon.hasAilment("confusion") != nil {
+		bonus++
+	} else if ma.targetSlot.mon.hasAilment("infatuation") != nil {
+		bonus++
+	}
+
+	return 6 + bonus + rollInt(1, 2)
+}
+
+func (ma *moveAction) scoreProtectMove(bs battleState) int {
+	// still needs to return if user is dead to secondary damage, and minus score if other volatile status are active
+	if ma.userSlot.protectTurns == 2 || (ma.userSlot.protectTurns == 1 && roll(1, 2)) {
+		return -64
+	}
+
+	bonus := 0
+	if ma.userSlot.firstTurn {
+		bonus--
+	}
+	if ma.targetSlot.mon.hasAilment("poison") != nil || ma.targetSlot.mon.hasAilment("toxic") != nil || ma.targetSlot.mon.hasAilment("burn") != nil {
+		bonus++
+	}
+	if ma.userSlot.mon.hasAilment("poison") != nil || ma.userSlot.mon.hasAilment("toxic") != nil || ma.userSlot.mon.hasAilment("burn") != nil {
+		bonus -= 2
+	}
+
+	return 6 + bonus
 }

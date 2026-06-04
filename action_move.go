@@ -42,36 +42,21 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if turns, ok := ma.userSlot.mon.Ailments["sleep"]; ok {
-		if turns <= 0 {
+	if sleep := ma.userSlot.mon.hasAilment("sleep"); sleep != nil {
+		if sleep.Turns <= 0 {
 			log.Printf("%s woke up", ma.userSlot.mon.Base.Name)
 			delete(ma.userSlot.mon.Ailments, "sleep")
 		} else {
-			ma.userSlot.mon.Ailments["sleep"] -= 1
+			sleep.Turns--
 			ma.userSlot.invulnerableAction = nil
 			log.Printf("%s is asleep", ma.userSlot.mon.Base.Name)
 			return
 		}
 	}
 
-	if _, ok := ma.userSlot.mon.Ailments["paralysis"]; ok {
-		if roll(1, 4) {
-			ma.userSlot.invulnerableAction = nil
-			log.Printf("%s is paralysed", ma.userSlot.mon.Base.Name)
-			return
-		}
-	}
-
-	if ma.Flinch {
-		log.Printf("%s flinched", ma.userSlot.mon.Base.Name)
-		return
-	}
-
-	ma.move.PP--
-
-	if turns, ok := ma.userSlot.mon.Ailments["confusion"]; ok {
-		if turns > 0 {
-			ma.userSlot.mon.Ailments["confusion"] -= 1
+	if confusion := ma.userSlot.mon.hasAilment("confusion"); confusion != nil {
+		if confusion.Turns > 0 {
+			confusion.Turns -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
 			if roll(1, 3) {
 				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false)
@@ -88,6 +73,29 @@ func (ma *moveAction) invoke(bs battleState) {
 			log.Printf("%s snapped out of confusion", ma.userSlot.mon.Base.Name)
 		}
 	}
+
+	if paralysis := ma.userSlot.mon.hasAilment("paralysis"); paralysis != nil {
+		if roll(1, 4) {
+			ma.userSlot.invulnerableAction = nil
+			log.Printf("%s is paralysed", ma.userSlot.mon.Base.Name)
+			return
+		}
+	}
+
+	if infatuation := ma.userSlot.mon.hasAilment("infatuation"); infatuation != nil {
+		if roll(1, 2) {
+			ma.userSlot.invulnerableAction = nil
+			log.Printf("%s is infatuated with %s", ma.userSlot.mon.Base.Name, infatuation.AfflictedBy.Base.Name)
+			return
+		}
+	}
+
+	if ma.Flinch {
+		log.Printf("%s flinched", ma.userSlot.mon.Base.Name)
+		return
+	}
+
+	ma.move.PP--
 
 	if _, ok := multipleTurnMoves[ma.move.Name]; ok {
 		if ma.userSlot.invulnerableAction == nil {
@@ -155,15 +163,14 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 		return
 	}
 
-	if ma.move.StatChance != 100 && !roll(ma.move.StatChance, 100) {
-		log.Printf("missed")
-		return
-	}
-
 	if ma.move.Heal > 0 {
 		change := target.Stats["hp"] * ma.move.Heal / 100
 		ma.userSlot.mon.changeHp(change)
 		log.Printf("%s healed for %d", target.Base.Name, change)
+	}
+
+	if ma.move.AilmentChance == 100 || roll(ma.move.AilmentChance, 100) {
+		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot.mon)
 	}
 
 	for stat, change := range ma.move.StatChanges {
@@ -175,7 +182,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 func (ma *moveAction) applySwagger(target *Pokemon) {
 	target.changeStatStage("attack", 2)
 	log.Printf("%s's attack changed by 2 stages (%d)", target.Base.Name, target.Stages["attack"])
-	target.applyAilment("confusion", ma.move)
+	target.applyAilment("confusion", ma.move, ma.userSlot.mon)
 }
 
 func (ma *moveAction) applyDamageMove(bs battleState) {
@@ -254,7 +261,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
-		target.applyAilment(ma.move.Ailment, ma.move)
+		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot.mon)
 	}
 
 	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {

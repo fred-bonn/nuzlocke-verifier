@@ -11,6 +11,11 @@ type switchAction struct {
 
 func (sa *switchAction) invoke(bs battleState) {
 	log.Printf("switched %s for %s", sa.oldSlot.mon.Base.Name, sa.new.Base.Name)
+	for _, slot := range bs.getOtherSlots(sa.oldSlot) {
+		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == sa.oldSlot.mon {
+			delete(slot.mon.Ailments, "infatuation")
+		}
+	}
 	sa.oldSlot.setMon(sa.new)
 }
 

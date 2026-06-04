@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"math/rand"
+
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 type rnbAi struct{}
@@ -24,6 +26,10 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i], _ = a.scoreActionMove(bs)
 			continue
+		}
+		if a.move.Name == "nuzzle" {
+			damage[i] = -1
+			scores[i] = a.scoreParalysisMove()
 		}
 		if a.move.Name == "rollout" {
 			damage[i] = -1
@@ -142,7 +148,9 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if c, ok := offenseControlMoves[a.move.Name]; ok {
-			if a.targetSlot.mon.hasMoveClass(c) {
+			if a.targetSlot.mon.hasMove(func(m *pokeapi.BaseMove) bool {
+				return m.Class == c
+			}) {
 				scores[i] = 6
 			} else {
 				scores[i] = 5

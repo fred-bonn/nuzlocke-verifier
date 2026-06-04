@@ -13,6 +13,8 @@ var critRateMap = map[int]int{
 	1: 8,
 	2: 2,
 	3: 1,
+	4: 1,
+	5: 1,
 	6: 1,
 }
 
@@ -33,27 +35,6 @@ var struggleMove = pokeapi.BaseMove{
 func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
 	numerator := 1
 	denominator := 1
-
-	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
-		numerator *= 2
-	}
-
-	if move.Name == "flail" {
-		res := int(48 * (float64(user.Hp) / float64(user.Stats["hp"])))
-		if res <= 1 {
-			move.Power = 200
-		} else if res <= 4 {
-			move.Power = 150
-		} else if res <= 9 {
-			move.Power = 100
-		} else if res <= 16 {
-			move.Power = 80
-		} else if res <= 32 {
-			move.Power = 40
-		} else {
-			move.Power = 20
-		}
-	}
 
 	applyType := func(mult float64) {
 		if target.isGrounded() && target.hasType("flying") && move.Type == "ground" {
@@ -94,6 +75,27 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 		return 40
 	}
 
+	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
+		numerator *= 2
+	}
+
+	if move.Name == "flail" {
+		res := int(48 * (float64(user.Hp) / float64(user.Stats["hp"])))
+		if res <= 1 {
+			move.Power = 200
+		} else if res <= 4 {
+			move.Power = 150
+		} else if res <= 9 {
+			move.Power = 100
+		} else if res <= 16 {
+			move.Power = 80
+		} else if res <= 32 {
+			move.Power = 40
+		} else {
+			move.Power = 20
+		}
+	}
+
 	stab := user.hasType(move.Type)
 
 	var offensiveStat, defensiveStat int
@@ -117,7 +119,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 		denominator *= 2
 	}
 
-	if move.Class == "physical" && user.hasAilment("burn") {
+	if move.Class == "physical" && user.hasAilment("burn") != nil {
 		denominator *= 2
 	}
 

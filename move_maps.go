@@ -40,3 +40,10 @@ var protectMoves = map[string]struct{}{
 var multipleTurnMoves = map[string]struct{}{
 	"bounce": {},
 }
+
+var paralysisMoves = map[string]struct{}{
+	"thunder-wave": {},
+	"glare":        {},
+	"stun-spore":   {},
+	"nuzzle":       {},
+}

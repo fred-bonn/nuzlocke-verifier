@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type item struct {
@@ -194,17 +193,17 @@ func makeGemMiddleWare(typeName string) func(mon *Pokemon) *item {
 func makeLumBerry(mon *Pokemon) *item {
 	return &item{
 		trigger: func(any) bool {
-			return mon.hasNonVolatileAilment() || mon.hasAilment("confusion")
+			return mon.hasNonVolatileAilment() || mon.hasAilment("confusion") != nil
 		},
 		activate: func() {
 			log.Printf("%s ate its lum berry", mon.Base.Name)
-			for ailment := range pokemon.NonVolatileStatuses {
-				if mon.hasAilment(ailment) {
+			for ailment := range nonVolatileStatuses {
+				if mon.hasAilment(ailment) != nil {
 					delete(mon.Ailments, ailment)
 					log.Printf("%s had its %s removed", mon.Base.Name, ailment)
 				}
 			}
-			if mon.hasAilment("confusion") {
+			if mon.hasAilment("confusion") != nil {
 				delete(mon.Ailments, "confusion")
 				log.Printf("%s had its confusion removed", mon.Base.Name)
 			}

@@ -63,12 +63,12 @@ func resolveEndOfTurn(bs battleState) {
 			case "poison":
 				takeResidualDamage(bs, slot, ailment, 1, 8)
 			case "toxic":
-				slot.mon.Ailments[ailment]++
-				takeResidualDamage(bs, slot, ailment, slot.mon.Ailments[ailment], 16)
+				slot.mon.Ailments[ailment].Turns++
+				takeResidualDamage(bs, slot, ailment, 1, 16)
 			case "trap":
-				slot.mon.Ailments[ailment]--
+				slot.mon.Ailments[ailment].Turns--
 				takeResidualDamage(bs, slot, ailment, 1, 8)
-				if slot.mon.Ailments[ailment] == 0 {
+				if slot.mon.Ailments[ailment].Turns == 0 {
 					log.Printf("%s was freed", slot.mon.Base.Name)
 					delete(slot.mon.Ailments, ailment)
 				}
@@ -84,12 +84,12 @@ func resolveEndOfTurn(bs battleState) {
 	}
 }
 
-func takeResidualDamage(bs battleState, slot *slot, ailment string, num, den int) {
+func takeResidualDamage(bs battleState, slot *slot, residual string, num, den int) {
 	if slot.mon.Fainted {
 		return
 	}
 
-	log.Printf("%s took damage from %s", slot.mon.Base.Name, ailment)
+	log.Printf("%s took damage from %s", slot.mon.Base.Name, residual)
 	change := slot.mon.Stats["hp"] * num / den
 	slot.mon.changeHp(-change)
 	if slot.mon.Hp <= 0 {
