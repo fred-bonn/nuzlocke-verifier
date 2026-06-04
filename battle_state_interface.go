@@ -59,7 +59,7 @@ func resolveEndOfTurn(bs battleState) {
 				takeResidualDamage(bs, slot, ailment, 1, 8)
 			case "toxic":
 				ailment.Turns++
-				takeResidualDamage(bs, slot, ailment, 1, 16)
+				takeResidualDamage(bs, slot, ailment, ailment.Turns, 16)
 			case "trap":
 				ailment.Turns--
 				takeResidualDamage(bs, slot, ailment, 1, 8)
