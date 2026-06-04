@@ -230,6 +230,13 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if crit {
 		log.Printf("it was a critical hit!")
 	}
+	if ma.move.Name == "bug-bite" && strings.HasSuffix(target.Item.name, "berry") && !target.Item.consumed {
+		log.Printf("%s's %s was consumed by bug bite", target.Base.Name, target.Item.name)
+		item, _ := registerItem(target.Item.name, user)
+		item.activate()
+		target.Item, _ = registerItem("", target)
+
+	}
 	target.changeHpBy(-damage)
 	if target.Hp <= 0 {
 		monFainted(bs, ma.targetSlot)
