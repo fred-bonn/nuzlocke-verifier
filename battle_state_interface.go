@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 )
 
 type battleState interface {
@@ -78,6 +79,12 @@ func resolveEndOfTurn(bs battleState) {
 			slot.protectTurns = 0
 		} else {
 			slot.protected = false
+		}
+
+		if slot.mon.Ability == "harvest" && roll(1, 2) && strings.HasSuffix(slot.mon.Item.name, "berry") {
+			log.Printf("%s harvested its %s", slot.mon.Base.Name, slot.mon.Item.name)
+			slot.mon.Item.consumed = false
+			slot.mon.Item.checkTrigger(true, nil)
 		}
 	}
 }

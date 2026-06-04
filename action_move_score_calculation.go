@@ -36,10 +36,12 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return 5
 	}
 
+	if _, ok := powderMoves[ma.move.Name]; ok && ma.targetSlot.mon.hasType("grass") {
+		return -64
+	}
 	if _, ok := paralysisMoves[ma.move.Name]; ok {
 		return ma.scoreParalysisMove()
 	}
-
 	if _, ok := protectMoves[ma.move.Name]; ok {
 		return ma.scoreProtectMove(bs)
 	}

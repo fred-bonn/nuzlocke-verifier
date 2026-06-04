@@ -22,6 +22,7 @@ type Pokemon struct {
 	Fainted    bool
 	Ailments   map[string]*Ailment
 	Item       *item
+	Ability    string
 }
 
 var ivMap = map[string]string{

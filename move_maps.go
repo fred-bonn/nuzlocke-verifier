@@ -47,3 +47,13 @@ var paralysisMoves = map[string]struct{}{
 	"stun-spore":   {},
 	"nuzzle":       {},
 }
+
+var powderMoves = map[string]struct{}{
+	"powder":        {},
+	"spore":         {},
+	"sleep-powder":  {},
+	"stun-spore":    {},
+	"poison-powder": {},
+	"rage-powder":   {},
+	"cotten-spore":  {},
+}
