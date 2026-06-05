@@ -21,6 +21,9 @@ func (sbs *singleBattleState) execute() {
 		log.Printf("Turn %d:\n", k+1)
 		log.Printf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.Base.Name, sbs.activePlayerSlot.mon.Hp, sbs.activePlayerSlot.mon.Stats["hp"], sbs.activeOpponentSlot.mon.Base.Name, sbs.activeOpponentSlot.mon.Hp, sbs.activeOpponentSlot.mon.Stats["hp"])
 
+		for _, slot := range sbs.getAllSlots() {
+			log.Println(slot.mon.Unnerved)
+		}
 		sbs.gatherActions()
 		for sbs.actions.Len() > 0 {
 			action := heap.Pop(sbs.actions).(action)
@@ -75,12 +78,21 @@ func (sbs *singleBattleState) getAllSlots() []*slot {
 	}
 }
 
-func initSingleBattleState(player, opponent trainer) *singleBattleState {
+func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*Pokemon) *singleBattleState {
+	player.pokemonParty = playerParty
+	playerParty[0].Unnerved = opponentParty[0].Ability == "unnerve"
+	opponent.pokemonParty = opponentParty
+	opponentParty[0].Unnerved = playerParty[0].Ability == "unnerve"
+
 	return &singleBattleState{
 		activePlayerSlot: &slot{
+			mon:       playerParty[0],
+			trainer:   &player,
 			firstTurn: true,
 		},
 		activeOpponentSlot: &slot{
+			mon:       opponentParty[0],
+			trainer:   &opponent,
 			firstTurn: true,
 		},
 		player:   &player,

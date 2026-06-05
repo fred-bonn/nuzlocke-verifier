@@ -15,6 +15,13 @@ func (sa *switchAction) invoke(bs battleState) {
 		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == sa.oldSlot {
 			delete(slot.mon.Ailments, "infatuation")
 		}
+		if ailment := slot.mon.hasAilment("trap"); ailment != nil && ailment.AfflictedBy == sa.oldSlot {
+			delete(slot.mon.Ailments, "infatuation")
+		}
+		if slot.trainer != sa.oldSlot.trainer {
+			slot.mon.Unnerved = sa.new.Ability == "unnerve"
+			slot.mon.Item.checkTrigger(true, nil)
+		}
 	}
 	sa.oldSlot.setMon(sa.new)
 }

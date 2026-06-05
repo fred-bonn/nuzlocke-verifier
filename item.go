@@ -135,7 +135,7 @@ func makeOranBerry(mon *Pokemon) *item {
 	return &item{
 		name: "oran-berry",
 		trigger: func(any) bool {
-			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
+			return !mon.Unnerved && mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
 		activate: func() {
 			mon.changeHpBy(10)
@@ -148,7 +148,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 	return &item{
 		name: "sitrus-berry",
 		trigger: func(any) bool {
-			return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
+			return !mon.Unnerved && mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
 		},
 		activate: func() {
 			restore := mon.Stats["hp"] / 4
@@ -162,7 +162,7 @@ func makeCheriBerry(mon *Pokemon) *item {
 	return &item{
 		name: "cheri-berry",
 		trigger: func(any) bool {
-			return mon.hasAilment("paralysis") != nil
+			return !mon.Unnerved && mon.hasAilment("paralysis") != nil
 		},
 		activate: func() {
 			log.Printf("%s ate its cheri berry", mon.Base.Name)
@@ -175,7 +175,7 @@ func makeChestoBerry(mon *Pokemon) *item {
 	return &item{
 		name: "chesto-berry",
 		trigger: func(any) bool {
-			return mon.hasAilment("sleep") != nil
+			return !mon.Unnerved && mon.hasAilment("sleep") != nil
 		},
 		activate: func() {
 			log.Printf("%s ate its chesto berry", mon.Base.Name)
@@ -188,7 +188,7 @@ func makePechaBerry(mon *Pokemon) *item {
 	return &item{
 		name: "pecha-berry",
 		trigger: func(any) bool {
-			return mon.hasAilment("poison") != nil || mon.hasAilment("toxic") != nil
+			return !mon.Unnerved && (mon.hasAilment("poison") != nil || mon.hasAilment("toxic") != nil)
 		},
 		activate: func() {
 			log.Printf("%s ate its pecha berry", mon.Base.Name)
@@ -202,7 +202,7 @@ func makeRawstBerry(mon *Pokemon) *item {
 	return &item{
 		name: "rawst-berry",
 		trigger: func(any) bool {
-			return mon.hasAilment("burn") != nil
+			return !mon.Unnerved && mon.hasAilment("burn") != nil
 		},
 		activate: func() {
 			log.Printf("%s ate its rawst berry", mon.Base.Name)
@@ -215,7 +215,7 @@ func makeAspearBerry(mon *Pokemon) *item {
 	return &item{
 		name: "aspear-berry",
 		trigger: func(any) bool {
-			return mon.hasAilment("bufreezern") != nil
+			return !mon.Unnerved && mon.hasAilment("bufreezern") != nil
 		},
 		activate: func() {
 			log.Printf("%s ate its aspear berry", mon.Base.Name)
@@ -227,7 +227,7 @@ func makeAspearBerry(mon *Pokemon) *item {
 func makeLumBerry(mon *Pokemon) *item {
 	return &item{
 		trigger: func(any) bool {
-			return mon.hasNonVolatileAilment() || mon.hasAilment("confusion") != nil
+			return !mon.Unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment("confusion") != nil)
 		},
 		activate: func() {
 			log.Printf("%s ate its lum berry", mon.Base.Name)
@@ -250,7 +250,7 @@ func makeLeppaBerry(mon *Pokemon) *item {
 	return &item{
 		trigger: func(e any) bool {
 			event, ok := e.(leppaBerryEvent)
-			if !ok {
+			if !ok || mon.Unnerved {
 				return false
 			}
 			m = event.move
@@ -267,7 +267,7 @@ func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 		return &item{
 			name: name,
 			trigger: func(any) bool {
-				return mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/4
+				return !mon.Unnerved && mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/4
 			},
 			activate: func() {
 				log.Printf("%s ate its %s", mon.Base.Name, name)
@@ -284,7 +284,7 @@ func makeResistBerryMiddleware(name, typeName string) func(mon *Pokemon) *item {
 			name: name,
 			trigger: func(e any) bool {
 				event, ok := e.(resistBerryEvent)
-				if !ok {
+				if !ok || mon.Unnerved {
 					return false
 				}
 				d = event.denominator

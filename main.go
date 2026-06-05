@@ -40,12 +40,9 @@ func main() {
 		trainer{
 			ai: rnbAi{},
 		},
+		playerParty,
+		opponentParty,
 	)
-
-	sbs.player.pokemonParty = playerParty
-	sbs.opponent.pokemonParty = opponentParty
-	sbs.activePlayerSlot.mon = playerParty[0]
-	sbs.activeOpponentSlot.mon = opponentParty[0]
 
 	if !*verbose {
 		log.SetOutput(io.Discard)

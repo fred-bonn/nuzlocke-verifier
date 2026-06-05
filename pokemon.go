@@ -23,6 +23,7 @@ type Pokemon struct {
 	Ailments   map[string]*Ailment
 	Item       *item
 	Ability    string
+	Unnerved   bool
 }
 
 var ivMap = map[string]string{
@@ -223,6 +224,12 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 			return
 		}
 		if ailment == "poison" && p.hasType("poison") {
+			return
+		}
+		if ailment == "freeze" && p.hasType("ice") {
+			return
+		}
+		if ailment == "sleep" && p.Ability == "vital-spirit" {
 			return
 		}
 		for a := range p.Ailments {

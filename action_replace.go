@@ -28,6 +28,13 @@ func (ra *replaceAction) invoke(bs battleState) {
 		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
 			delete(slot.mon.Ailments, "infatuation")
 		}
+		if ailment := slot.mon.hasAilment("trap"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
+			delete(slot.mon.Ailments, "infatuation")
+		}
+		if slot.trainer != ra.oldSlot.trainer {
+			slot.mon.Unnerved = mon.Ability == "unnerve"
+			slot.mon.Item.checkTrigger(true, nil)
+		}
 	}
 	ra.oldSlot.setMon(mon)
 	log.Printf("%s was sent out", mon.Base.Name)

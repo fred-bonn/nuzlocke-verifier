@@ -2,16 +2,28 @@ package main
 
 import "log"
 
+var pinchAbilities = map[string]string{
+	"overgrow": "grass",
+	"blaze":    "fire",
+	"torrent":  "water",
+	"swarm":    "bug",
+}
+
 var critBlockingAbilities = map[string]struct{}{
 	"battle-armor": {},
 	"shell-armor":  {},
 	"magma'armor":  {},
 }
 
-var contactAbilities = map[string]func(u, t *slot){
+var contactDefensiveAbilities = map[string]func(u, t *slot){
 	"rough-skin": roughSkin,
 	"iron-barbs": roughSkin,
 	"cute-charm": cuteCharm,
+	"flame-body": flameBody,
+}
+
+var contactOffensiveAbilities = map[string]func(u, t *slot){
+	"poison-touch": poisonTouch,
 }
 
 func roughSkin(u, t *slot) {
@@ -26,8 +38,14 @@ func cuteCharm(u, t *slot) {
 	}
 }
 
+func flameBody(u, t *slot) {
+	if roll(30, 100) {
+		u.mon.applyAilment("burn", nil, t)
+	}
+}
+
 func poisonTouch(u, t *slot) {
-	if roll(1, 1) {
+	if roll(30, 100) {
 		t.mon.applyAilment("poison", nil, u)
 	}
 }

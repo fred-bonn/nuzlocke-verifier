@@ -17,11 +17,13 @@ type battleState interface {
 
 type slot struct {
 	mon                *Pokemon
+	trainer            *trainer
 	firstTurn          bool
 	suckerPunch        bool
 	protected          bool
 	protectTurns       int
 	invulnerableAction *moveAction
+	unnerved           bool
 }
 
 func (s *slot) setMon(new *Pokemon) {

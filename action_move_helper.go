@@ -123,6 +123,14 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 		denominator *= 2
 	}
 
+	if user.Ability == "technician" && move.Power <= 60 {
+		numerator *= 3
+		denominator *= 2
+	} else if t, ok := pinchAbilities[user.Ability]; ok && t == move.Type && user.Hp*3 <= user.Stats["hp"] {
+		numerator *= 3
+		denominator *= 2
+	}
+
 	target.Item.checkTrigger(false, resistBerryEvent{
 		typeName:    move.Type,
 		denominator: &denominator,

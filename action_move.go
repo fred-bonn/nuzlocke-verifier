@@ -171,7 +171,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 		log.Printf("%s healed for %d", target.Base.Name, change)
 	}
 
-	if ma.move.AilmentChance == 100 || roll(ma.move.AilmentChance, 100) {
+	if ma.move.Ailment != "none" {
 		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
@@ -247,14 +247,14 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		monFainted(bs, ma.targetSlot)
 	}
 
-	if f, ok := contactAbilities[target.Ability]; ok && ma.move.Contact {
+	if f, ok := contactDefensiveAbilities[target.Ability]; ok && ma.move.Contact {
 		f(ma.userSlot, ma.targetSlot)
 		if user.Hp <= 0 {
 			monFainted(bs, ma.userSlot)
 		}
 	}
-	if user.Ability == "poison-touch" && ma.move.Contact && roll(30, 100) {
-		target.applyAilment("poison", nil, ma.userSlot)
+	if f, ok := contactOffensiveAbilities[user.Ability]; ok && ma.move.Contact {
+		f(ma.userSlot, ma.targetSlot)
 	}
 
 	if ma.move.Drain != 0 {
