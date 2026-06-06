@@ -99,9 +99,9 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			if kills[i] {
 				scores[i] = 10
 			} else {
-				if a.targetSlot.mon.Hp < a.targetSlot.mon.Stats["hp"]*20/100 {
+				if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()*20/100 {
 					scores[i] = 10
-				} else if a.targetSlot.mon.Hp < a.targetSlot.mon.Stats["hp"]*40/100 {
+				} else if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()*40/100 {
 					scores[i] = 8 * rollInt(1, 2)
 				}
 			}
@@ -264,6 +264,9 @@ func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
 		target.Item.checkTrigger(false, focusSashEvent{
 			damage: &dmg,
 		})
+		if target.Ability == "sturdy" && target.Hp == target.maxHP() {
+			dmg = min(dmg, target.Hp-1)
+		}
 
 		if dmg > maxDmg {
 			maxDmg = dmg

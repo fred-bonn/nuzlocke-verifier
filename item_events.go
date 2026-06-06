@@ -24,6 +24,5 @@ type choiceItemEvent struct {
 }
 
 type focusSashEvent struct {
-	damage  *int
-	consume bool
+	damage *int
 }

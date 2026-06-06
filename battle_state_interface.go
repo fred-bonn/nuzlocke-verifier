@@ -100,7 +100,7 @@ func takeResidualDamage(bs battleState, slot *slot, ailment *Ailment, num, den i
 	}
 
 	log.Printf("%s took damage from %s", slot.mon.Base.Name, ailment.Name)
-	change := slot.mon.Stats["hp"] * num / den
+	change := slot.mon.maxHP() * num / den
 	slot.mon.changeHpBy(-change)
 	if slot.mon.Hp <= 0 {
 		slot.mon.Fainted = true

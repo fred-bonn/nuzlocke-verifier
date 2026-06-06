@@ -79,10 +79,10 @@ func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature
 	calculateStats(&res)
 
 	if hp == -1 {
-		hp = res.Stats["hp"]
+		hp = res.maxHP()
 	}
 
-	res.Hp = max(1, min(res.Stats["hp"], hp))
+	res.Hp = max(1, min(res.maxHP(), hp))
 
 	if _, ok := nonVolatileStatuses[status]; ok {
 		res.Ailments[status] = generateAilment(status, nil)
@@ -103,7 +103,7 @@ func calculateStats(pokemon *Pokemon) {
 		pokemon.Stats[key] = ((val*2+pokemon.IVs[key])*pokemon.Level)/100 + 5
 	}
 	// Shedinja case: if HP is 1, it stays 1 regardless of level or IVs
-	if pokemon.Base.Stats["hp"] == 1 {
+	if pokemon.Stats["hp"] == 1 {
 		pokemon.Stats["hp"] = 1
 	} else {
 		pokemon.Stats["hp"] += pokemon.Level + 5
@@ -270,14 +270,17 @@ func (p *Pokemon) hasNonVolatileAilment() bool {
 }
 
 func (p *Pokemon) isGrounded() bool {
-	if p.hasType("flying") && p.Item.name != "iron-ball" {
+	if p.Item.name == "iron-ball" {
+		return true
+	}
+	if p.hasType("flying") || p.Ability == "levitate" {
 		return false
 	}
 	return true
 }
 
 func (p *Pokemon) changeHpBy(change int) {
-	p.Hp = min(p.Hp+change, p.Stats["hp"])
+	p.Hp = min(p.Hp+change, p.maxHP())
 	p.Item.checkTrigger(true, nil)
 }
 
@@ -288,4 +291,8 @@ func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
 func (p *Pokemon) changeStatStageBy(stat string, change int) {
 	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
 	log.Printf("%s's %s changed by %d stages (%d)", p.Base.Name, stat, change, p.Stages[stat])
+}
+
+func (p *Pokemon) maxHP() int {
+	return p.Stats["hp"]
 }

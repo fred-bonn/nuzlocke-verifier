@@ -124,7 +124,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
 
 	if ma.move.Name == "struggle" {
-		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.Stats["hp"] / 4))
+		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.maxHP() / 4))
 	}
 
 	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
@@ -166,7 +166,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 	}
 
 	if ma.move.Heal > 0 {
-		change := target.Stats["hp"] * ma.move.Heal / 100
+		change := target.maxHP() * ma.move.Heal / 100
 		ma.userSlot.mon.changeHpBy(change)
 		log.Printf("%s healed for %d", target.Base.Name, change)
 	}
@@ -223,9 +223,11 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		typeName: ma.move.Type,
 	})
 	target.Item.checkTrigger(true, focusSashEvent{
-		damage:  &damage,
-		consume: true,
+		damage: &damage,
 	})
+	if target.Ability == "sturdy" && target.Hp == target.maxHP() {
+		damage = min(damage, target.Hp-1)
+	}
 	user.Item.checkTrigger(true, gemEvent{
 		typeName: ma.move.Type,
 	})

@@ -19,7 +19,6 @@ func (sa *switchAction) invoke(bs battleState) {
 			delete(slot.mon.Ailments, "infatuation")
 		}
 		if slot.trainer != sa.oldSlot.trainer {
-			log.Printf("test")
 			slot.mon.Unnerved = sa.new.Ability == "unnerve"
 			slot.mon.Item.checkTrigger(true, nil)
 		}

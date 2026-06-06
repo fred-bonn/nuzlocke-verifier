@@ -32,7 +32,7 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll, forScoring bool) int {
+func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRoll, forScoring bool) int {
 	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) {
 		return 0
 	}
@@ -84,7 +84,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 	}
 
 	if move.Name == "flail" {
-		res := int(48 * (float64(user.Hp) / float64(user.Stats["hp"])))
+		res := int(48 * (float64(user.Hp) / float64(user.maxHP())))
 		if res <= 1 {
 			move.Power = 200
 		} else if res <= 4 {
@@ -130,7 +130,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 	if user.Ability == "technician" && move.Power <= 60 {
 		numerator *= 3
 		denominator *= 2
-	} else if t, ok := pinchAbilities[user.Ability]; ok && t == move.Type && user.Hp*3 <= user.Stats["hp"] {
+	} else if t, ok := pinchAbilities[user.Ability]; ok && t == move.Type && user.Hp*3 <= user.maxHP() {
 		numerator *= 3
 		denominator *= 2
 	} else if user.FlashFire && move.Type == "fire" {

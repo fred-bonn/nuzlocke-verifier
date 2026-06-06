@@ -31,7 +31,7 @@ func drySkin(p *Pokemon, t string, s bool) bool {
 		return true
 	}
 	log.Printf("%s restored health with %s", p.Base.Name, p.Ability)
-	p.changeHpBy(p.Stats["hp"] / 4)
+	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
 
@@ -54,7 +54,7 @@ func voltAbsorb(p *Pokemon, t string, s bool) bool {
 		return true
 	}
 	log.Printf("%s restored health with %s", p.Base.Name, p.Ability)
-	p.changeHpBy(p.Stats["hp"] / 4)
+	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
 
@@ -109,14 +109,15 @@ var critBlockingAbilities = map[string]struct{}{
 }
 
 var contactDefensiveAbilities = map[string]func(u, t *slot){
-	"rough-skin": roughSkin,
-	"iron-barbs": roughSkin,
-	"cute-charm": cuteCharm,
-	"flame-body": flameBody,
+	"rough-skin":   roughSkin,
+	"iron-barbs":   roughSkin,
+	"cute-charm":   cuteCharm,
+	"flame-body":   flameBody,
+	"poison-point": poisonPoint,
 }
 
 func roughSkin(u, t *slot) {
-	change := u.mon.Stats["hp"] * 1 / 8
+	change := u.mon.maxHP() * 1 / 8
 	u.mon.changeHpBy(-change)
 	log.Printf("%s was hurt by %s", u.mon.Base.Name, t.mon.Ability)
 }
@@ -130,6 +131,12 @@ func cuteCharm(u, t *slot) {
 func flameBody(u, t *slot) {
 	if roll(30, 100) {
 		u.mon.applyAilment("burn", nil, t)
+	}
+}
+
+func poisonPoint(u, t *slot) {
+	if roll(30, 100) {
+		u.mon.applyAilment("poison", nil, t)
 	}
 }
 

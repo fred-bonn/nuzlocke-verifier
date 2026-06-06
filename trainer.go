@@ -57,7 +57,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	if score > 0 {
 		return action
 	}
-	if roll(1, 2) || slot.mon.Hp <= slot.mon.Stats["hp"]/2 || !bs.getTrainer(slot).canReplace(bs) || slot.isTrapped() {
+	if roll(1, 2) || slot.mon.Hp <= slot.mon.maxHP()/2 || !bs.getTrainer(slot).canReplace(bs) || slot.isTrapped() {
 		return action
 	}
 

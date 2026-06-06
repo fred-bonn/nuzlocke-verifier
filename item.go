@@ -135,7 +135,7 @@ func makeOranBerry(mon *Pokemon) *item {
 	return &item{
 		name: "oran-berry",
 		trigger: func(any) bool {
-			return !mon.Unnerved && mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
+			return !mon.Unnerved && mon.Hp > 0 && mon.Hp*2 <= mon.maxHP()
 		},
 		activate: func() {
 			mon.changeHpBy(10)
@@ -148,10 +148,10 @@ func makeSitrusBerry(mon *Pokemon) *item {
 	return &item{
 		name: "sitrus-berry",
 		trigger: func(any) bool {
-			return !mon.Unnerved && mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/2
+			return !mon.Unnerved && mon.Hp > 0 && mon.Hp*2 <= mon.maxHP()
 		},
 		activate: func() {
-			restore := mon.Stats["hp"] / 4
+			restore := mon.maxHP() / 4
 			mon.changeHpBy(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
 		},
@@ -226,6 +226,7 @@ func makeAspearBerry(mon *Pokemon) *item {
 
 func makeLumBerry(mon *Pokemon) *item {
 	return &item{
+		name: "lum-berry",
 		trigger: func(any) bool {
 			return !mon.Unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment("confusion") != nil)
 		},
@@ -264,10 +265,17 @@ func makeLeppaBerry(mon *Pokemon) *item {
 
 func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 	return func(mon *Pokemon) *item {
+		d := 4
+		if mon.Ability == "gluttony" {
+			d = 2
+		}
 		return &item{
 			name: name,
 			trigger: func(any) bool {
-				return !mon.Unnerved && mon.Hp > 0 && mon.Hp <= mon.Stats["hp"]/4
+				if mon.Ability == "gluttony" {
+
+				}
+				return !mon.Unnerved && mon.Hp > 0 && mon.Hp*d <= mon.maxHP()
 			},
 			activate: func() {
 				log.Printf("%s ate its %s", mon.Base.Name, name)
@@ -392,7 +400,6 @@ func makeChoiceSpecs(mon *Pokemon) *item {
 
 func makeFocusSash(mon *Pokemon) *item {
 	var dmg *int
-	var c bool
 	return &item{
 		trigger: func(e any) bool {
 			event, ok := e.(focusSashEvent)
@@ -400,15 +407,10 @@ func makeFocusSash(mon *Pokemon) *item {
 				return false
 			}
 			dmg = event.damage
-			c = event.consume
-			return mon.Hp == mon.Stats["hp"] && *event.damage >= mon.Hp
+			return mon.Hp == mon.maxHP() && *event.damage >= mon.Hp
 		},
 		activate: func() {
-			if c {
-				log.Printf("%s held on with its focus sash", mon.Base.Name)
-			}
 			*dmg = mon.Hp - 1
-			dmg = nil
 		},
 	}
 }

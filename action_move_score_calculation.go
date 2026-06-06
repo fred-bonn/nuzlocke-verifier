@@ -21,13 +21,16 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 	ma.targetSlot.mon.Item.checkTrigger(false, focusSashEvent{
 		damage: &damageRoll,
 	})
+	if ma.targetSlot.mon.Ability == "sturdy" && ma.targetSlot.mon.Hp == ma.targetSlot.mon.maxHP() {
+		damageRoll = min(damageRoll, ma.targetSlot.mon.Hp-1)
+	}
 
 	return damageRoll, damageRoll >= ma.targetSlot.mon.Hp
 }
 
 func (ma *moveAction) scoreStatusMove(bs battleState) int {
 	if ma.move.Category == "heal" {
-		if ma.userSlot.mon.Hp > ma.userSlot.mon.Stats["hp"]*85/100 {
+		if ma.userSlot.mon.Hp > ma.userSlot.mon.maxHP()*85/100 {
 			return -64
 		}
 		if ma.shouldMonHeal(bs) {
@@ -71,24 +74,24 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 	}
 
 	maxDmg := calculateMaxDamage(ma.targetSlot.mon, ma.userSlot.mon, true)
-	if maxDmg >= ma.userSlot.mon.Stats["hp"]*ma.move.Heal/100 {
+	if maxDmg >= ma.userSlot.mon.maxHP()*ma.move.Heal/100 {
 		return false
 	}
 
 	if ma.userSlot.mon.isFasterThan(ma.targetSlot.mon) {
-		if maxDmg < min(ma.userSlot.mon.Stats["hp"], ma.userSlot.mon.Hp+ma.userSlot.mon.Stats["hp"]*ma.move.Heal/100) {
+		if maxDmg < min(ma.userSlot.mon.maxHP(), ma.userSlot.mon.Hp+ma.userSlot.mon.maxHP()*ma.move.Heal/100) {
 			return true
 		} else {
-			if ma.userSlot.mon.Hp < ma.userSlot.mon.Stats["hp"]*40/100 {
+			if ma.userSlot.mon.Hp < ma.userSlot.mon.maxHP()*40/100 {
 				return true
-			} else if ma.userSlot.mon.Hp <= ma.userSlot.mon.Stats["hp"]*66/100 {
+			} else if ma.userSlot.mon.Hp <= ma.userSlot.mon.maxHP()*66/100 {
 				return roll(1, 2)
 			}
 		}
 	} else {
-		if ma.userSlot.mon.Hp < ma.userSlot.mon.Stats["hp"]*50/100 {
+		if ma.userSlot.mon.Hp < ma.userSlot.mon.maxHP()*50/100 {
 			return true
-		} else if ma.userSlot.mon.Hp <= ma.userSlot.mon.Stats["hp"]*70/100 {
+		} else if ma.userSlot.mon.Hp <= ma.userSlot.mon.maxHP()*70/100 {
 			return roll(3, 4)
 		}
 	}
