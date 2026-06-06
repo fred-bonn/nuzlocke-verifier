@@ -24,6 +24,7 @@ type Pokemon struct {
 	Item       *item
 	Ability    string
 	Unnerved   bool
+	FlashFire  bool
 }
 
 var ivMap = map[string]string{
@@ -195,6 +196,7 @@ func (p *Pokemon) switchReset() {
 	}
 
 	p.LockedMove = nil
+	p.FlashFire = false
 }
 
 func (p *Pokemon) hasType(typeName string) bool {
@@ -276,9 +278,7 @@ func (p *Pokemon) isGrounded() bool {
 
 func (p *Pokemon) changeHpBy(change int) {
 	p.Hp = min(p.Hp+change, p.Stats["hp"])
-	if p.Item != nil {
-		p.Item.checkTrigger(true, nil)
-	}
+	p.Item.checkTrigger(true, nil)
 }
 
 func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {

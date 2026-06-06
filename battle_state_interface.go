@@ -30,6 +30,7 @@ func (s *slot) setMon(new *Pokemon) {
 	s.mon.switchReset()
 	s.firstTurn = true
 	s.suckerPunch = false
+	new.Unnerved = s.mon.Unnerved
 	s.mon = new
 }
 

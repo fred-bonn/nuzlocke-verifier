@@ -15,7 +15,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 		rolls = ma.move.MaxHits
 	}
 	for i := 0; i < rolls; i++ {
-		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, ma.move.CritRate >= 4, false)
+		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, ma.move.CritRate >= 4, false, true)
 	}
 
 	ma.targetSlot.mon.Item.checkTrigger(false, focusSashEvent{

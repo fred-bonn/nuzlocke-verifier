@@ -32,7 +32,11 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll bool) int {
+func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, maxRoll, forScoring bool) int {
+	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) {
+		return 0
+	}
+
 	numerator := 1
 	denominator := 1
 
@@ -129,6 +133,12 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit bool, m
 	} else if t, ok := pinchAbilities[user.Ability]; ok && t == move.Type && user.Hp*3 <= user.Stats["hp"] {
 		numerator *= 3
 		denominator *= 2
+	} else if user.FlashFire && move.Type == "fire" {
+		numerator *= 3
+		denominator *= 2
+	} else if target.Ability == "dry-skin" && move.Type == "fire" {
+		numerator *= 5
+		denominator *= 4
 	}
 
 	target.Item.checkTrigger(false, resistBerryEvent{

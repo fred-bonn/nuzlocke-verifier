@@ -59,7 +59,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			confusion.Turns -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
 			if roll(1, 3) {
-				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false)
+				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false, false)
 				ma.userSlot.invulnerableAction = nil
 				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.Base.Name, damage)
 				ma.userSlot.mon.Hp -= int(damage)
@@ -213,7 +213,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		crit = roll(1, critRateMap[ma.move.CritRate])
 	}
 
-	damage := calculateDamage(user, target, ma.move, crit, false)
+	damage := calculateDamage(user, target, ma.move, crit, false, false)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
 		return false
