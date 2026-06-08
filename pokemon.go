@@ -25,6 +25,7 @@ type Pokemon struct {
 	Ability    string
 	Unnerved   bool
 	FlashFire  bool
+	Unburden   bool
 }
 
 var ivMap = map[string]string{
@@ -119,6 +120,24 @@ func calculateStats(pokemon *Pokemon) {
 	}
 }
 
+func (p *Pokemon) switchReset() {
+	for a := range volatileStatuses {
+		delete(p.Ailments, a)
+	}
+
+	for stat := range p.Stages {
+		p.Stages[stat] = 0
+	}
+
+	if toxic, ok := p.Ailments["toxic"]; ok {
+		toxic.Turns = 0
+	}
+
+	p.LockedMove = nil
+	p.FlashFire = false
+	p.Unburden = false
+}
+
 func (p *Pokemon) effectiveStat(stat string, crit bool) int {
 	if _, ok := p.Stages[stat]; !ok {
 		panic("invalid stat")
@@ -142,19 +161,22 @@ func (p *Pokemon) effectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) isFasterThan(mon *Pokemon) bool {
-	return p.effectiveSpeed() >= mon.effectiveSpeed()
-}
-
 func (p *Pokemon) effectiveSpeed() int {
 	stage := p.Stages["speed"]
 	base := p.Stats["speed"]
+	numerator := 1
+	denominator := 1
+
 	if p.Item.name == "iron-ball" {
-		base /= 2
+		denominator *= 2
+	} else if p.Unburden && p.Ability == "unburden" {
+		numerator *= 2
 	}
 	if _, ok := p.Ailments["paralysis"]; ok {
-		base /= 4
+		denominator *= 4
 	}
+
+	base = base * numerator / denominator
 
 	if stage >= 0 {
 		return base * (2 + stage) / 2
@@ -162,7 +184,15 @@ func (p *Pokemon) effectiveSpeed() int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) evasionFraction() (int, int) {
+func (p *Pokemon) isFasterThan(mon *Pokemon) bool {
+	return p.effectiveSpeed() >= mon.effectiveSpeed()
+}
+
+func (p *Pokemon) evasionFraction(keenEye bool) (int, int) {
+	if keenEye {
+		return 1, 1
+	}
+
 	stage := p.Stages["evasion"]
 	if stage == 0 {
 		return 3, 3
@@ -180,23 +210,6 @@ func (p *Pokemon) accuracyFraction() (int, int) {
 		return 3 + stage, 3
 	}
 	return 3, 3 - stage
-}
-
-func (p *Pokemon) switchReset() {
-	for a := range volatileStatuses {
-		delete(p.Ailments, a)
-	}
-
-	for stat := range p.Stages {
-		p.Stages[stat] = 0
-	}
-
-	if toxic, ok := p.Ailments["toxic"]; ok {
-		toxic.Turns = 0
-	}
-
-	p.LockedMove = nil
-	p.FlashFire = false
 }
 
 func (p *Pokemon) hasType(typeName string) bool {
@@ -225,7 +238,7 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
 			return
 		}
-		if ailment == "poison" && p.hasType("poison") {
+		if ailment == "poison" && (p.hasType("poison") || p.hasType("steel")) {
 			return
 		}
 		if ailment == "freeze" && p.hasType("ice") {
@@ -250,7 +263,7 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 	}
 	p.Ailments[ailment] = generateAilment(ailment, afflictedBy)
 	log.Printf("%s became afflicted with %s", p.Base.Name, ailment)
-	p.Item.checkTrigger(true, nil)
+	p.checkItemTrigger(true, nil)
 }
 
 func (p *Pokemon) hasAilment(ailment string) *Ailment {
@@ -281,7 +294,7 @@ func (p *Pokemon) isGrounded() bool {
 
 func (p *Pokemon) changeHpBy(change int) {
 	p.Hp = min(p.Hp+change, p.maxHP())
-	p.Item.checkTrigger(true, nil)
+	p.checkItemTrigger(true, nil)
 }
 
 func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
@@ -289,6 +302,10 @@ func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
 }
 
 func (p *Pokemon) changeStatStageBy(stat string, change int) {
+	if p.Ability == "keen-eye" && stat == "accuracy" && change < 0 {
+		return
+	}
+
 	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
 	log.Printf("%s's %s changed by %d stages (%d)", p.Base.Name, stat, change, p.Stages[stat])
 }

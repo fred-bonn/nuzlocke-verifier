@@ -18,7 +18,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, ma.move.CritRate >= 4, false, true)
 	}
 
-	ma.targetSlot.mon.Item.checkTrigger(false, focusSashEvent{
+	ma.targetSlot.mon.checkItemTrigger(false, focusSashEvent{
 		damage: &damageRoll,
 	})
 	if ma.targetSlot.mon.Ability == "sturdy" && ma.targetSlot.mon.Hp == ma.targetSlot.mon.maxHP() {

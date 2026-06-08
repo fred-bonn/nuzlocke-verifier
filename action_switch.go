@@ -20,7 +20,7 @@ func (sa *switchAction) invoke(bs battleState) {
 		}
 		if slot.trainer != sa.oldSlot.trainer {
 			slot.mon.Unnerved = sa.new.Ability == "unnerve"
-			slot.mon.Item.checkTrigger(true, nil)
+			slot.mon.checkItemTrigger(true, nil)
 		}
 	}
 	sa.oldSlot.setMon(sa.new)

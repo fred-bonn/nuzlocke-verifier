@@ -87,7 +87,7 @@ func resolveEndOfTurn(bs battleState) {
 		if slot.mon.Ability == "harvest" && roll(1, 2) && strings.HasSuffix(slot.mon.Item.name, "berry") {
 			log.Printf("%s harvested its %s", slot.mon.Base.Name, slot.mon.Item.name)
 			slot.mon.Item.consumed = false
-			slot.mon.Item.checkTrigger(true, nil)
+			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.Ability == "speed-boost" && !slot.firstTurn {
 			slot.mon.changeStatStageBy("speed", 1)
 		}

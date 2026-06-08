@@ -261,7 +261,7 @@ func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
 			dmg += calculateDamage(user, target, move, move.CritRate >= 4, true, true)
 		}
 
-		target.Item.checkTrigger(false, focusSashEvent{
+		target.checkItemTrigger(false, focusSashEvent{
 			damage: &dmg,
 		})
 		if target.Ability == "sturdy" && target.Hp == target.maxHP() {

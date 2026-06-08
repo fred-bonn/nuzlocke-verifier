@@ -33,7 +33,7 @@ func (ra *replaceAction) invoke(bs battleState) {
 		}
 		if slot.trainer != ra.oldSlot.trainer {
 			slot.mon.Unnerved = mon.Ability == "unnerve"
-			slot.mon.Item.checkTrigger(true, nil)
+			slot.mon.checkItemTrigger(true, nil)
 		}
 	}
 	ra.oldSlot.setMon(mon)

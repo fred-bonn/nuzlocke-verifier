@@ -14,16 +14,17 @@ type item struct {
 	consumed bool
 }
 
-func (i *item) checkTrigger(consume bool, event any) {
-	if i.trigger == nil || i.consumed {
+func (p *Pokemon) checkItemTrigger(consume bool, event any) {
+	if p.Item.trigger == nil || p.Item.consumed {
 		return
 	}
 
-	if i.trigger(event) {
+	if p.Item.trigger(event) {
 		if consume {
-			i.consumed = true
+			p.Item.consumed = true
+			p.Unburden = true
 		}
-		i.activate()
+		p.Item.activate()
 	}
 }
 
@@ -112,11 +113,7 @@ func registerItem(itemName string, mon *Pokemon) (*item, error) {
 
 func checkItemTriggers(bs battleState, e any) {
 	for _, slot := range bs.getAllSlots() {
-		item := slot.mon.Item
-		if slot.mon.Item == nil {
-			continue
-		}
-		item.checkTrigger(true, e)
+		slot.mon.checkItemTrigger(true, e)
 	}
 }
 

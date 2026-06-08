@@ -147,7 +147,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
-	ma.userSlot.mon.Item.checkTrigger(true, leppaBerryEvent{
+	ma.userSlot.mon.checkItemTrigger(true, leppaBerryEvent{
 		move: ma.move,
 	})
 }
@@ -219,16 +219,16 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		return false
 	}
 
-	target.Item.checkTrigger(true, resistBerryEvent{
+	target.checkItemTrigger(true, resistBerryEvent{
 		typeName: ma.move.Type,
 	})
-	target.Item.checkTrigger(true, focusSashEvent{
+	target.checkItemTrigger(true, focusSashEvent{
 		damage: &damage,
 	})
 	if target.Ability == "sturdy" && target.Hp == target.maxHP() {
 		damage = min(damage, target.Hp-1)
 	}
-	user.Item.checkTrigger(true, gemEvent{
+	user.checkItemTrigger(true, gemEvent{
 		typeName: ma.move.Type,
 	})
 

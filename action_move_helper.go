@@ -46,7 +46,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 	}
 
 	applyType := func(mult float64) {
-		if target.isGrounded() && target.hasType("flying") && move.Type == "ground" {
+		if target.isGrounded() && target.hasType("flying") && moveType == "ground" {
 			return
 		}
 		switch mult {
@@ -60,9 +60,9 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 		}
 	}
 
-	applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[0]))
+	applyType(pokemon.GetEffectiveness(moveType, target.Base.Types[0]))
 	if len(target.Base.Types) > 1 {
-		applyType(pokemon.GetEffectiveness(move.Type, target.Base.Types[1]))
+		applyType(pokemon.GetEffectiveness(moveType, target.Base.Types[1]))
 	}
 	if numerator == 0 {
 		return 0
@@ -105,7 +105,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 		}
 	}
 
-	stab := user.hasType(move.Type)
+	stab := user.hasType(moveType)
 
 	var offensiveStat, defensiveStat int
 	if move.Class == "physical" {
@@ -135,29 +135,29 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 	if user.Ability == "technician" && move.Power <= 60 {
 		numerator *= 3
 		denominator *= 2
-	} else if t, ok := pinchAbilities[user.Ability]; ok && t == move.Type && user.Hp*3 <= user.maxHP() {
+	} else if t, ok := pinchAbilities[user.Ability]; ok && t == moveType && user.Hp*3 <= user.maxHP() {
 		numerator *= 3
 		denominator *= 2
-	} else if user.FlashFire && move.Type == "fire" {
+	} else if user.FlashFire && moveType == "fire" {
 		numerator *= 3
 		denominator *= 2
-	} else if target.Ability == "dry-skin" && move.Type == "fire" {
+	} else if target.Ability == "dry-skin" && moveType == "fire" {
 		numerator *= 5
 		denominator *= 4
 	}
 
-	target.Item.checkTrigger(false, resistBerryEvent{
-		typeName:    move.Type,
+	target.checkItemTrigger(false, resistBerryEvent{
+		typeName:    moveType,
 		denominator: &denominator,
 	})
 
-	user.Item.checkTrigger(false, gemEvent{
-		typeName:    move.Type,
+	user.checkItemTrigger(false, gemEvent{
+		typeName:    moveType,
 		denominator: &denominator,
 		numerator:   &numerator,
 	})
 
-	user.Item.checkTrigger(false, choiceItemEvent{
+	user.checkItemTrigger(false, choiceItemEvent{
 		move:        move,
 		denominator: &denominator,
 		numerator:   &numerator,
@@ -179,7 +179,7 @@ func roll(numerator int, denominator int) bool {
 
 func accuracyRoll(user *Pokemon, target *Pokemon, moveAccuracy int) bool {
 	accNum, accDen := user.accuracyFraction()
-	evNum, evDen := target.evasionFraction()
+	evNum, evDen := target.evasionFraction(user.Ability == "keen-eye")
 	numerator := moveAccuracy * accNum * evNum
 	denominator := 100 * accDen * evDen
 	return roll(numerator, denominator)
