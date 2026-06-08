@@ -2,6 +2,32 @@ package main
 
 import "log"
 
+var typeConvertingAbilities = map[string]func(t *string, n, d *int){
+	"aerilate":    typeConvertingAbilitiesMiddleware("flying"),
+	"pixilate":    typeConvertingAbilitiesMiddleware("fairy"),
+	"galvanize":   typeConvertingAbilitiesMiddleware("electric"),
+	"refrigerate": typeConvertingAbilitiesMiddleware("ice"),
+	"normalize":   normalize,
+}
+
+func normalize(t *string, n, d *int) {
+	if *t != "normal" {
+		*t = "normal"
+		*n *= 6
+		*d *= 5
+	}
+}
+
+func typeConvertingAbilitiesMiddleware(t1 string) func(t *string, n, d *int) {
+	return func(t2 *string, n, d *int) {
+		if *t2 == "normal" {
+			*t2 = t1
+			*n *= 6
+			*d *= 5
+		}
+	}
+}
+
 var typeImmunityAbilities = map[string]func(u *Pokemon, t string, s bool) bool{
 	"flash-fire":    flashFire,
 	"dry-skin":      drySkin,
@@ -147,5 +173,13 @@ var contactOffensiveAbilities = map[string]func(u, t *slot){
 func poisonTouch(u, t *slot) {
 	if roll(30, 100) {
 		t.mon.applyAilment("poison", nil, u)
+	}
+}
+
+func cheekPouch(mon *Pokemon) {
+	if mon.Ability == "cheek-pouch" {
+		restore := mon.maxHP() / 3
+		mon.changeHpBy(restore)
+		log.Printf("%s ate its cheek pouch and restored %d hp", mon.Base.Name, restore)
 	}
 }

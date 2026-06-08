@@ -39,6 +39,11 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 
 	numerator := 1
 	denominator := 1
+	moveType := move.Type
+
+	if f, ok := typeConvertingAbilities[user.Ability]; ok {
+		f(&moveType, &numerator, &denominator)
+	}
 
 	applyType := func(mult float64) {
 		if target.isGrounded() && target.hasType("flying") && move.Type == "ground" {

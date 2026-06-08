@@ -140,6 +140,7 @@ func makeOranBerry(mon *Pokemon) *item {
 		activate: func() {
 			mon.changeHpBy(10)
 			log.Printf("%s ate its berry and restored 10 hp", mon.Base.Name)
+			cheekPouch(mon)
 		},
 	}
 }
@@ -154,6 +155,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 			restore := mon.maxHP() / 4
 			mon.changeHpBy(restore)
 			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
+			cheekPouch(mon)
 		},
 	}
 }
@@ -167,6 +169,7 @@ func makeCheriBerry(mon *Pokemon) *item {
 		activate: func() {
 			log.Printf("%s ate its cheri berry", mon.Base.Name)
 			delete(mon.Ailments, "paralysis")
+			cheekPouch(mon)
 		},
 	}
 }
@@ -180,6 +183,7 @@ func makeChestoBerry(mon *Pokemon) *item {
 		activate: func() {
 			log.Printf("%s ate its chesto berry", mon.Base.Name)
 			delete(mon.Ailments, "sleep")
+			cheekPouch(mon)
 		},
 	}
 }
@@ -194,6 +198,7 @@ func makePechaBerry(mon *Pokemon) *item {
 			log.Printf("%s ate its pecha berry", mon.Base.Name)
 			delete(mon.Ailments, "poison")
 			delete(mon.Ailments, "toxic")
+			cheekPouch(mon)
 		},
 	}
 }
@@ -207,6 +212,7 @@ func makeRawstBerry(mon *Pokemon) *item {
 		activate: func() {
 			log.Printf("%s ate its rawst berry", mon.Base.Name)
 			delete(mon.Ailments, "burn")
+			cheekPouch(mon)
 		},
 	}
 }
@@ -220,6 +226,7 @@ func makeAspearBerry(mon *Pokemon) *item {
 		activate: func() {
 			log.Printf("%s ate its aspear berry", mon.Base.Name)
 			delete(mon.Ailments, "freeze")
+			cheekPouch(mon)
 		},
 	}
 }
@@ -241,6 +248,7 @@ func makeLumBerry(mon *Pokemon) *item {
 			if mon.hasAilment("confusion") != nil {
 				delete(mon.Ailments, "confusion")
 				log.Printf("%s had its confusion removed", mon.Base.Name)
+				cheekPouch(mon)
 			}
 		},
 	}
@@ -259,6 +267,7 @@ func makeLeppaBerry(mon *Pokemon) *item {
 		},
 		activate: func() {
 			m.PP += min(10, m.MaxPP)
+			cheekPouch(mon)
 		},
 	}
 }
@@ -280,6 +289,7 @@ func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 			activate: func() {
 				log.Printf("%s ate its %s", mon.Base.Name, name)
 				mon.changeStatStageBy(stat, 1)
+				cheekPouch(mon)
 			},
 		}
 	}
@@ -301,6 +311,7 @@ func makeResistBerryMiddleware(name, typeName string) func(mon *Pokemon) *item {
 			activate: func() {
 				if d == nil {
 					log.Printf("%s ate its %s and reduced the damage", mon.Base.Name, name)
+					cheekPouch(mon)
 				} else {
 					*d *= 2
 				}
