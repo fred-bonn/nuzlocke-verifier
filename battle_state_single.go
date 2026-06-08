@@ -81,7 +81,7 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 	opponent.pokemonParty = opponentParty
 	opponentParty[0].Unnerved = playerParty[0].Ability == "unnerve"
 
-	return &singleBattleState{
+	res := singleBattleState{
 		activePlayerSlot: &slot{
 			mon:       playerParty[0],
 			trainer:   &player,
@@ -96,4 +96,8 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		opponent: &opponent,
 		actions:  &ActionQueue{},
 	}
+
+	// need to activate abilities like intimiate on the first turn
+
+	return &res
 }

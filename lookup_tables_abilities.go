@@ -2,6 +2,22 @@ package main
 
 import "log"
 
+var onEntryAbilities = map[string]func(s *slot, bs battleState){
+	"intimidate": intimidate,
+}
+
+func intimidate(s *slot, bs battleState) {
+	for _, slot := range bs.getAllSlots() {
+		if slot.trainer == s.trainer {
+			continue
+		}
+		if slot.mon.Ability == "inner-focus" {
+			continue
+		}
+		slot.mon.changeStatStageBy("attack", -1)
+	}
+}
+
 var typeConvertingAbilities = map[string]func(t *string, n, d *int){
 	"aerilate":    typeConvertingAbilitiesMiddleware("flying"),
 	"pixilate":    typeConvertingAbilitiesMiddleware("fairy"),

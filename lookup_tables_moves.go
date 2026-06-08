@@ -58,3 +58,15 @@ var powderMoves = map[string]struct{}{
 	"rage-powder":   {},
 	"cotten-spore":  {},
 }
+
+var selfThawingMoves = map[string]struct{}{
+	"flame-wheel":     {},
+	"sacred-fire":     {},
+	"flare-blitz":     {},
+	"fusion-flare":    {},
+	"scald":           {},
+	"steam-eruption":  {},
+	"burn-up":         {},
+	"pyro-ball":       {},
+	"scorching-sands": {},
+}

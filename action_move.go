@@ -32,7 +32,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	ma.userSlot.suckerPunch = ma.move.Name == "sucker-punch"
 
 	if _, ok := ma.userSlot.mon.Ailments["freeze"]; ok {
-		if roll(1, 5) {
+		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
 			log.Printf("%s thawed out", ma.userSlot.mon.Base.Name)
 			delete(ma.userSlot.mon.Ailments, "freeze")
 		} else {
@@ -47,7 +47,11 @@ func (ma *moveAction) invoke(bs battleState) {
 			log.Printf("%s woke up", ma.userSlot.mon.Base.Name)
 			delete(ma.userSlot.mon.Ailments, "sleep")
 		} else {
-			sleep.Turns--
+			if ma.userSlot.mon.Ability == "early-bird" {
+				sleep.Turns -= 2
+			} else {
+				sleep.Turns--
+			}
 			ma.userSlot.invulnerableAction = nil
 			log.Printf("%s is asleep", ma.userSlot.mon.Base.Name)
 			return
@@ -150,6 +154,10 @@ func (ma *moveAction) invoke(bs battleState) {
 	ma.userSlot.mon.checkItemTrigger(true, leppaBerryEvent{
 		move: ma.move,
 	})
+
+	if ma.move.Type == "fire" {
+		delete(ma.targetSlot.mon.Ailments, "freeze")
+	}
 }
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
