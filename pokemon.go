@@ -301,7 +301,11 @@ func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
 	return slices.ContainsFunc(p.Moves, f)
 }
 
-func (p *Pokemon) changeStatStageBy(stat string, change int) {
+func (p *Pokemon) changeStatStageBy(stat string, change int, offensive bool) {
+	if offensive && (p.Ability == "clear-smoke" || p.Ability == "clear-body") {
+		log.Printf("blocked by clear body")
+		return
+	}
 	if p.Ability == "keen-eye" && stat == "accuracy" && change < 0 {
 		return
 	}

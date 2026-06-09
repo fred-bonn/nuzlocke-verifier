@@ -138,9 +138,9 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	if ma.move.Class == "status" {
 		if strings.HasPrefix(ma.move.Target, "user") {
-			ma.applyStatusMove(bs, ma.userSlot.mon)
+			ma.applyStatusMove(bs, ma.userSlot.mon, false)
 		} else {
-			ma.applyStatusMove(bs, target)
+			ma.applyStatusMove(bs, target, true)
 		}
 	} else {
 		ma.applyDamageMove(bs)
@@ -160,7 +160,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 }
 
-func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
+func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive bool) {
 
 	if _, ok := protectMoves[ma.move.Name]; ok {
 		ma.userSlot.resolveProtect()
@@ -168,7 +168,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 	}
 
 	if ma.move.Name == "swagger" {
-		target.changeStatStageBy("attack", 2)
+		target.changeStatStageBy("attack", 2, false)
 		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
 	}
@@ -184,7 +184,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon) {
 	}
 
 	for stat, change := range ma.move.StatChanges {
-		target.changeStatStageBy(stat, change)
+		target.changeStatStageBy(stat, change, offensive)
 	}
 }
 
@@ -300,15 +300,17 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if ma.move.StatChance > 0 && roll(ma.move.StatChance, 100) {
 		var mon *Pokemon
+		offensive := true
 		switch ma.move.Category {
 		case "damage-raise":
 			mon = user
+			offensive = false
 		case "damage-lower":
 			mon = target
 		}
 
 		for stat, change := range ma.move.StatChanges {
-			mon.changeStatStageBy(stat, change)
+			mon.changeStatStageBy(stat, change, offensive)
 		}
 	}
 

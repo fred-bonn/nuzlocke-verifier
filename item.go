@@ -285,7 +285,7 @@ func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 			},
 			activate: func() {
 				log.Printf("%s ate its %s", mon.Base.Name, name)
-				mon.changeStatStageBy(stat, 1)
+				mon.changeStatStageBy(stat, 1, false)
 				cheekPouch(mon)
 			},
 		}

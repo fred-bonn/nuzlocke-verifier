@@ -1,12 +1,30 @@
 package main
 
-import "log"
+import (
+	"log"
+	"math/rand"
+)
 
-var onEntryAbilities = map[string]func(s *slot, bs battleState){
-	"intimidate": intimidate,
+var onSwitchAbilities = map[string]func(s *slot, bs battleState, switchIn bool){
+	"unnerve":     unnerve,
+	"intimidate":  intimidate,
+	"regenerator": regenerator,
 }
 
-func intimidate(s *slot, bs battleState) {
+func unnerve(s *slot, bs battleState, switchIn bool) {
+	for _, otherSlot := range bs.getOtherSlots(s) {
+		if s.trainer != otherSlot.trainer {
+			otherSlot.mon.Unnerved = switchIn
+			otherSlot.mon.checkItemTrigger(true, nil)
+		}
+	}
+}
+
+func intimidate(s *slot, bs battleState, switchIn bool) {
+	if !switchIn {
+		return
+	}
+
 	for _, slot := range bs.getAllSlots() {
 		if slot.trainer == s.trainer {
 			continue
@@ -14,8 +32,16 @@ func intimidate(s *slot, bs battleState) {
 		if slot.mon.Ability == "inner-focus" {
 			continue
 		}
-		slot.mon.changeStatStageBy("attack", -1)
+		slot.mon.changeStatStageBy("attack", -1, true)
 	}
+}
+
+func regenerator(s *slot, bs battleState, switchIn bool) {
+	if switchIn {
+		return
+	}
+
+	s.mon.changeHpBy(s.mon.maxHP() / 3)
 }
 
 var typeConvertingAbilities = map[string]func(t *string, n, d *int){
@@ -84,7 +110,7 @@ func stormDrain(p *Pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("special-attack", 1)
+	p.changeStatStageBy("special-attack", 1, false)
 	return true
 }
 
@@ -107,7 +133,7 @@ func lightningRod(p *Pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("special-attack", 1)
+	p.changeStatStageBy("special-attack", 1, false)
 	return true
 }
 
@@ -118,7 +144,7 @@ func motorDrive(p *Pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("speed", 1)
+	p.changeStatStageBy("speed", 1, false)
 	return true
 }
 
@@ -129,7 +155,7 @@ func sapSipper(p *Pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("attack", 1)
+	p.changeStatStageBy("attack", 1, false)
 	return true
 }
 
@@ -156,6 +182,7 @@ var contactDefensiveAbilities = map[string]func(u, t *slot){
 	"cute-charm":   cuteCharm,
 	"flame-body":   flameBody,
 	"poison-point": poisonPoint,
+	"effect-spore": effectSpore,
 }
 
 func roughSkin(u, t *slot) {
@@ -179,6 +206,22 @@ func flameBody(u, t *slot) {
 func poisonPoint(u, t *slot) {
 	if roll(30, 100) {
 		u.mon.applyAilment("poison", nil, t)
+	}
+}
+
+func effectSpore(u, t *slot) {
+	if u.mon.hasType("grass") || u.mon.Ability == "overcoat" || u.mon.Item.name == "safety-goggles" {
+		return
+	}
+	if roll(30, 100) {
+		ailmentRoll := rand.Intn(30)
+		if ailmentRoll <= 8 {
+			u.mon.applyAilment("poison", nil, t)
+		} else if ailmentRoll <= 18 {
+			u.mon.applyAilment("paralysis", nil, t)
+		} else {
+			u.mon.applyAilment("sleep", nil, t)
+		}
 	}
 }
 

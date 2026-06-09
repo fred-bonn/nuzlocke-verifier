@@ -77,9 +77,7 @@ func (sbs *singleBattleState) getAllSlots() []*slot {
 
 func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*Pokemon) *singleBattleState {
 	player.pokemonParty = playerParty
-	playerParty[0].Unnerved = opponentParty[0].Ability == "unnerve"
 	opponent.pokemonParty = opponentParty
-	opponentParty[0].Unnerved = playerParty[0].Ability == "unnerve"
 
 	res := singleBattleState{
 		activePlayerSlot: &slot{
@@ -97,7 +95,7 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		actions:  &ActionQueue{},
 	}
 
-	// need to activate abilities like intimiate on the first turn
+	resolveOnEntry(&res)
 
 	return &res
 }

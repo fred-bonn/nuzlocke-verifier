@@ -89,7 +89,7 @@ func resolveEndOfTurn(bs battleState) {
 			slot.mon.Item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.Ability == "speed-boost" && !slot.firstTurn {
-			slot.mon.changeStatStageBy("speed", 1)
+			slot.mon.changeStatStageBy("speed", 1, false)
 		}
 	}
 }
@@ -108,4 +108,12 @@ func takeResidualDamage(bs battleState, slot *slot, ailment *Ailment, num, den i
 		log.Printf("%s fainted!", slot.mon.Base.Name)
 	}
 	return change
+}
+
+func resolveOnEntry(bs battleState) {
+	for _, slot := range bs.getAllSlots() {
+		if f, ok := onSwitchAbilities[slot.mon.Ability]; ok {
+			f(slot, bs, true)
+		}
+	}
 }

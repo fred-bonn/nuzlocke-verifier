@@ -24,6 +24,7 @@ func (ra *replaceAction) invoke(bs battleState) {
 	if mon == nil {
 		return
 	}
+
 	for _, slot := range bs.getOtherSlots(ra.oldSlot) {
 		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
 			delete(slot.mon.Ailments, "infatuation")
@@ -31,11 +32,14 @@ func (ra *replaceAction) invoke(bs battleState) {
 		if ailment := slot.mon.hasAilment("trap"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
 			delete(slot.mon.Ailments, "infatuation")
 		}
-		if slot.trainer != ra.oldSlot.trainer {
-			slot.mon.Unnerved = mon.Ability == "unnerve"
-			slot.mon.checkItemTrigger(true, nil)
-		}
 	}
+	if f, ok := onSwitchAbilities[ra.oldSlot.mon.Ability]; ok {
+		f(ra.oldSlot, bs, false)
+	}
+
 	ra.oldSlot.setMon(mon)
 	log.Printf("%s was sent out", mon.Base.Name)
+	if f, ok := onSwitchAbilities[ra.oldSlot.mon.Ability]; ok {
+		f(ra.oldSlot, bs, true)
+	}
 }
