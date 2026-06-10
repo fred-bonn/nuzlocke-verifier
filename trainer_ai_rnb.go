@@ -39,13 +39,13 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			scores[i] = 7
 			continue
 		} else if a.move.Name == "fake-out" {
-			if a.userSlot.firstTurn {
-				scores[i] = 9
-			} else {
+			if !a.userSlot.firstTurn || a.targetSlot.mon.Ability == "inner-focus" || a.targetSlot.mon.Ability == "shield-dust" {
 				damage[i] = -1
 				scores[i] = -64
 				continue
 			}
+			scores[i] = 9
+
 		} else if a.move.Name == "first-impression" && !a.userSlot.firstTurn {
 			damage[i] = -1
 			scores[i] = -64
@@ -59,11 +59,9 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if a.move.Ailment == "trap" {
-			damage[i] = -1
 			if _, ok := a.targetSlot.mon.Ailments["trap"]; !ok {
 				scores[i] = 6 + 2*rollInt(1, 5)
 			}
-			continue
 		}
 
 		damage[i], kills[i] = a.scoreActionMove(bs)
@@ -99,9 +97,9 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			if kills[i] {
 				scores[i] = 10
 			} else {
-				if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()*20/100 {
+				if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()/5 {
 					scores[i] = 10
-				} else if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()*40/100 {
+				} else if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()*2/5 {
 					scores[i] = 8 * rollInt(1, 2)
 				}
 			}
