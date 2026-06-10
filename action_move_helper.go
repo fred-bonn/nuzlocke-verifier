@@ -124,6 +124,10 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 	}
 
 	if crit {
+		if user.Ability == "sniper" {
+			numerator *= 3
+			denominator *= 2
+		}
 		numerator *= 3
 		denominator *= 2
 	}
@@ -178,10 +182,19 @@ func roll(numerator int, denominator int) bool {
 }
 
 func accuracyRoll(user *Pokemon, target *Pokemon, moveAccuracy int) bool {
+	if user.Ability == "no-guard" || target.Ability == "no-guard" {
+		return false
+	}
+
 	accNum, accDen := user.accuracyFraction()
 	evNum, evDen := target.evasionFraction(user.Ability == "keen-eye")
 	numerator := moveAccuracy * accNum * evNum
 	denominator := 100 * accDen * evDen
+	if user.Ability == "compound-eyes" {
+		numerator *= 13
+		denominator *= 10
+	}
+
 	return roll(numerator, denominator)
 }
 

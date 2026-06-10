@@ -232,7 +232,7 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		return
 	}
 	if _, ok := nonVolatileStatuses[ailment]; ok {
-		if ailment == "burn" && p.hasType("fire") {
+		if ailment == "burn" && (p.hasType("fire") || p.Ability == "water-veil") {
 			return
 		}
 		if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
@@ -244,7 +244,7 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		if ailment == "freeze" && p.hasType("ice") {
 			return
 		}
-		if ailment == "sleep" && p.Ability == "vital-spirit" {
+		if ailment == "sleep" && (p.Ability == "vital-spirit" || p.Ability == "sweet-veil") {
 			return
 		}
 		for a := range p.Ailments {

@@ -6,9 +6,10 @@ import (
 )
 
 var onSwitchAbilities = map[string]func(s *slot, bs battleState, switchIn bool){
-	"unnerve":     unnerve,
-	"intimidate":  intimidate,
-	"regenerator": regenerator,
+	"unnerve":      unnerve,
+	"intimidate":   intimidate,
+	"regenerator":  regenerator,
+	"natural-cure": naturalCure,
 }
 
 func unnerve(s *slot, bs battleState, switchIn bool) {
@@ -42,6 +43,16 @@ func regenerator(s *slot, bs battleState, switchIn bool) {
 	}
 
 	s.mon.changeHpBy(s.mon.maxHP() / 3)
+}
+
+func naturalCure(s *slot, bs battleState, switchIn bool) {
+	if switchIn {
+		return
+	}
+
+	for ailment := range nonVolatileStatuses {
+		delete(s.mon.Ailments, ailment)
+	}
 }
 
 var typeConvertingAbilities = map[string]func(t *string, n, d *int){

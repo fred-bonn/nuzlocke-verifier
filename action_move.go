@@ -275,6 +275,11 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 			}
 			change = -1
 		}
+		if target.Ability == "liquid-ooze" {
+			if change > 0 {
+				change = -change
+			}
+		}
 
 		user.changeHpBy(change)
 		if change >= 0 {
@@ -285,6 +290,26 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 				monFainted(bs, ma.userSlot)
 			}
 		}
+	}
+
+	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance, 100) {
+		for stat, change := range ma.move.StatChanges {
+			user.changeStatStageBy(stat, change, false)
+		}
+	}
+
+	if _, ok := pivotMoves[ma.move.Name]; ok {
+		if trainer := bs.getTrainer(ma.userSlot); trainer.canReplace(bs) {
+			bs.injectReplaceAction(ma.userSlot, trainer, true)
+		}
+	}
+
+	if target.Fainted {
+		return false
+	}
+
+	if target.Ability == "shield-dust" {
+		return true
 	}
 
 	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
@@ -298,30 +323,10 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		}
 	}
 
-	if ma.move.StatChance > 0 && roll(ma.move.StatChance, 100) {
-		var mon *Pokemon
-		offensive := true
-		switch ma.move.Category {
-		case "damage-raise":
-			mon = user
-			offensive = false
-		case "damage-lower":
-			mon = target
-		}
-
+	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance, 100) {
 		for stat, change := range ma.move.StatChanges {
-			mon.changeStatStageBy(stat, change, offensive)
+			target.changeStatStageBy(stat, change, true)
 		}
-	}
-
-	if _, ok := pivotMoves[ma.move.Name]; ok {
-		if trainer := bs.getTrainer(ma.userSlot); trainer.canReplace(bs) {
-			bs.injectReplaceAction(ma.userSlot, trainer, true)
-		}
-	}
-
-	if target.Fainted {
-		return false
 	}
 
 	return true
