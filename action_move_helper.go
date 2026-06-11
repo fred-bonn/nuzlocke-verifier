@@ -145,7 +145,12 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 	} else if user.FlashFire && moveType == "fire" {
 		numerator *= 3
 		denominator *= 2
-	} else if target.Ability == "dry-skin" && moveType == "fire" {
+	} else if user.Ability == "hustle" && move.Class == "physical" {
+		numerator *= 3
+		denominator *= 2
+	}
+
+	if target.Ability == "dry-skin" && moveType == "fire" {
 		numerator *= 5
 		denominator *= 4
 	}
@@ -181,9 +186,14 @@ func roll(numerator int, denominator int) bool {
 	return rand.Intn(denominator) < numerator
 }
 
-func accuracyRoll(user *Pokemon, target *Pokemon, moveAccuracy int) bool {
+func accuracyRoll(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove) bool {
 	if user.Ability == "no-guard" || target.Ability == "no-guard" {
 		return false
+	}
+
+	moveAccuracy := move.Accuracy
+	if user.Ability == "hustle" && move.Class == "physical" {
+		moveAccuracy = moveAccuracy * 80 / 100
 	}
 
 	accNum, accDen := user.accuracyFraction()
@@ -215,6 +225,10 @@ func determineHits(move *pokeapi.BaseMove) int {
 }
 
 func monFainted(bs battleState, slot *slot) {
+	if slot.mon.Fainted {
+		return
+	}
+
 	slot.mon.Fainted = true
 	bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
 	log.Printf("%s fainted!", slot.mon.Base.Name)

@@ -120,7 +120,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	target := ma.targetSlot.mon
-	if ma.move.Accuracy > 0 && !accuracyRoll(ma.userSlot.mon, target, ma.move.Accuracy) {
+	if ma.move.Accuracy > 0 && !accuracyRoll(ma.userSlot.mon, target, ma.move) {
 		log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
 		return
 	}
@@ -257,16 +257,6 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		monFainted(bs, ma.targetSlot)
 	}
 
-	if f, ok := contactDefensiveAbilities[target.Ability]; ok && ma.move.Contact {
-		f(ma.userSlot, ma.targetSlot)
-		if user.Hp <= 0 {
-			monFainted(bs, ma.userSlot)
-		}
-	}
-	if f, ok := contactOffensiveAbilities[user.Ability]; ok && ma.move.Contact {
-		f(ma.userSlot, ma.targetSlot)
-	}
-
 	if ma.move.Drain != 0 {
 		change := damage * ma.move.Drain / 100
 		if change == 0 {
@@ -290,6 +280,20 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 				monFainted(bs, ma.userSlot)
 			}
 		}
+	}
+
+	if f, ok := contactDefensiveAbilities[target.Ability]; ok && ma.move.Contact {
+		f(ma.userSlot, ma.targetSlot)
+		if user.Hp <= 0 {
+			monFainted(bs, ma.userSlot)
+		}
+	} else if target.Ability == "cotten-down" {
+		for _, slot := range bs.getOtherSlots(ma.targetSlot) {
+			slot.mon.changeStatStageBy("speed", -1, true)
+		}
+	}
+	if f, ok := contactOffensiveAbilities[user.Ability]; ok && ma.move.Contact {
+		f(ma.userSlot, ma.targetSlot)
 	}
 
 	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance, 100) {

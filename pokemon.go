@@ -26,6 +26,7 @@ type Pokemon struct {
 	Unnerved   bool
 	FlashFire  bool
 	Unburden   bool
+	Trace      bool
 }
 
 var ivMap = map[string]string{
@@ -131,6 +132,11 @@ func (p *Pokemon) switchReset() {
 
 	if toxic, ok := p.Ailments["toxic"]; ok {
 		toxic.Turns = 0
+	}
+
+	if p.Trace {
+		p.Trace = false
+		p.Ability = "trace"
 	}
 
 	p.LockedMove = nil

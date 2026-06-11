@@ -6,10 +6,29 @@ import (
 )
 
 var onSwitchAbilities = map[string]func(s *slot, bs battleState, switchIn bool){
+	"trace":        trace,
 	"unnerve":      unnerve,
 	"intimidate":   intimidate,
 	"regenerator":  regenerator,
 	"natural-cure": naturalCure,
+}
+
+func trace(s *slot, bs battleState, switchIn bool) {
+	if !switchIn {
+		return
+	}
+
+	opponentMons := make([]*Pokemon, 0)
+	for _, slot := range bs.getOtherSlots(s) {
+		if slot.trainer == s.trainer {
+			continue
+		}
+		opponentMons = append(opponentMons, slot.mon)
+	}
+
+	s.mon.Ability = opponentMons[rand.Int()%len(opponentMons)].Ability
+	s.mon.Trace = true
+	log.Printf("%s traced %s", s.mon.Base.Name, s.mon.Ability)
 }
 
 func unnerve(s *slot, bs battleState, switchIn bool) {
