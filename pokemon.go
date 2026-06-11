@@ -27,6 +27,7 @@ type Pokemon struct {
 	FlashFire  bool
 	Unburden   bool
 	Trace      bool
+	Yawned     bool
 }
 
 var ivMap = map[string]string{
@@ -238,14 +239,22 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		return
 	}
 	if _, ok := nonVolatileStatuses[ailment]; ok {
+		if p.hasNonVolatileAilment() {
+			return
+		}
 		if ailment == "burn" && (p.hasType("fire") || p.Ability == "water-veil") {
 			return
 		}
 		if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
 			return
 		}
-		if ailment == "poison" && (p.hasType("poison") || p.hasType("steel")) {
-			return
+		if ailment == "poison" || ailment == "toxic" {
+			if p.Ability == "immunity" {
+				return
+			}
+			if (p.hasType("poison") || p.hasType("steel")) && (afflictedBy == nil || afflictedBy.mon.Ability != "corrosion") {
+				return
+			}
 		}
 		if ailment == "freeze" && p.hasType("ice") {
 			return
@@ -253,22 +262,23 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		if ailment == "sleep" && (p.Ability == "vital-spirit" || p.Ability == "sweet-veil") {
 			return
 		}
-		for a := range p.Ailments {
-			if _, ok := nonVolatileStatuses[a]; ok {
-				return
-			}
-		}
 	}
 
 	if ailment == "trap" {
 		p.Ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
 	}
-	if ailment == "poison" && move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
-		ailment = "toxic"
+	if ailment == "poison" {
+		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
+			ailment = "toxic"
+		}
 	}
+
 	p.Ailments[ailment] = generateAilment(ailment, afflictedBy)
 	log.Printf("%s became afflicted with %s", p.Base.Name, ailment)
+	if _, ok := nonVolatileStatuses[ailment]; ok && p.Ability == "synchronize" {
+		afflictedBy.mon.applyAilment(ailment, nil, nil)
+	}
 	p.checkItemTrigger(true, nil)
 }
 

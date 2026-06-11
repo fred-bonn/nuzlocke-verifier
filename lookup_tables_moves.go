@@ -1,5 +1,16 @@
 package main
 
+var sleepMoves = map[string]struct{}{
+	"dark-void":     {},
+	"grass-whistle": {},
+	"hypnosis":      {},
+	"lovely-kiss":   {},
+	"sing":          {},
+	"sleep-powder":  {},
+	"spore":         {},
+	"yawn":          {},
+}
+
 var pivotMoves = map[string]struct{}{
 	"u-turn":           {},
 	"volt-switch":      {},

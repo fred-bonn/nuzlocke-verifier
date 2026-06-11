@@ -117,7 +117,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				if a.targetSlot.mon.LockedMove != nil && a.targetSlot.mon.LockedMove != move {
 					continue
 				}
-				dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, move.CritRate >= 4, true, true)
+				dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, new(move.CritRate >= 4), true, true)
 				if a.userSlot.mon.Hp <= dmg {
 					scores[i] += 11
 					break
@@ -256,7 +256,7 @@ func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
 			rolls = move.MaxHits
 		}
 		for i := 0; i < rolls; i++ {
-			dmg += calculateDamage(user, target, move, move.CritRate >= 4, true, true)
+			dmg += calculateDamage(user, target, move, new(move.CritRate >= 4), true, true)
 		}
 
 		target.checkItemTrigger(false, focusSashEvent{

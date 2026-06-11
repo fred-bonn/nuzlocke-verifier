@@ -32,7 +32,7 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRoll, forScoring bool) int {
+func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring bool) int {
 	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) {
 		return 0
 	}
@@ -86,6 +86,10 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 
 	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
 		numerator *= 2
+	} else if move.Name == "wake-up-slap" {
+		if a := target.hasAilment("sleep"); a != nil {
+			numerator *= 2
+		}
 	}
 
 	if move.Name == "flail" {
@@ -105,37 +109,6 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 		}
 	}
 
-	stab := user.hasType(moveType)
-
-	var offensiveStat, defensiveStat int
-	if move.Class == "physical" {
-		offensiveStat = user.effectiveStat("attack", crit)
-		defensiveStat = target.effectiveStat("defense", crit)
-	} else {
-		offensiveStat = user.effectiveStat("special-attack", crit)
-		defensiveStat = target.effectiveStat("special-defense", crit)
-	}
-
-	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
-
-	if stab {
-		numerator *= 3
-		denominator *= 2
-	}
-
-	if crit {
-		if user.Ability == "sniper" {
-			numerator *= 3
-			denominator *= 2
-		}
-		numerator *= 3
-		denominator *= 2
-	}
-
-	if move.Class == "physical" && user.hasAilment("burn") != nil {
-		denominator *= 2
-	}
-
 	if user.Ability == "technician" && move.Power <= 60 {
 		numerator *= 3
 		denominator *= 2
@@ -148,11 +121,35 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 	} else if user.Ability == "hustle" && move.Class == "physical" {
 		numerator *= 3
 		denominator *= 2
+	} else if user.Ability == "merciless" {
+		if a := target.hasAilment("poison"); a != nil {
+			*crit = true
+		} else if a := target.hasAilment("toxic"); a != nil {
+			*crit = true
+		}
+	}
+
+	if user.hasType(moveType) {
+		numerator *= 3
+		denominator *= 2
 	}
 
 	if target.Ability == "dry-skin" && moveType == "fire" {
 		numerator *= 5
 		denominator *= 4
+	}
+
+	if *crit {
+		if user.Ability == "sniper" {
+			numerator *= 3
+			denominator *= 2
+		}
+		numerator *= 3
+		denominator *= 2
+	}
+
+	if move.Class == "physical" && user.hasAilment("burn") != nil {
+		denominator *= 2
 	}
 
 	target.checkItemTrigger(false, resistBerryEvent{
@@ -177,6 +174,17 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit, maxRol
 		denominator *= 100
 	}
 
+	var offensiveStat, defensiveStat int
+	if move.Class == "physical" {
+		offensiveStat = user.effectiveStat("attack", *crit)
+		defensiveStat = target.effectiveStat("defense", *crit)
+	} else {
+		offensiveStat = user.effectiveStat("special-attack", *crit)
+		defensiveStat = target.effectiveStat("special-defense", *crit)
+	}
+
+	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
+
 	damage = max(1, damage*numerator/denominator)
 
 	return damage
@@ -188,7 +196,11 @@ func roll(numerator int, denominator int) bool {
 
 func accuracyRoll(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove) bool {
 	if user.Ability == "no-guard" || target.Ability == "no-guard" {
-		return false
+		return true
+	} else if move.Name == "toxic" && user.hasType("poison") {
+		return true
+	} else if move.Name == "thunder-wave" && user.hasType("electric") {
+		return true
 	}
 
 	moveAccuracy := move.Accuracy
@@ -230,6 +242,6 @@ func monFainted(bs battleState, slot *slot) {
 	}
 
 	slot.mon.Fainted = true
-	bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
+	bs.injectReplaceAction(slot, false)
 	log.Printf("%s fainted!", slot.mon.Base.Name)
 }

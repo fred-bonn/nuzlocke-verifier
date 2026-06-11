@@ -5,6 +5,12 @@ import (
 	"math/rand"
 )
 
+var sleepBlockingAbilities = map[string]struct{}{
+	"insomnia":     {},
+	"vital-spirit": {},
+	"sweet-veil":   {},
+}
+
 var onSwitchAbilities = map[string]func(s *slot, bs battleState, switchIn bool){
 	"trace":        trace,
 	"unnerve":      unnerve,

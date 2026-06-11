@@ -15,7 +15,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 		rolls = ma.move.MaxHits
 	}
 	for i := 0; i < rolls; i++ {
-		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, ma.move.CritRate >= 4, false, true)
+		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, new(ma.move.CritRate >= 4), false, true)
 	}
 
 	ma.targetSlot.mon.checkItemTrigger(false, focusSashEvent{
@@ -39,11 +39,14 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return 5
 	}
 
-	if _, ok := powderMoves[ma.move.Name]; ok && ma.targetSlot.mon.hasType("grass") {
+	if _, ok := powderMoves[ma.move.Name]; ok && (ma.targetSlot.mon.hasType("grass") || ma.targetSlot.mon.Ability == "overcoat") {
 		return -64
 	}
 	if _, ok := paralysisMoves[ma.move.Name]; ok {
 		return ma.scoreParalysisMove()
+	}
+	if _, ok := sleepMoves[ma.move.Name]; ok {
+		return ma.scoreSleepMove(bs)
 	}
 	if _, ok := protectMoves[ma.move.Name]; ok {
 		return ma.scoreProtectMove(bs)
@@ -63,6 +66,8 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		if ma.targetSlot.mon.hasAilment("leech-seed") != nil || ma.targetSlot.mon.hasType("grass") {
 			return -64
 		}
+	case "toxic":
+		return ma.scoreToxic()
 	}
 
 	return 6
@@ -100,24 +105,99 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 }
 
 func (ma *moveAction) scoreParalysisMove() int {
-	if ma.targetSlot.mon.hasNonVolatileAilment() || ma.targetSlot.mon.hasType("electric") || ma.targetSlot.mon.Ability == "limber" {
+	target := ma.targetSlot.mon
+	user := ma.userSlot.mon
+
+	if target.hasNonVolatileAilment() || target.hasType("electric") || target.Ability == "limber" {
 		return -64
 	}
 
-	bonus := 0
-	if ma.targetSlot.mon.isFasterThan(ma.userSlot.mon) && ma.userSlot.mon.effectiveSpeed() > ma.targetSlot.mon.effectiveSpeed()/4 {
-		bonus++
-	} else if ma.userSlot.mon.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+	score := 6
+	if target.isFasterThan(user) && user.effectiveSpeed() > target.effectiveSpeed()/4 {
+		score++
+	} else if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
 		return m.Name == "hex" || m.FlinchChance > 0
 	}) {
-		bonus++
-	} else if ma.targetSlot.mon.hasAilment("confusion") != nil {
-		bonus++
-	} else if ma.targetSlot.mon.hasAilment("infatuation") != nil {
-		bonus++
+		score++
+	} else if target.hasAilment("confusion") != nil {
+		score++
+	} else if target.hasAilment("infatuation") != nil {
+		score++
 	}
 
-	return 6 + bonus + rollInt(1, 2)
+	return score + rollInt(1, 2)
+}
+
+func (ma *moveAction) scoreSleepMove(bs battleState) int {
+	target := ma.targetSlot.mon
+	user := ma.userSlot.mon
+
+	if _, ok := sleepBlockingAbilities[target.Ability]; ok || target.hasNonVolatileAilment() {
+		return -64
+	}
+
+	isHex := func(m *pokeapi.BaseMove) bool {
+		return m.Name == "hex"
+	}
+
+	score := 6
+	maxDmg := calculateMaxDamage(target, ma.userSlot.mon, true)
+	if maxDmg < user.Hp && roll(1, 2) {
+		if user.hasMovePredicate(isHex) {
+			score += 1
+		} else {
+			for _, slot := range bs.getOtherSlots(ma.userSlot) {
+				if slot.trainer == ma.userSlot.trainer && slot.mon.hasMovePredicate(isHex) {
+					score += 1
+				}
+			}
+		}
+
+		if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+			return m.Name == "dream-eater" || m.Name == "nightmare"
+		}) && !target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+			return m.Name == "snore" || m.Name == "sleep-talk"
+		}) {
+			score += 1
+		}
+	}
+
+	return score
+}
+
+func (ma *moveAction) scoreToxic() int {
+	target := ma.targetSlot.mon
+	user := ma.userSlot.mon
+
+	if target.hasNonVolatileAilment() {
+		return -64
+	}
+	if target.Ability == "immunity" {
+		return -64
+	}
+	if (target.hasType("poison") || target.hasType("steel")) && ma.userSlot.mon.Ability != "corrosion" {
+		return -64
+	}
+
+	score := 6
+	maxDmg := calculateMaxDamage(target, user, true)
+	if maxDmg < user.Hp && roll(19, 50) {
+		if !target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+			return m.Class == "physical" || m.Class == "special"
+		}) {
+			score += 1
+		}
+
+		if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+			return m.Name == "hex" || m.Name == "venoshock"
+		}) || user.Ability == "merciless" {
+			score += 2
+		} else {
+			score += 1
+		}
+	}
+
+	return score
 }
 
 func (ma *moveAction) scoreProtectMove(bs battleState) int {

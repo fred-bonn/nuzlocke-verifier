@@ -63,7 +63,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			confusion.Turns -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
 			if roll(1, 3) {
-				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, false, false, false)
+				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), false, false)
 				ma.userSlot.invulnerableAction = nil
 				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.Base.Name, damage)
 				ma.userSlot.mon.Hp -= int(damage)
@@ -221,7 +221,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		crit = roll(1, critRateMap[ma.move.CritRate])
 	}
 
-	damage := calculateDamage(user, target, ma.move, crit, false, false)
+	damage := calculateDamage(user, target, ma.move, &crit, false, false)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
 		return false
@@ -255,6 +255,13 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	target.changeHpBy(-damage)
 	if target.Hp <= 0 {
 		monFainted(bs, ma.targetSlot)
+	}
+
+	if ma.move.Name == "wake-up-slap" {
+		if a := target.hasAilment("sleep"); a != nil {
+			log.Printf("%s woke up", target.Base.Name)
+			delete(target.Ailments, "sleep")
+		}
 	}
 
 	if ma.move.Drain != 0 {
@@ -303,8 +310,8 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	if _, ok := pivotMoves[ma.move.Name]; ok {
-		if trainer := bs.getTrainer(ma.userSlot); trainer.canReplace(bs) {
-			bs.injectReplaceAction(ma.userSlot, trainer, true)
+		if ma.userSlot.trainer.canReplace(bs) {
+			bs.injectReplaceAction(ma.userSlot, true)
 		}
 	}
 

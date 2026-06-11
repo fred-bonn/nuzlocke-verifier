@@ -6,13 +6,13 @@ import (
 )
 
 type battleState interface {
+	execute()
+	gatherActions()
 	getAllSlots() []*slot
 	getOtherSlots(slot *slot) []*slot
-	injectReplaceAction(slot *slot, trainer *trainer, midTurn bool)
-	getTrainer(slot *slot) *trainer
-	gatherActions()
+	getOpponentSlot(slot *slot) *slot
+	injectReplaceAction(slot *slot, midTurn bool)
 	getActions() *ActionQueue
-	execute()
 }
 
 type slot struct {
@@ -104,7 +104,7 @@ func takeResidualDamage(bs battleState, slot *slot, ailment *Ailment, num, den i
 	slot.mon.changeHpBy(-change)
 	if slot.mon.Hp <= 0 {
 		slot.mon.Fainted = true
-		bs.injectReplaceAction(slot, bs.getTrainer(slot), false)
+		bs.injectReplaceAction(slot, false)
 		log.Printf("%s fainted!", slot.mon.Base.Name)
 	}
 	return change

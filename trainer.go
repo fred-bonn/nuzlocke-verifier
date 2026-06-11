@@ -16,15 +16,17 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		return slot.invulnerableAction
 	}
 
-	opponentSlot := bs.getOtherSlots(slot)[0] // only works for single battles for now
+	opponentSlots := bs.getOtherSlots(slot) // only works for single battles for now
 
 	possibleActions := make([]*moveAction, 0)
 	if slot.mon.LockedMove != nil && slot.mon.LockedMove.PP > 0 {
-		possibleActions = append(possibleActions, &moveAction{
-			userSlot:   slot,
-			targetSlot: opponentSlot,
-			move:       slot.mon.LockedMove,
-		})
+		for _, oppSlot := range opponentSlots {
+			possibleActions = append(possibleActions, &moveAction{
+				userSlot:   slot,
+				targetSlot: oppSlot,
+				move:       slot.mon.LockedMove,
+			})
+		}
 	} else {
 		for _, move := range slot.mon.Moves {
 			if move.PP <= 0 {
@@ -33,21 +35,27 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 			if slot.mon.Item.name == "assault-vest" && move.Class != "status" {
 				continue
 			}
-			possibleActions = append(possibleActions, &moveAction{
-				userSlot:   slot,
-				targetSlot: opponentSlot,
-				move:       move,
-			})
+			for _, oppSlot := range opponentSlots {
+				possibleActions = append(possibleActions, &moveAction{
+					userSlot:   slot,
+					targetSlot: oppSlot,
+					move:       move,
+				})
+			}
 		}
 	}
 
 	// if there are no possible moves, struggle
 	if len(possibleActions) == 0 {
-		possibleActions = append(possibleActions, &moveAction{
-			userSlot:   slot,
-			targetSlot: opponentSlot,
-			move:       &struggleMove,
-		})
+		for _, oppSlot := range opponentSlots {
+			if oppSlot.trainer != slot.trainer {
+				possibleActions = append(possibleActions, &moveAction{
+					userSlot:   slot,
+					targetSlot: oppSlot,
+					move:       &struggleMove,
+				})
+			}
+		}
 	}
 
 	action, score := t.ai.evaluateActions(bs, possibleActions)
@@ -57,7 +65,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	if score > 0 {
 		return action
 	}
-	if roll(1, 2) || slot.mon.Hp <= slot.mon.maxHP()/2 || !bs.getTrainer(slot).canReplace(bs) || slot.isTrapped() {
+	if roll(1, 2) || slot.mon.Hp <= slot.mon.maxHP()/2 || !slot.trainer.canReplace(bs) || slot.isTrapped() {
 		return action
 	}
 
@@ -70,7 +78,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	}
 	return &switchAction{
 		oldSlot: slot,
-		new:     t.ai.evaluteSwitchIns(bs, possibleMons, opponentSlot),
+		new:     t.ai.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot)),
 	}
 }
 

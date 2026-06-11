@@ -42,6 +42,13 @@ func (sbs *singleBattleState) gatherActions() {
 	heap.Push(sbs.actions, sbs.opponent.nextAction(sbs, sbs.activeOpponentSlot))
 }
 
+func (sbs *singleBattleState) getAllSlots() []*slot {
+	return []*slot{
+		sbs.activePlayerSlot,
+		sbs.activeOpponentSlot,
+	}
+}
+
 func (sbs *singleBattleState) getOtherSlots(s *slot) []*slot {
 	if s == sbs.activePlayerSlot {
 		return []*slot{sbs.activeOpponentSlot}
@@ -49,30 +56,23 @@ func (sbs *singleBattleState) getOtherSlots(s *slot) []*slot {
 	return []*slot{sbs.activePlayerSlot}
 }
 
-func (sbs *singleBattleState) injectReplaceAction(slot *slot, trainer *trainer, midTurn bool) {
+func (sbs *singleBattleState) getOpponentSlot(s *slot) *slot {
+	if s == sbs.activePlayerSlot {
+		return sbs.activeOpponentSlot
+	}
+	return sbs.activePlayerSlot
+}
+
+func (sbs *singleBattleState) injectReplaceAction(slot *slot, midTurn bool) {
 	heap.Push(sbs.actions, &replaceAction{
 		oldSlot: slot,
-		trainer: trainer,
+		trainer: slot.trainer,
 		midTurn: midTurn,
 	})
 }
 
-func (sbs *singleBattleState) getTrainer(slot *slot) *trainer {
-	if slot == sbs.activePlayerSlot {
-		return sbs.player
-	}
-	return sbs.opponent
-}
-
 func (sbs *singleBattleState) getActions() *ActionQueue {
 	return sbs.actions
-}
-
-func (sbs *singleBattleState) getAllSlots() []*slot {
-	return []*slot{
-		sbs.activePlayerSlot,
-		sbs.activeOpponentSlot,
-	}
 }
 
 func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*Pokemon) *singleBattleState {
