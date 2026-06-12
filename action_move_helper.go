@@ -33,16 +33,25 @@ var struggleMove = pokeapi.BaseMove{
 }
 
 func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring bool) int {
-	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) {
+	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) && user.Ability != "mold-breaker" {
 		return 0
 	}
 
 	numerator := 1
 	denominator := 1
 	moveType := move.Type
+	power := move.Power
+	var offensiveStat, defensiveStat int
+	if move.Class == "physical" {
+		offensiveStat = user.effectiveStat("attack", *crit)
+		defensiveStat = target.effectiveStat("defense", *crit)
+	} else {
+		offensiveStat = user.effectiveStat("special-attack", *crit)
+		defensiveStat = target.effectiveStat("special-defense", *crit)
+	}
 
 	if f, ok := typeConvertingAbilities[user.Ability]; ok {
-		f(&moveType, &numerator, &denominator)
+		f(&moveType, &power)
 	}
 
 	applyType := func(mult float64) {
@@ -85,44 +94,38 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 	}
 
 	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
-		numerator *= 2
+		power *= 2
 	} else if move.Name == "wake-up-slap" && target.hasAilment("sleep") != nil {
-		numerator *= 2
+		power *= 2
 	} else if move.Name == "venoshock" && (target.hasAilment("poison") != nil || target.hasAilment("toxic") != nil) {
-		numerator *= 2
+		power *= 2
 	} else if move.Name == "hex" && target.hasNonVolatileAilment() {
-		numerator *= 2
-	}
-
-	if move.Name == "flail" {
+		power *= 2
+	} else if move.Name == "flail" {
 		res := int(48 * (float64(user.Hp) / float64(user.maxHP())))
 		if res <= 1 {
-			move.Power = 200
+			power = 200
 		} else if res <= 4 {
-			move.Power = 150
+			power = 150
 		} else if res <= 9 {
-			move.Power = 100
+			power = 100
 		} else if res <= 16 {
-			move.Power = 80
+			power = 80
 		} else if res <= 32 {
-			move.Power = 40
+			power = 40
 		} else {
-			move.Power = 20
+			power = 20
 		}
 	}
 
 	if user.Ability == "technician" && move.Power <= 60 {
-		numerator *= 3
-		denominator *= 2
+		power = power * 3 / 2
 	} else if t, ok := pinchAbilities[user.Ability]; ok && t == moveType && user.Hp*3 <= user.maxHP() {
-		numerator *= 3
-		denominator *= 2
+		offensiveStat = offensiveStat * 3 / 2
 	} else if user.FlashFire && moveType == "fire" {
-		numerator *= 3
-		denominator *= 2
+		offensiveStat = offensiveStat * 3 / 2
 	} else if user.Ability == "hustle" && move.Class == "physical" {
-		numerator *= 3
-		denominator *= 2
+		offensiveStat = offensiveStat * 3 / 2
 	} else if user.Ability == "merciless" {
 		if a := target.hasAilment("poison"); a != nil {
 			*crit = true
@@ -137,8 +140,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 	}
 
 	if target.Ability == "dry-skin" && moveType == "fire" {
-		numerator *= 5
-		denominator *= 4
+		power = power * 5 / 4
 	}
 
 	if *crit {
@@ -154,21 +156,19 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		denominator *= 2
 	}
 
-	target.checkItemTrigger(false, resistBerryEvent{
-		typeName:    moveType,
-		denominator: &denominator,
-	})
-
 	user.checkItemTrigger(false, gemEvent{
-		typeName:    moveType,
-		denominator: &denominator,
-		numerator:   &numerator,
+		typeName: moveType,
+		power:    &power,
 	})
 
 	user.checkItemTrigger(false, choiceItemEvent{
-		move:        move,
-		denominator: &denominator,
-		numerator:   &numerator,
+		move: move,
+		stat: &offensiveStat,
+	})
+
+	user.checkItemTrigger(false, moveBoostingEvent{
+		power:    &power,
+		typeName: moveType,
 	})
 
 	if !maxRoll {
@@ -176,18 +176,15 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		denominator *= 100
 	}
 
-	var offensiveStat, defensiveStat int
-	if move.Class == "physical" {
-		offensiveStat = user.effectiveStat("attack", *crit)
-		defensiveStat = target.effectiveStat("defense", *crit)
-	} else {
-		offensiveStat = user.effectiveStat("special-attack", *crit)
-		defensiveStat = target.effectiveStat("special-defense", *crit)
-	}
+	damage := ((((2*user.Level)/5)+2)*power*offensiveStat)/defensiveStat/50 + 2
+	damage = damage * numerator / denominator
 
-	damage := ((((2*user.Level)/5)+2)*move.Power*offensiveStat)/defensiveStat/50 + 2
+	target.checkItemTrigger(false, resistBerryEvent{
+		typeName: moveType,
+		damage:   &damage,
+	})
 
-	damage = max(1, damage*numerator/denominator)
+	damage = max(1, damage)
 
 	return damage
 }

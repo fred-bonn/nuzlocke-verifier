@@ -69,6 +69,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i] = -64
 		}
+		// fmt.Println(a.move.Name, damage[i])
 
 		canHighestKill = canHighestKill || kills[i]
 		if !canHighestKill && (highestDamageIndex == -1 || damage[highestDamageIndex] < damage[i]) {

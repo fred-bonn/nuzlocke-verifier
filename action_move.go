@@ -274,8 +274,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		if change == 0 {
 			if ma.move.Drain > 0 {
 				change = 1
+			} else {
+				change = -1
 			}
-			change = -1
 		}
 		if target.Ability == "liquid-ooze" {
 			if change > 0 {

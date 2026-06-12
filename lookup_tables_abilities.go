@@ -80,7 +80,7 @@ func naturalCure(s *slot, bs battleState, switchIn bool) {
 	}
 }
 
-var typeConvertingAbilities = map[string]func(t *string, n, d *int){
+var typeConvertingAbilities = map[string]func(t *string, p *int){
 	"aerilate":    typeConvertingAbilitiesMiddleware("flying"),
 	"pixilate":    typeConvertingAbilitiesMiddleware("fairy"),
 	"galvanize":   typeConvertingAbilitiesMiddleware("electric"),
@@ -88,20 +88,18 @@ var typeConvertingAbilities = map[string]func(t *string, n, d *int){
 	"normalize":   normalize,
 }
 
-func normalize(t *string, n, d *int) {
+func normalize(t *string, p *int) {
 	if *t != "normal" {
 		*t = "normal"
-		*n *= 6
-		*d *= 5
+		*p = *p * 6 / 5
 	}
 }
 
-func typeConvertingAbilitiesMiddleware(t1 string) func(t *string, n, d *int) {
-	return func(t2 *string, n, d *int) {
+func typeConvertingAbilitiesMiddleware(t1 string) func(t *string, p *int) {
+	return func(t2 *string, p *int) {
 		if *t2 == "normal" {
 			*t2 = t1
-			*n *= 6
-			*d *= 5
+			*p = *p * 6 / 5
 		}
 	}
 }
