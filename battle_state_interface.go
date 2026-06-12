@@ -74,6 +74,12 @@ func resolveEndOfTurn(bs battleState) {
 				log.Printf("%s leeched health from %s", ailment.AfflictedBy.mon.Base.Name, slot.mon.Base.Name)
 				dmg := takeResidualDamage(bs, slot, ailment, 1, 8)
 				ailment.AfflictedBy.mon.changeHpBy(dmg)
+			case "yawn":
+				ailment.Turns--
+				if ailment.Turns == 0 {
+					slot.mon.applyAilment("sleep", nil, ailment.AfflictedBy)
+					delete(slot.mon.Ailments, "yawn")
+				}
 			}
 		}
 
@@ -91,6 +97,8 @@ func resolveEndOfTurn(bs battleState) {
 		} else if slot.mon.Ability == "speed-boost" && !slot.firstTurn {
 			slot.mon.changeStatStageBy("speed", 1, false)
 		}
+
+		slot.mon.LaserFocus = false
 	}
 }
 

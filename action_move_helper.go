@@ -86,10 +86,12 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 
 	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
 		numerator *= 2
-	} else if move.Name == "wake-up-slap" {
-		if a := target.hasAilment("sleep"); a != nil {
-			numerator *= 2
-		}
+	} else if move.Name == "wake-up-slap" && target.hasAilment("sleep") != nil {
+		numerator *= 2
+	} else if move.Name == "venoshock" && (target.hasAilment("poison") != nil || target.hasAilment("toxic") != nil) {
+		numerator *= 2
+	} else if move.Name == "hex" && target.hasNonVolatileAilment() {
+		numerator *= 2
 	}
 
 	if move.Name == "flail" {
@@ -234,6 +236,27 @@ func determineHits(move *pokeapi.BaseMove) int {
 		}
 	}
 	return move.MaxHits
+}
+
+func determineCrit(user, target *Pokemon, move *pokeapi.BaseMove) *bool {
+	if _, ok := critBlockingAbilities[target.Ability]; ok && user.Ability != "mold-breaker" {
+		return new(false)
+	} else if user.LaserFocus {
+		return new(true)
+	}
+
+	rate := move.CritRate
+	if user.Item.name == "scope-lens" {
+		rate++
+	}
+	if user.Ability == "super-luck" {
+		rate++
+	}
+	if user.FocusEnergy {
+		rate += 2
+	}
+
+	return new(roll(1, critRateMap[rate]))
 }
 
 func monFainted(bs battleState, slot *slot) {

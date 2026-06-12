@@ -16,7 +16,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 		return slot.invulnerableAction
 	}
 
-	opponentSlots := bs.getOtherSlots(slot) // only works for single battles for now
+	opponentSlots := bs.getOtherSlots(slot)
 
 	possibleActions := make([]*moveAction, 0)
 	if slot.mon.LockedMove != nil && slot.mon.LockedMove.PP > 0 {
@@ -96,7 +96,7 @@ func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *Pokemon {
 		return nil
 	}
 
-	return t.ai.evaluteSwitchIns(bs, possibleMons, bs.getOtherSlots(slot)[0]) // only works for single battles for now)
+	return t.ai.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
 }
 
 func (t *trainer) canReplace(bs battleState) bool {

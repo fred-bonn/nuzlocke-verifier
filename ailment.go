@@ -25,6 +25,7 @@ var volatileStatuses = map[string]struct{}{
 	"trap":        {},
 	"bound":       {},
 	"leech-seed":  {},
+	"yawn":        {},
 }
 
 func generateAilment(ailment string, afflictedBy *slot) *Ailment {
@@ -37,6 +38,8 @@ func generateAilment(ailment string, afflictedBy *slot) *Ailment {
 		res.Turns = rand.Intn(3) + 1
 	case "confusion":
 		res.Turns = rand.Intn(4) + 1
+	case "yawn":
+		res.Turns = 2
 	default:
 		res.Turns = 0
 	}

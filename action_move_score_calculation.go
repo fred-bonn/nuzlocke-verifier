@@ -15,7 +15,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 		rolls = ma.move.MaxHits
 	}
 	for i := 0; i < rolls; i++ {
-		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, new(ma.move.CritRate >= 4), false, true)
+		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, determineCrit(ma.userSlot.mon, ma.targetSlot.mon, ma.move), false, true)
 	}
 
 	ma.targetSlot.mon.checkItemTrigger(false, focusSashEvent{
@@ -59,7 +59,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		}
 		return 6 + 3*rollInt(3, 4)
 	case "attract":
-		if ma.targetSlot.mon.hasAilment("infatuation") != nil {
+		if ma.targetSlot.mon.hasAilment("infatuation") != nil || ma.targetSlot.mon.Ability == "oblivious" {
 			return -64
 		}
 	case "leech-seed":
@@ -68,6 +68,8 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		}
 	case "toxic":
 		return ma.scoreToxic()
+	case "focus-energy", "laser-focus":
+		return ma.scoreCritStatus()
 	}
 
 	return 6
@@ -132,7 +134,13 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 	target := ma.targetSlot.mon
 	user := ma.userSlot.mon
 
-	if _, ok := sleepBlockingAbilities[target.Ability]; ok || target.hasNonVolatileAilment() {
+	if _, ok := sleepBlockingAbilities[target.Ability]; ok {
+		return -64
+	}
+	if a := target.hasAilment("yawn"); a != nil {
+		return -64
+	}
+	if target.hasNonVolatileAilment() {
 		return -64
 	}
 
@@ -201,21 +209,67 @@ func (ma *moveAction) scoreToxic() int {
 }
 
 func (ma *moveAction) scoreProtectMove(bs battleState) int {
-	// still needs to return if user is dead to secondary damage, and minus score if other volatile status are active
+	user := ma.userSlot.mon
+	target := ma.targetSlot.mon
+
 	if ma.userSlot.protectTurns == 2 || (ma.userSlot.protectTurns == 1 && roll(1, 2)) {
 		return -64
 	}
+	if deadToSecondaryDamage(user, bs) {
+		return -64
+	}
 
-	bonus := 0
+	score := 6
 	if ma.userSlot.firstTurn {
-		bonus--
+		score--
 	}
-	if ma.targetSlot.mon.hasAilment("poison") != nil || ma.targetSlot.mon.hasAilment("toxic") != nil || ma.targetSlot.mon.hasAilment("burn") != nil {
-		bonus++
-	}
-	if ma.userSlot.mon.hasAilment("poison") != nil || ma.userSlot.mon.hasAilment("toxic") != nil || ma.userSlot.mon.hasAilment("burn") != nil {
-		bonus -= 2
+	// still needs perish song and cursed
+	if target.hasAilment("poison") != nil || target.hasAilment("toxic") != nil || target.hasAilment("burn") != nil || target.hasAilment("leech-seed") != nil || target.hasAilment("yawn") != nil || target.hasAilment("infatuation") != nil {
+		score++
 	}
 
-	return 6 + bonus
+	if user.hasAilment("poison") != nil || user.hasAilment("toxic") != nil || user.hasAilment("burn") != nil || user.hasAilment("leech-seed") != nil || user.hasAilment("yawn") != nil || user.hasAilment("infatuation") != nil {
+		score -= 2
+	}
+
+	return score
+}
+
+func deadToSecondaryDamage(mon *Pokemon, bs battleState) bool {
+	// update when weather is implemented
+	dmg := 0
+	if a := mon.hasAilment("burn"); a != nil {
+		dmg += mon.maxHP() / 16
+	} else if a := mon.hasAilment("poison"); a != nil {
+		dmg += mon.maxHP() / 8
+	} else if a := mon.hasAilment("toxic"); a != nil {
+		dmg += (mon.maxHP() * (a.Turns + 1)) / 16
+	}
+	if a := mon.hasAilment("trap"); a != nil {
+		dmg += mon.maxHP() / 8
+	}
+
+	return dmg >= mon.Hp
+}
+
+func (ma *moveAction) scoreCritStatus() int {
+	user := ma.userSlot.mon
+	if _, ok := critBlockingAbilities[ma.targetSlot.mon.Ability]; ok && user.Ability != "mold-breaker" {
+		return -64
+	}
+	if ma.move.Name == "focus-energy" && user.FocusEnergy {
+		return -64
+	}
+
+	if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+		return m.CritRate > 0
+	}) {
+		return 7
+	} else if user.Item.name == "scope-lens" {
+		return 7
+	} else if user.Ability == "super-luck" || user.Ability == "sniper" {
+		return 7
+	}
+
+	return 6
 }

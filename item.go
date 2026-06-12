@@ -64,6 +64,7 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"wacan-berry":  makeResistBerryMiddleware("wacan-berry", "electric"),
 	"yache-berry":  makeResistBerryMiddleware("yache-berry", "ice"),
 	"iron-ball":    makePassiveItemMiddleware("iron-ball"),
+	"scope-lens":   makePassiveItemMiddleware("scope-lens"),
 	"normal-gem":   makeGemMiddleware("normal"),
 	"fire-gem":     makeGemMiddleware("fire"),
 	"fighting-gem": makeGemMiddleware("fighting"),

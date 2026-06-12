@@ -27,6 +27,12 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
+	if (ma.move.Name == "fake-out" || ma.move.Name == "first-impression") && !ma.userSlot.firstTurn {
+		log.Printf("%s used %s", ma.userSlot.mon.Base.Name, ma.move.Name)
+		log.Printf("but it failed")
+		return
+	}
+
 	ma.userSlot.firstTurn = false
 
 	ma.userSlot.suckerPunch = ma.move.Name == "sucker-punch"
@@ -171,6 +177,10 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive
 		target.changeStatStageBy("attack", 2, false)
 		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
+	} else if ma.move.Name == "focus-energy" {
+		ma.userSlot.mon.FocusEnergy = true
+	} else if ma.move.Name == "laser-focus" {
+		ma.userSlot.mon.LaserFocus = true
 	}
 
 	if ma.move.Heal > 0 {
@@ -214,14 +224,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	user := ma.userSlot.mon
 	target := ma.targetSlot.mon
 
-	var crit bool
-	if _, ok := critBlockingAbilities[target.Ability]; ok {
-		crit = false
-	} else {
-		crit = roll(1, critRateMap[ma.move.CritRate])
-	}
+	crit := determineCrit(user, target, ma.move)
 
-	damage := calculateDamage(user, target, ma.move, &crit, false, false)
+	damage := calculateDamage(user, target, ma.move, crit, false, false)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
 		return false
@@ -242,7 +247,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	damage = min(damage, target.Hp)
 	log.Printf("%s took %d damage", target.Base.Name, int(damage))
-	if crit {
+	if *crit {
 		log.Printf("it was a critical hit!")
 	}
 	if ma.move.Name == "bug-bite" && strings.HasSuffix(target.Item.name, "berry") && !target.Item.consumed {

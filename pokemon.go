@@ -10,24 +10,25 @@ import (
 )
 
 type Pokemon struct {
-	Base       pokeapi.BasePokemon
-	Level      int
-	IVs        map[string]int
-	Nature     []string
-	Moves      []*pokeapi.BaseMove
-	LockedMove *pokeapi.BaseMove
-	Stats      map[string]int
-	Stages     map[string]int
-	Hp         int
-	Fainted    bool
-	Ailments   map[string]*Ailment
-	Item       *item
-	Ability    string
-	Unnerved   bool
-	FlashFire  bool
-	Unburden   bool
-	Trace      bool
-	Yawned     bool
+	Base        pokeapi.BasePokemon
+	Level       int
+	IVs         map[string]int
+	Nature      []string
+	Moves       []*pokeapi.BaseMove
+	LockedMove  *pokeapi.BaseMove
+	Stats       map[string]int
+	Stages      map[string]int
+	Hp          int
+	Fainted     bool
+	Ailments    map[string]*Ailment
+	Item        *item
+	Ability     string
+	Unnerved    bool
+	FlashFire   bool
+	Unburden    bool
+	Trace       bool
+	FocusEnergy bool
+	LaserFocus  bool
 }
 
 var ivMap = map[string]string{
@@ -143,6 +144,8 @@ func (p *Pokemon) switchReset() {
 	p.LockedMove = nil
 	p.FlashFire = false
 	p.Unburden = false
+	p.FocusEnergy = false
+	p.LaserFocus = false
 }
 
 func (p *Pokemon) effectiveStat(stat string, crit bool) int {
@@ -238,39 +241,48 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 	if _, ok := p.Ailments[ailment]; ok {
 		return
 	}
-	if _, ok := nonVolatileStatuses[ailment]; ok {
-		if p.hasNonVolatileAilment() {
+	if _, ok := nonVolatileStatuses[ailment]; ok && p.hasNonVolatileAilment() {
+		return
+	}
+	if ailment == "burn" && (p.hasType("fire") || p.Ability == "water-veil") {
+		return
+	}
+	if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
+		return
+	}
+	if ailment == "poison" || ailment == "toxic" {
+		if p.Ability == "immunity" {
 			return
 		}
-		if ailment == "burn" && (p.hasType("fire") || p.Ability == "water-veil") {
+		if (p.hasType("poison") || p.hasType("steel")) && (afflictedBy == nil || afflictedBy.mon.Ability != "corrosion") {
 			return
 		}
-		if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
+	}
+	if ailment == "freeze" && p.hasType("ice") {
+		return
+	}
+	if ailment == "sleep" {
+		if _, ok := sleepBlockingAbilities[p.Ability]; ok {
 			return
 		}
-		if ailment == "poison" || ailment == "toxic" {
-			if p.Ability == "immunity" {
-				return
-			}
-			if (p.hasType("poison") || p.hasType("steel")) && (afflictedBy == nil || afflictedBy.mon.Ability != "corrosion") {
-				return
-			}
-		}
-		if ailment == "freeze" && p.hasType("ice") {
-			return
-		}
-		if ailment == "sleep" && (p.Ability == "vital-spirit" || p.Ability == "sweet-veil") {
+	}
+	if ailment == "yawn" {
+		if _, ok := sleepBlockingAbilities[p.Ability]; ok || p.hasNonVolatileAilment() {
 			return
 		}
 	}
 
-	if ailment == "trap" {
+	switch ailment {
+	case "trap":
 		p.Ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
-	}
-	if ailment == "poison" {
+	case "poison":
 		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
 			ailment = "toxic"
+		}
+	case "infatuation":
+		if afflictedBy.mon.Ability == "oblivious" {
+			return
 		}
 	}
 
