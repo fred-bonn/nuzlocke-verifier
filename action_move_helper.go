@@ -32,7 +32,7 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring bool) int {
+func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring, pursuit bool) int {
 	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) && user.Ability != "mold-breaker" {
 		return 0
 	}
@@ -91,9 +91,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 	}
 	if move.Name == "dragon-rage" {
 		return 40
-	}
-
-	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
+	} else if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
 		power *= 2
 	} else if move.Name == "wake-up-slap" && target.hasAilment("sleep") != nil {
 		power *= 2
@@ -116,6 +114,8 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		} else {
 			power = 20
 		}
+	} else if move.Name == "pursuit" && pursuit {
+		power *= 2
 	}
 
 	if user.Ability == "technician" && move.Power <= 60 {
@@ -132,6 +132,10 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		} else if a := target.hasAilment("toxic"); a != nil {
 			*crit = true
 		}
+	}
+
+	if _, ok := critBlockingAbilities[target.Ability]; ok && (forScoring || user.Ability != "mold-breaker") {
+		*crit = false
 	}
 
 	if user.hasType(moveType) {
@@ -236,10 +240,14 @@ func determineHits(move *pokeapi.BaseMove) int {
 }
 
 func determineCrit(user, target *Pokemon, move *pokeapi.BaseMove) *bool {
-	if _, ok := critBlockingAbilities[target.Ability]; ok && user.Ability != "mold-breaker" {
-		return new(false)
-	} else if user.LaserFocus {
-		return new(true)
+	rate := determineCritRate(user, move)
+
+	return new(roll(1, critRateMap[rate]))
+}
+
+func determineCritRate(user *Pokemon, move *pokeapi.BaseMove) int {
+	if user.LaserFocus {
+		return 3
 	}
 
 	rate := move.CritRate
@@ -253,15 +261,17 @@ func determineCrit(user, target *Pokemon, move *pokeapi.BaseMove) *bool {
 		rate += 2
 	}
 
-	return new(roll(1, critRateMap[rate]))
+	return rate
 }
 
-func monFainted(bs battleState, slot *slot) {
+func monFainted(bs battleState, slot *slot, pursuit bool) {
 	if slot.mon.Fainted {
 		return
 	}
 
 	slot.mon.Fainted = true
-	bs.injectReplaceAction(slot, false)
+	if !pursuit {
+		bs.injectReplaceAction(slot, false)
+	}
 	log.Printf("%s fainted!", slot.mon.Base.Name)
 }

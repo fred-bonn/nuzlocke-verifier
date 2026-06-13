@@ -24,6 +24,15 @@ func (aq ActionQueue) Len() int {
 }
 
 func (aq ActionQueue) Less(i, j int) bool {
+	if am, ok := aq[i].(*moveAction); ok {
+		if am.move.Name == "pursuit" {
+			if _, ok := aq[j].(*switchAction); ok {
+				am.pursuit = true
+				return false
+			}
+		}
+	}
+
 	if aq[i].prio() < aq[j].prio() {
 		return true
 	} else if aq[i].prio() > aq[j].prio() {
@@ -33,6 +42,7 @@ func (aq ActionQueue) Less(i, j int) bool {
 	} else if aq[i].speed() > aq[j].speed() {
 		return false
 	}
+
 	return (rand.Int() % 2) == 0
 }
 
@@ -66,6 +76,15 @@ func (aq *ActionQueue) getMoveActionBy(mon *Pokemon) *moveAction {
 	for _, a := range *aq {
 		if ma, ok := a.(*moveAction); ok && mon == ma.userSlot.mon {
 			return ma
+		}
+	}
+	return nil
+}
+
+func (aq *ActionQueue) getSwitchActionBy(mon *Pokemon) *switchAction {
+	for _, a := range *aq {
+		if sa, ok := a.(*switchAction); ok && mon == sa.oldSlot.mon {
+			return sa
 		}
 	}
 	return nil

@@ -105,6 +105,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				}
 			}
 			if a.userSlot.mon.isFasterThan(a.targetSlot.mon) {
+				log.Println(3)
 				scores[i] += 3
 			}
 		}
@@ -118,7 +119,19 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				if a.targetSlot.mon.LockedMove != nil && a.targetSlot.mon.LockedMove != move {
 					continue
 				}
-				dmg := calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, determineCrit(a.userSlot.mon, a.targetSlot.mon, a.move), true, true)
+
+				dmg := 0
+				critRate := determineCritRate(a.userSlot.mon, move)
+				rolls := 1
+				if move.MaxHits == 5 {
+					rolls = 3
+				} else if move.MaxHits > 0 {
+					rolls = move.MaxHits
+				}
+				for i := 0; i < rolls; i++ {
+					dmg += calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, new(critRate >= 3), false, true, false)
+				}
+				log.Println(a.move.Name, dmg)
 				if a.userSlot.mon.Hp <= dmg {
 					scores[i] += 11
 					break
@@ -251,13 +264,14 @@ func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
 		}
 
 		rolls = 1
+		critRate := determineCritRate(user, move)
 		if move.MaxHits == 5 {
 			rolls = 3
 		} else if move.MaxHits > 0 {
 			rolls = move.MaxHits
 		}
 		for i := 0; i < rolls; i++ {
-			dmg += calculateDamage(user, target, move, determineCrit(user, target, move), true, true)
+			dmg += calculateDamage(user, target, move, new(critRate >= 3), true, true, false)
 		}
 
 		target.checkItemTrigger(false, focusSashEvent{

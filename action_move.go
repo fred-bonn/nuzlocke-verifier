@@ -11,7 +11,8 @@ type moveAction struct {
 	userSlot   *slot
 	targetSlot *slot
 	move       *pokeapi.BaseMove
-	Flinch     bool
+	flinch     bool
+	pursuit    bool
 }
 
 func (ma *moveAction) prio() int {
@@ -69,12 +70,12 @@ func (ma *moveAction) invoke(bs battleState) {
 			confusion.Turns -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.Base.Name)
 			if roll(1, 3) {
-				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), false, false)
+				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), false, false, false)
 				ma.userSlot.invulnerableAction = nil
 				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.Base.Name, damage)
 				ma.userSlot.mon.Hp -= int(damage)
 				if ma.userSlot.mon.Hp <= 0 {
-					monFainted(bs, ma.userSlot)
+					monFainted(bs, ma.userSlot, false)
 				}
 				return
 			}
@@ -100,7 +101,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if ma.Flinch {
+	if ma.flinch {
 		log.Printf("%s flinched", ma.userSlot.mon.Base.Name)
 		return
 	}
@@ -126,7 +127,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	target := ma.targetSlot.mon
-	if ma.move.Accuracy > 0 && !accuracyRoll(ma.userSlot.mon, target, ma.move) {
+	if ma.move.Accuracy > 0 && !ma.pursuit && !accuracyRoll(ma.userSlot.mon, target, ma.move) {
 		log.Printf("%s's move %s missed", ma.userSlot.mon.Base.Name, ma.move.Name)
 		return
 	}
@@ -153,7 +154,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	if ma.userSlot.mon.Hp <= 0 {
-		monFainted(bs, ma.userSlot)
+		monFainted(bs, ma.userSlot, false)
 		return
 	}
 
@@ -226,7 +227,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	crit := determineCrit(user, target, ma.move)
 
-	damage := calculateDamage(user, target, ma.move, crit, false, false)
+	damage := calculateDamage(user, target, ma.move, crit, false, false, ma.pursuit)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.Base.Name)
 		return false
@@ -259,7 +260,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 	target.changeHpBy(-damage)
 	if target.Hp <= 0 {
-		monFainted(bs, ma.targetSlot)
+		monFainted(bs, ma.targetSlot, ma.pursuit)
 	}
 
 	if ma.move.Name == "wake-up-slap" {
@@ -290,7 +291,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		} else {
 			log.Printf("%s took recoil for %d", user.Base.Name, -change)
 			if user.Hp <= 0 {
-				monFainted(bs, ma.userSlot)
+				monFainted(bs, ma.userSlot, false)
 			}
 		}
 	}
@@ -298,7 +299,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if f, ok := contactDefensiveAbilities[target.Ability]; ok && ma.move.Contact {
 		f(ma.userSlot, ma.targetSlot)
 		if user.Hp <= 0 {
-			monFainted(bs, ma.userSlot)
+			monFainted(bs, ma.userSlot, false)
 		}
 	} else if target.Ability == "cotten-down" {
 		for _, slot := range bs.getOtherSlots(ma.targetSlot) {
@@ -336,7 +337,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {
 		targetMove := bs.getActions().getMoveActionBy(target)
 		if targetMove != nil {
-			targetMove.Flinch = true
+			targetMove.flinch = true
 		}
 	}
 
