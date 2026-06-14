@@ -17,6 +17,28 @@ func rollInt(numerator int, denominator int) int {
 	return 0
 }
 
+type ActionQueue2 []action
+
+func (q ActionQueue2) len() int {
+	return len(q)
+}
+
+func (q *ActionQueue2) push(a action) {
+	*q = append(*q, a)
+}
+
+func (q *ActionQueue2) pop() action {
+	l := q.len()
+	if l == 0 {
+		return nil
+	}
+
+	a := (*q)[l-1]
+	*q = (*q)[:l-1]
+
+	return a
+}
+
 type ActionQueue []action
 
 func (aq ActionQueue) Len() int {
