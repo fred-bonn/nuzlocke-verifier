@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"slices"
 )
 
 type action interface {
@@ -17,26 +18,60 @@ func rollInt(numerator int, denominator int) int {
 	return 0
 }
 
-type ActionQueue2 []action
+type PriorityQueue[T any] []T
 
-func (q ActionQueue2) len() int {
+func (q PriorityQueue[T]) len() int {
 	return len(q)
 }
 
-func (q *ActionQueue2) push(a action) {
+func (q *PriorityQueue[T]) push(a T) {
 	*q = append(*q, a)
 }
 
-func (q *ActionQueue2) pop() action {
+func (q *PriorityQueue[T]) pop() (T, bool) {
 	l := q.len()
 	if l == 0 {
-		return nil
+		var zero T
+		return zero, false
 	}
 
 	a := (*q)[l-1]
 	*q = (*q)[:l-1]
 
-	return a
+	return a, true
+}
+
+func (q *PriorityQueue[T]) insertAt(a T, cmp func(T, T) bool) {
+	for i := 0; i < q.len(); i++ {
+		if cmp(a, (*q)[i]) {
+			*q = slices.Insert(*q, i, a)
+			return
+		}
+	}
+
+	q.push(a)
+}
+
+func (q *PriorityQueue[T]) sortBy(f func(a, b T) int) bool {
+	if f == nil {
+		return false
+	}
+
+	slices.SortFunc(*q, f)
+
+	return true
+}
+
+func (q *PriorityQueue[T]) fetchBy(f func(T) bool) (T, bool) {
+	for i, e := range *q {
+		if f(e) {
+			*q = append((*q)[:i], (*q)[i+1:]...)
+			return e, true
+		}
+	}
+
+	var zero T
+	return zero, false
 }
 
 type ActionQueue []action
