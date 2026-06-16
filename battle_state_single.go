@@ -9,7 +9,7 @@ type singleBattleState struct {
 	activeOpponentSlot *slot
 	player             *trainer
 	opponent           *trainer
-	actions            ActionQueue
+	actions            actionQueue
 }
 
 func (sbs *singleBattleState) execute() {
@@ -63,7 +63,7 @@ func (sbs *singleBattleState) getOpponentSlot(s *slot) *slot {
 	return sbs.activePlayerSlot
 }
 
-func (sbs *singleBattleState) getActions() *ActionQueue {
+func (sbs *singleBattleState) getActions() *actionQueue {
 	return &sbs.actions
 }
 
@@ -84,7 +84,7 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		},
 		player:   &player,
 		opponent: &opponent,
-		actions:  ActionQueue{},
+		actions:  actionQueue{},
 	}
 
 	resolveOnEntry(&res)

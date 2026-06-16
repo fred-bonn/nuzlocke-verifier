@@ -26,8 +26,7 @@ func (q *PriorityQueue[T]) push(a T) {
 func (q *PriorityQueue[T]) pop() (T, bool) {
 	l := len(*q)
 	if l == 0 {
-		var zero T
-		return zero, false
+		return *new(T), false
 	}
 
 	a := (*q)[l-1]
@@ -65,15 +64,14 @@ func (q *PriorityQueue[T]) fetchBy(f func(T) bool) (T, bool) {
 		}
 	}
 
-	var zero T
-	return zero, false
+	return *new(T), false
 }
 
-type ActionQueue struct {
+type actionQueue struct {
 	queue PriorityQueue[action]
 }
 
-func (a *ActionQueue) sort(bs battleState) {
+func (a *actionQueue) sort(bs battleState) {
 	cmp := func(b, c action) int {
 		if b.prio() > c.prio() {
 			return 1
@@ -93,7 +91,7 @@ func (a *ActionQueue) sort(bs battleState) {
 	a.queue.sortBy(cmp)
 }
 
-func (a *ActionQueue) containstSwitchTo(mon *Pokemon) bool {
+func (a *actionQueue) containstSwitchTo(mon *Pokemon) bool {
 	for _, action := range a.queue {
 		if sa, ok := action.(*switchAction); ok && sa.new == mon {
 			return true
@@ -102,7 +100,7 @@ func (a *ActionQueue) containstSwitchTo(mon *Pokemon) bool {
 	return false
 }
 
-func (a *ActionQueue) getMoveActionBy(mon *Pokemon) *moveAction {
+func (a *actionQueue) getMoveActionBy(mon *Pokemon) *moveAction {
 	for _, action := range a.queue {
 		if ma, ok := action.(*moveAction); ok && mon == ma.userSlot.mon {
 			return ma

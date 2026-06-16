@@ -11,7 +11,7 @@ type battleState interface {
 	getAllSlots() []*slot
 	getOtherSlots(slot *slot) []*slot
 	getOpponentSlot(slot *slot) *slot
-	getActions() *ActionQueue
+	getActions() *actionQueue
 }
 
 type slot struct {

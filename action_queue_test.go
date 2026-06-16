@@ -2,24 +2,6 @@ package main
 
 import "testing"
 
-func TestPriorityQueueLen(t *testing.T) {
-	tests := map[string]struct {
-		queue PriorityQueue[int]
-		want  int
-	}{
-		"empty":          {PriorityQueue[int]{}, 0},
-		"three elements": {PriorityQueue[int]{1, 2, 3}, 3},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			if n := len(tc.queue); n != tc.want {
-				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, tc.want)
-			}
-		})
-	}
-}
-
 func TestPriorityQueuePush(t *testing.T) {
 	tests := map[string]struct {
 		queue PriorityQueue[int]

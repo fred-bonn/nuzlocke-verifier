@@ -275,3 +275,19 @@ func monFainted(bs battleState, slot *slot, pursuit bool) {
 	}
 	log.Printf("%s fainted!", slot.mon.Base.Name)
 }
+
+func fetchPursuitMiddleware(name string) func(a action) bool {
+	return func(a action) bool {
+		ma, ok := a.(*moveAction)
+		if !ok {
+			return false
+		}
+		if ma.move.Name != "pursuit" {
+			return false
+		}
+		if ma.targetSlot.mon.Base.Name != name {
+			return false
+		}
+		return true
+	}
+}
