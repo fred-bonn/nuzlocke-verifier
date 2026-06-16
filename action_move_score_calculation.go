@@ -44,7 +44,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return -64
 	}
 	if _, ok := paralysisMoves[ma.move.Name]; ok {
-		return ma.scoreParalysisMove()
+		return ma.scoreParalysisMove(bs)
 	}
 	if _, ok := sleepMoves[ma.move.Name]; ok {
 		return ma.scoreSleepMove(bs)
@@ -86,7 +86,7 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 		return false
 	}
 
-	if ma.userSlot.mon.isFasterThan(ma.targetSlot.mon) {
+	if ma.userSlot.mon.isFasterThan(bs, ma.targetSlot.mon) {
 		if maxDmg < min(ma.userSlot.mon.maxHP(), ma.userSlot.mon.Hp+ma.userSlot.mon.maxHP()*ma.move.Heal/100) {
 			return true
 		} else {
@@ -107,7 +107,7 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 	return false
 }
 
-func (ma *moveAction) scoreParalysisMove() int {
+func (ma *moveAction) scoreParalysisMove(bs battleState) int {
 	target := ma.targetSlot.mon
 	user := ma.userSlot.mon
 
@@ -116,7 +116,7 @@ func (ma *moveAction) scoreParalysisMove() int {
 	}
 
 	score := 6
-	if target.isFasterThan(user) && user.effectiveSpeed() > target.effectiveSpeed()/4 {
+	if target.isFasterThan(bs, user) && user.effectiveSpeed(bs) > target.effectiveSpeed(bs)/4 {
 		score++
 	} else if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
 		return m.Name == "hex" || m.FlinchChance > 0

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/heap"
 	"log"
 )
 
@@ -10,26 +9,27 @@ type singleBattleState struct {
 	activeOpponentSlot *slot
 	player             *trainer
 	opponent           *trainer
-	actions            *ActionQueue
+	actions            ActionQueue
 }
 
 func (sbs *singleBattleState) execute() {
 	log.Println("Starting battle...")
-	heap.Init(sbs.actions)
+
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
 		log.Println("=====")
 		log.Printf("Turn %d:\n", k+1)
 		log.Printf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.Base.Name, sbs.activePlayerSlot.mon.Hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.Base.Name, sbs.activeOpponentSlot.mon.Hp, sbs.activeOpponentSlot.mon.maxHP())
 
 		sbs.gatherActions()
-		for sbs.actions.Len() > 0 {
-			action := heap.Pop(sbs.actions).(action)
+		sbs.actions.sort(sbs)
+		for len(sbs.actions.queue) > 0 {
+			action, _ := sbs.actions.queue.pop()
 			action.invoke(sbs)
 		}
 		resolveEndOfTurn(sbs)
 		// if the end of turn causes mons to faint, empty the queue for replace actions
-		for sbs.actions.Len() > 0 {
-			action := heap.Pop(sbs.actions).(action)
+		for len(sbs.actions.queue) > 0 {
+			action, _ := sbs.actions.queue.pop()
 			action.invoke(sbs)
 		}
 	}
@@ -38,8 +38,8 @@ func (sbs *singleBattleState) execute() {
 }
 
 func (sbs *singleBattleState) gatherActions() {
-	heap.Push(sbs.actions, sbs.player.nextAction(sbs, sbs.activePlayerSlot))
-	heap.Push(sbs.actions, sbs.opponent.nextAction(sbs, sbs.activeOpponentSlot))
+	sbs.actions.queue.push(sbs.player.nextAction(sbs, sbs.activePlayerSlot))
+	sbs.actions.queue.push(sbs.opponent.nextAction(sbs, sbs.activeOpponentSlot))
 }
 
 func (sbs *singleBattleState) getAllSlots() []*slot {
@@ -63,16 +63,8 @@ func (sbs *singleBattleState) getOpponentSlot(s *slot) *slot {
 	return sbs.activePlayerSlot
 }
 
-func (sbs *singleBattleState) injectReplaceAction(slot *slot, midTurn bool) {
-	heap.Push(sbs.actions, &replaceAction{
-		oldSlot: slot,
-		trainer: slot.trainer,
-		midTurn: midTurn,
-	})
-}
-
 func (sbs *singleBattleState) getActions() *ActionQueue {
-	return sbs.actions
+	return &sbs.actions
 }
 
 func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*Pokemon) *singleBattleState {
@@ -92,7 +84,7 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		},
 		player:   &player,
 		opponent: &opponent,
-		actions:  &ActionQueue{},
+		actions:  ActionQueue{},
 	}
 
 	resolveOnEntry(&res)

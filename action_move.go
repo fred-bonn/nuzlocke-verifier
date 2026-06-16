@@ -16,11 +16,16 @@ type moveAction struct {
 }
 
 func (ma *moveAction) prio() int {
-	return ma.move.Priority
+	bonus := 0
+	if ma.userSlot.mon.Ability == "prankster" && ma.move.Class == "status" {
+		bonus++
+	}
+
+	return ma.move.Priority + bonus
 }
 
-func (ma *moveAction) speed() int {
-	return ma.userSlot.mon.effectiveSpeed()
+func (ma *moveAction) speed(bs battleState) int {
+	return ma.userSlot.mon.effectiveSpeed(bs)
 }
 
 func (ma *moveAction) invoke(bs battleState) {
@@ -318,7 +323,14 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if _, ok := pivotMoves[ma.move.Name]; ok {
 		if ma.userSlot.trainer.canReplace(bs) {
-			bs.injectReplaceAction(ma.userSlot, true)
+			injectReplaceAction(bs, ma.userSlot, true)
+			if a, ok := bs.getActions().queue.fetchBy(fetchPursuit); ok {
+				pursuit, _ := a.(*moveAction)
+				if pursuit.targetSlot.mon.Base.Name == ma.userSlot.mon.Base.Name {
+					pursuit.pursuit = true
+					pursuit.invoke(bs)
+				}
+			}
 		}
 	}
 
@@ -345,6 +357,18 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		for stat, change := range ma.move.StatChanges {
 			target.changeStatStageBy(stat, change, true)
 		}
+	}
+
+	return true
+}
+
+func fetchPursuit(a action) bool {
+	ma, ok := a.(*moveAction)
+	if !ok {
+		return false
+	}
+	if ma.move.Name != "pursuit" {
+		return false
 	}
 
 	return true

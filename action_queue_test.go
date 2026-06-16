@@ -13,7 +13,7 @@ func TestPriorityQueueLen(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			if n := tc.queue.len(); n != tc.want {
+			if n := len(tc.queue); n != tc.want {
 				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, tc.want)
 			}
 		})
@@ -35,7 +35,7 @@ func TestPriorityQueuePush(t *testing.T) {
 			for _, element := range tc.push {
 				tc.queue.push(element)
 			}
-			if n := tc.queue.len(); n != tc.want {
+			if n := len(tc.queue); n != tc.want {
 				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, tc.want)
 			}
 		})
@@ -117,8 +117,8 @@ func TestPriorityQueueInsert(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.queue.insertAt(tc.input, f)
-			if tc.queue.len() != tc.want.len() {
-				t.Fatalf("%s: mismatching array lengths,  %d != %d", name, tc.queue.len(), tc.want.len())
+			if len(tc.queue) != len(tc.want) {
+				t.Fatalf("%s: mismatching array lengths,  %d != %d", name, len(tc.queue), len(tc.want))
 			}
 
 			for i, r := range tc.want {
@@ -170,8 +170,8 @@ func TestPriorityQueueFetchBy(t *testing.T) {
 			if res != tc.want {
 				t.Fatalf("%s: got %d, want %d", name, res, tc.want)
 			}
-			if tc.queue.len() != tc.wantLeft.len() {
-				t.Fatalf("%s: mismatching array lengths, %d != %d", name, tc.queue.len(), tc.wantLeft.len())
+			if len(tc.queue) != len(tc.wantLeft) {
+				t.Fatalf("%s: mismatching array lengths, %d != %d", name, len(tc.queue), len(tc.wantLeft))
 			}
 			for i, r := range tc.wantLeft {
 				if r != tc.queue[i] {

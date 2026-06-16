@@ -33,6 +33,6 @@ func (sa *switchAction) prio() int {
 	return 10
 }
 
-func (sa *switchAction) speed() int {
-	return sa.oldSlot.mon.effectiveSpeed()
+func (sa *switchAction) speed(bs battleState) int {
+	return sa.oldSlot.mon.effectiveSpeed(bs)
 }

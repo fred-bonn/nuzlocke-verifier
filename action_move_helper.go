@@ -271,7 +271,7 @@ func monFainted(bs battleState, slot *slot, pursuit bool) {
 
 	slot.mon.Fainted = true
 	if !pursuit {
-		bs.injectReplaceAction(slot, false)
+		injectReplaceAction(bs, slot, false)
 	}
 	log.Printf("%s fainted!", slot.mon.Base.Name)
 }
