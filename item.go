@@ -40,6 +40,7 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"pecha-berry":    makePechaBerry,
 	"rawst-berry":    makeRawstBerry,
 	"aspear-berry":   makeAspearBerry,
+	"persim-berry":   makePersimBerry,
 	"liechi-berry":   makeStatBoostBerryMiddleware("liechi-berry", "attack"),
 	"ganlon-berry":   makeStatBoostBerryMiddleware("ganlon-berry", "defense"),
 	"salac-berry":    makeStatBoostBerryMiddleware("salac-berry", "speed"),
@@ -260,11 +261,25 @@ func makeAspearBerry(mon *Pokemon) *item {
 	return &item{
 		name: "aspear-berry",
 		trigger: func(any) bool {
-			return !mon.Unnerved && mon.hasAilment("bufreezern") != nil
+			return !mon.Unnerved && mon.hasAilment("freeze") != nil
 		},
 		activate: func() {
 			log.Printf("%s ate its aspear berry", mon.Base.Name)
 			delete(mon.Ailments, "freeze")
+			cheekPouch(mon)
+		},
+	}
+}
+
+func makePersimBerry(mon *Pokemon) *item {
+	return &item{
+		name: "persim-berry",
+		trigger: func(any) bool {
+			return !mon.Unnerved && mon.hasAilment("confusion") != nil
+		},
+		activate: func() {
+			log.Printf("%s ate its persim berry", mon.Base.Name)
+			delete(mon.Ailments, "confusion")
 			cheekPouch(mon)
 		},
 	}

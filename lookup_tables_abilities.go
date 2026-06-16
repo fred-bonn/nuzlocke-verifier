@@ -63,7 +63,7 @@ func intimidate(s *slot, bs battleState, switchIn bool) {
 }
 
 func regenerator(s *slot, bs battleState, switchIn bool) {
-	if switchIn {
+	if switchIn || s.mon.Fainted {
 		return
 	}
 

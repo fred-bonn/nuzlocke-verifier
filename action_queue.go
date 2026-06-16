@@ -75,15 +75,6 @@ type ActionQueue struct {
 
 func (a *ActionQueue) sort(bs battleState) {
 	cmp := func(b, c action) int {
-		if am, ok := b.(*moveAction); ok {
-			if am.move.Name == "pursuit" {
-				if _, ok := c.(*switchAction); ok {
-					am.pursuit = true
-					return 1
-				}
-			}
-		}
-
 		if b.prio() > c.prio() {
 			return 1
 		}

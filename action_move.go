@@ -179,14 +179,17 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive
 		return
 	}
 
-	if ma.move.Name == "swagger" {
+	switch ma.move.Name {
+	case "swagger":
 		target.changeStatStageBy("attack", 2, false)
 		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
-	} else if ma.move.Name == "focus-energy" {
+	case "focus-energy":
 		ma.userSlot.mon.FocusEnergy = true
-	} else if ma.move.Name == "laser-focus" {
+		return
+	case "laser-focus":
 		ma.userSlot.mon.LaserFocus = true
+		return
 	}
 
 	if ma.move.Heal > 0 {
@@ -324,13 +327,6 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if _, ok := pivotMoves[ma.move.Name]; ok {
 		if ma.userSlot.trainer.canReplace(bs) {
 			injectReplaceAction(bs, ma.userSlot, true)
-			if a, ok := bs.getActions().queue.fetchBy(fetchPursuit); ok {
-				pursuit, _ := a.(*moveAction)
-				if pursuit.targetSlot.mon.Base.Name == ma.userSlot.mon.Base.Name {
-					pursuit.pursuit = true
-					pursuit.invoke(bs)
-				}
-			}
 		}
 	}
 
@@ -357,18 +353,6 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		for stat, change := range ma.move.StatChanges {
 			target.changeStatStageBy(stat, change, true)
 		}
-	}
-
-	return true
-}
-
-func fetchPursuit(a action) bool {
-	ma, ok := a.(*moveAction)
-	if !ok {
-		return false
-	}
-	if ma.move.Name != "pursuit" {
-		return false
 	}
 
 	return true

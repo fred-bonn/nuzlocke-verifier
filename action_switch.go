@@ -22,6 +22,28 @@ func (sa *switchAction) invoke(bs battleState) {
 		f(sa.oldSlot, bs, false)
 	}
 
+	f := func(a action) bool {
+		ma, ok := a.(*moveAction)
+		if !ok {
+			return false
+		}
+		if ma.move.Name != "pursuit" {
+			return false
+		}
+		if ma.targetSlot.mon.Base.Name != sa.oldSlot.mon.Base.Name {
+			return false
+		}
+		return true
+	}
+
+	if a, ok := bs.getActions().queue.fetchBy(f); ok {
+		p, _ := a.(*moveAction)
+		if p.targetSlot.mon.Base.Name == sa.oldSlot.mon.Base.Name {
+			p.pursuit = true
+			p.invoke(bs)
+		}
+	}
+
 	log.Printf("switched %s for %s", sa.oldSlot.mon.Base.Name, sa.new.Base.Name)
 	sa.oldSlot.setMon(sa.new)
 	if f, ok := onSwitchAbilities[sa.oldSlot.mon.Ability]; ok {
