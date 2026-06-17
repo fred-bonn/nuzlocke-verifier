@@ -219,8 +219,8 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 		killsOpponent := monDamage >= opponent.Hp
 		monKilled := opponentDamage >= mon.Hp
 
-		monDamagePercent := monDamage * 100 / opponent.Hp
-		opponentDamagePercent := opponentDamage * 100 / mon.Hp
+		monDamagePercent := monDamage * 100 / max(1, opponent.Hp)
+		opponentDamagePercent := opponentDamage * 100 / max(1, mon.Hp)
 
 		if outspeeds && killsOpponent {
 			scores[i] = 5

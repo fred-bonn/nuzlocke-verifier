@@ -24,7 +24,7 @@ func (bs *benchBattleState) getActions() *actionQueue      { return bs.actions }
 
 func newEmptyActionQueue() *actionQueue {
 	return &actionQueue{
-		queue: make(PriorityQueue[action], 0, 5),
+		queue: make(priorityQueue[action], 0, 5),
 	}
 }
 

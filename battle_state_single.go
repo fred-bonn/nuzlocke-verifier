@@ -85,7 +85,7 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		player:   &player,
 		opponent: &opponent,
 		actions: actionQueue{
-			queue: make(PriorityQueue[action], 0, 2),
+			queue: make(priorityQueue[action], 0, 3),
 		},
 	}
 

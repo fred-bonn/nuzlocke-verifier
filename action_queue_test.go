@@ -4,12 +4,12 @@ import "testing"
 
 func TestPriorityQueuePush(t *testing.T) {
 	tests := map[string]struct {
-		queue    PriorityQueue[int]
+		queue    priorityQueue[int]
 		push     []int
-		wantLeft PriorityQueue[int]
+		wantLeft priorityQueue[int]
 	}{
-		"empty":          {PriorityQueue[int]{}, []int{1, 2, 3}, PriorityQueue[int]{1, 2, 3}},
-		"three elements": {PriorityQueue[int]{1, 2, 3}, []int{1, 2, 3}, PriorityQueue[int]{1, 2, 3, 1, 2, 3}},
+		"empty":          {priorityQueue[int]{}, []int{1, 2, 3}, priorityQueue[int]{1, 2, 3}},
+		"three elements": {priorityQueue[int]{1, 2, 3}, []int{1, 2, 3}, priorityQueue[int]{1, 2, 3, 1, 2, 3}},
 	}
 
 	for name, tc := range tests {
@@ -31,14 +31,14 @@ func TestPriorityQueuePush(t *testing.T) {
 
 func TestPriorityQueuePop(t *testing.T) {
 	tests := map[string]struct {
-		queue    PriorityQueue[int]
+		queue    priorityQueue[int]
 		want     int
 		wantOk   bool
-		wantLeft PriorityQueue[int]
+		wantLeft priorityQueue[int]
 	}{
-		"empty":          {PriorityQueue[int]{}, 0, false, PriorityQueue[int]{}},
-		"three elements": {PriorityQueue[int]{1, 2, 3}, 3, true, PriorityQueue[int]{1, 2}},
-		"one element":    {PriorityQueue[int]{1}, 1, true, PriorityQueue[int]{}},
+		"empty":          {priorityQueue[int]{}, 0, false, priorityQueue[int]{}},
+		"three elements": {priorityQueue[int]{1, 2, 3}, 3, true, priorityQueue[int]{1, 2}},
+		"one element":    {priorityQueue[int]{1}, 1, true, priorityQueue[int]{}},
 	}
 
 	for name, tc := range tests {
@@ -66,12 +66,12 @@ func TestPriorityQueuePop(t *testing.T) {
 
 func TestPriorityQueueSort(t *testing.T) {
 	tests := map[string]struct {
-		queue PriorityQueue[int]
-		want  PriorityQueue[int]
+		queue priorityQueue[int]
+		want  priorityQueue[int]
 	}{
-		"no change": {PriorityQueue[int]{1, 2, 3}, PriorityQueue[int]{1, 2, 3}},
-		"sort":      {PriorityQueue[int]{2, 3, 1}, PriorityQueue[int]{1, 2, 3}},
-		"reverse":   {PriorityQueue[int]{5, 4, 3, 2, 1}, PriorityQueue[int]{1, 2, 3, 4, 5}},
+		"no change": {priorityQueue[int]{1, 2, 3}, priorityQueue[int]{1, 2, 3}},
+		"sort":      {priorityQueue[int]{2, 3, 1}, priorityQueue[int]{1, 2, 3}},
+		"reverse":   {priorityQueue[int]{5, 4, 3, 2, 1}, priorityQueue[int]{1, 2, 3, 4, 5}},
 	}
 
 	f := func(a int, b int) int {
@@ -96,13 +96,13 @@ func TestPriorityQueueSort(t *testing.T) {
 
 func TestPriorityQueueInsert(t *testing.T) {
 	tests := map[string]struct {
-		queue PriorityQueue[int]
+		queue priorityQueue[int]
 		input int
-		want  PriorityQueue[int]
+		want  priorityQueue[int]
 	}{
-		"start":  {PriorityQueue[int]{1, 2, 3}, 1, PriorityQueue[int]{1, 1, 2, 3}},
-		"end":    {PriorityQueue[int]{1, 2, 3}, 5, PriorityQueue[int]{1, 2, 3, 5}},
-		"middle": {PriorityQueue[int]{1, 2, 3}, 2, PriorityQueue[int]{1, 2, 2, 3}},
+		"start":  {priorityQueue[int]{1, 2, 3}, 1, priorityQueue[int]{1, 1, 2, 3}},
+		"end":    {priorityQueue[int]{1, 2, 3}, 5, priorityQueue[int]{1, 2, 3, 5}},
+		"middle": {priorityQueue[int]{1, 2, 3}, 2, priorityQueue[int]{1, 2, 2, 3}},
 	}
 
 	f := func(a int, b int) bool {
@@ -127,32 +127,32 @@ func TestPriorityQueueInsert(t *testing.T) {
 
 func TestPriorityQueueFetchBy(t *testing.T) {
 	tests := map[string]struct {
-		queue    PriorityQueue[int]
+		queue    priorityQueue[int]
 		matcher  func(int) bool
 		want     int
 		wantOk   bool
-		wantLeft PriorityQueue[int]
+		wantLeft priorityQueue[int]
 	}{
 		"found first": {
-			queue:    PriorityQueue[int]{1, 2, 3},
+			queue:    priorityQueue[int]{1, 2, 3},
 			matcher:  func(v int) bool { return v == 1 },
 			want:     1,
 			wantOk:   true,
-			wantLeft: PriorityQueue[int]{2, 3},
+			wantLeft: priorityQueue[int]{2, 3},
 		},
 		"found middle": {
-			queue:    PriorityQueue[int]{1, 2, 3},
+			queue:    priorityQueue[int]{1, 2, 3},
 			matcher:  func(v int) bool { return v == 2 },
 			want:     2,
 			wantOk:   true,
-			wantLeft: PriorityQueue[int]{1, 3},
+			wantLeft: priorityQueue[int]{1, 3},
 		},
 		"not found": {
-			queue:    PriorityQueue[int]{1, 2, 3},
+			queue:    priorityQueue[int]{1, 2, 3},
 			matcher:  func(v int) bool { return v == 4 },
 			want:     0,
 			wantOk:   false,
-			wantLeft: PriorityQueue[int]{1, 2, 3},
+			wantLeft: priorityQueue[int]{1, 2, 3},
 		},
 	}
 

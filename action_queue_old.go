@@ -4,7 +4,7 @@ import (
 	"math/rand"
 )
 
-// deprecated
+// DEPRECATED
 
 type ActionQueueOld []action
 
@@ -13,15 +13,6 @@ func (aq ActionQueueOld) Len() int {
 }
 
 func (aq ActionQueueOld) Less(i, j int) bool {
-	if am, ok := aq[i].(*moveAction); ok {
-		if am.move.Name == "pursuit" {
-			if _, ok := aq[j].(*switchAction); ok {
-				am.pursuit = true
-				return false
-			}
-		}
-	}
-
 	if aq[i].prio() < aq[j].prio() {
 		return true
 	} else if aq[i].prio() > aq[j].prio() {
@@ -44,10 +35,12 @@ func (aq *ActionQueueOld) Push(a any) {
 }
 
 func (aq *ActionQueueOld) Pop() any {
-	if aq.Len() == 0 {
+	old := *aq
+	n := len(old)
+	if n == 0 {
 		return nil
 	}
-	action := (*aq)[0]
-	*aq = (*aq)[1:]
-	return action
+	x := old[n-1]
+	*aq = old[:n-1]
+	return x
 }
