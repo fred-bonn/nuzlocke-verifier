@@ -318,7 +318,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		f(ma.userSlot, ma.targetSlot)
 	}
 
-	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance, 100) {
+	sg := user.serenceGraceBonus()
+
+	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
 			user.changeStatStageBy(stat, change, false)
 		}
@@ -338,18 +340,17 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		return true
 	}
 
-	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
+	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance*sg, 100) {
 		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
-	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {
-		targetMove := bs.getActions().getMoveActionBy(target)
-		if targetMove != nil {
+	if ma.move.FlinchChance > 0 && !target.Fainted && target.Ability != "inner-focus" && roll(ma.move.FlinchChance*sg, 100) {
+		if targetMove := bs.getActions().getMoveActionBy(target); targetMove != nil {
 			targetMove.flinch = true
 		}
 	}
 
-	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance, 100) {
+	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
 			target.changeStatStageBy(stat, change, true)
 		}

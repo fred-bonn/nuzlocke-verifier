@@ -345,3 +345,10 @@ func (p *Pokemon) changeStatStageBy(stat string, change int, offensive bool) {
 func (p *Pokemon) maxHP() int {
 	return p.Stats["hp"]
 }
+
+func (p *Pokemon) serenceGraceBonus() int {
+	if p.Ability == "serence-grace" {
+		return 2
+	}
+	return 1
+}
