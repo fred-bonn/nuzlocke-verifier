@@ -51,7 +51,7 @@ func BenchmarkActionQueueHeapInit(b *testing.B) {
 // Reuses the same heap allocation across iterations to focus on the drain cost.
 func BenchmarkActionQueueHeapDrain(b *testing.B) {
 	actions := []action{
-		&benchAction{priority: 1, spd: 50},
+		&benchAction{priority: 2, spd: 50},
 		&benchAction{priority: 5, spd: 30},
 		&benchAction{priority: 3, spd: 70},
 		&benchAction{priority: 2, spd: 40},
