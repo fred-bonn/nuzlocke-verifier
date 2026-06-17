@@ -28,8 +28,63 @@ func newActionQueue(actions ...action) *actionQueue {
 	return q
 }
 
-// BenchmarkActionQueueSort measures the cost of sorting the array-backed queue.
-// This corresponds to heap.Init() on the heap-backed implementation.
+func newEmptyActionQueue() *actionQueue {
+	return &actionQueue{}
+}
+
+// BenchmarkActionQueueInit measures the cost of initializing the queue for a turn:
+// creating a new queue, pushing actions, and then sorting for execution.
+func BenchmarkActionQueueInit(b *testing.B) {
+	actions := []action{
+		&benchAction{priority: 1, spd: 50},
+		&benchAction{priority: 5, spd: 30},
+		&benchAction{priority: 3, spd: 70},
+		&benchAction{priority: 2, spd: 40},
+		&benchAction{priority: 4, spd: 60},
+	}
+	bs := &benchBattleState{}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		q := newEmptyActionQueue()
+		bs.actions = q
+		for _, a := range actions {
+			q.queue.push(a)
+		}
+		q.sort(bs)
+	}
+}
+
+// BenchmarkActionQueueDrain measures the cost of draining the queue after sorting.
+// Reuses the same queue allocation across iterations to focus on the drain cost.
+func BenchmarkActionQueueDrain(b *testing.B) {
+	actions := []action{
+		&benchAction{priority: 1, spd: 50},
+		&benchAction{priority: 5, spd: 30},
+		&benchAction{priority: 3, spd: 70},
+		&benchAction{priority: 2, spd: 40},
+		&benchAction{priority: 4, spd: 60},
+	}
+	bs := &benchBattleState{}
+	q := newEmptyActionQueue()
+	bs.actions = q
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Push actions to the queue
+		for _, a := range actions {
+			q.queue.push(a)
+		}
+		q.sort(bs)
+		// Drain the queue
+		for len(q.queue) > 0 {
+			q.queue.pop()
+		}
+	}
+}
+
 func BenchmarkActionQueueSort(b *testing.B) {
 	actions := []action{
 		&benchAction{priority: 1, spd: 50},
@@ -49,9 +104,7 @@ func BenchmarkActionQueueSort(b *testing.B) {
 	}
 }
 
-// BenchmarkActionQueueDrain measures the cost of draining the sorted array-backed queue.
-// This is the array-queue equivalent of repeatedly heap.Pop() on the heap-backed implementation.
-func BenchmarkActionQueueDrain(b *testing.B) {
+func BenchmarkActionQueueDrainOld(b *testing.B) {
 	actions := []action{
 		&benchAction{priority: 1, spd: 50},
 		&benchAction{priority: 5, spd: 30},
