@@ -22,12 +22,6 @@ func (bs *benchBattleState) getOtherSlots(s *slot) []*slot { return nil }
 func (bs *benchBattleState) getOpponentSlot(s *slot) *slot { return nil }
 func (bs *benchBattleState) getActions() *actionQueue      { return bs.actions }
 
-func newActionQueue(actions ...action) *actionQueue {
-	q := &actionQueue{}
-	q.queue = append(q.queue, actions...)
-	return q
-}
-
 func newEmptyActionQueue() *actionQueue {
 	return &actionQueue{
 		queue: make(PriorityQueue[action], 0, 5),

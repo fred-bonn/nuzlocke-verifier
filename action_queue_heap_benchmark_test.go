@@ -5,27 +5,12 @@ import (
 	"testing"
 )
 
-type benchAction struct {
-	priority int
-	spd      int
-}
-
-func (ba *benchAction) invoke(bs battleState) {}
-func (ba *benchAction) prio() int             { return ba.priority }
-func (ba *benchAction) speed() int            { return ba.spd }
-
-func newActionQueue(actions ...action) *ActionQueue {
-	q := &ActionQueue{}
-	*q = append(*q, actions...)
-	return q
-}
-
-func newEmptyActionQueue() *ActionQueue {
-	res := make(ActionQueue, 0, 5)
+func newEmptyActionQueueHeap() *ActionQueueOld {
+	res := make(ActionQueueOld, 0, 5)
 	return &res
 }
 
-// BenchmarkActionQueueHeapInit measures the cost of initializing the heap for a turn:
+// BenchmarkActionQueueHeapInit measures the cost of initializing the heap:
 // creating a new heap, initializing it, and pushing actions for execution.
 func BenchmarkActionQueueHeapInit(b *testing.B) {
 	actions := []action{
@@ -39,7 +24,7 @@ func BenchmarkActionQueueHeapInit(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q := newEmptyActionQueue()
+		q := newEmptyActionQueueHeap()
 		heap.Init(q)
 		for _, a := range actions {
 			heap.Push(q, a)
@@ -57,8 +42,9 @@ func BenchmarkActionQueueHeapDrain(b *testing.B) {
 		&benchAction{priority: 2, spd: 40},
 		&benchAction{priority: 4, spd: 60},
 	}
+	q := newEmptyActionQueueHeap()
+	heap.Init(q)
 
-	q := newEmptyActionQueue()
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
