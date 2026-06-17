@@ -171,7 +171,7 @@ func (p *Pokemon) effectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) effectiveSpeed() int {
+func (p *Pokemon) effectiveSpeed(bs battleState) int {
 	stage := p.Stages["speed"]
 	base := p.Stats["speed"]
 	numerator := 1
@@ -194,8 +194,8 @@ func (p *Pokemon) effectiveSpeed() int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) isFasterThan(mon *Pokemon) bool {
-	return p.effectiveSpeed() >= mon.effectiveSpeed()
+func (p *Pokemon) isFasterThan(bs battleState, mon *Pokemon) bool {
+	return p.effectiveSpeed(bs) >= mon.effectiveSpeed(bs)
 }
 
 func (p *Pokemon) evasionFraction(keenEye bool) (int, int) {
@@ -344,4 +344,11 @@ func (p *Pokemon) changeStatStageBy(stat string, change int, offensive bool) {
 
 func (p *Pokemon) maxHP() int {
 	return p.Stats["hp"]
+}
+
+func (p *Pokemon) serenceGraceBonus() int {
+	if p.Ability == "serence-grace" {
+		return 2
+	}
+	return 1
 }

@@ -16,11 +16,16 @@ type moveAction struct {
 }
 
 func (ma *moveAction) prio() int {
-	return ma.move.Priority
+	bonus := 0
+	if ma.userSlot.mon.Ability == "prankster" && ma.move.Class == "status" {
+		bonus++
+	}
+
+	return ma.move.Priority + bonus
 }
 
-func (ma *moveAction) speed() int {
-	return ma.userSlot.mon.effectiveSpeed()
+func (ma *moveAction) speed(bs battleState) int {
+	return ma.userSlot.mon.effectiveSpeed(bs)
 }
 
 func (ma *moveAction) invoke(bs battleState) {
@@ -174,14 +179,17 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive
 		return
 	}
 
-	if ma.move.Name == "swagger" {
+	switch ma.move.Name {
+	case "swagger":
 		target.changeStatStageBy("attack", 2, false)
 		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
-	} else if ma.move.Name == "focus-energy" {
+	case "focus-energy":
 		ma.userSlot.mon.FocusEnergy = true
-	} else if ma.move.Name == "laser-focus" {
+		return
+	case "laser-focus":
 		ma.userSlot.mon.LaserFocus = true
+		return
 	}
 
 	if ma.move.Heal > 0 {
@@ -310,7 +318,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		f(ma.userSlot, ma.targetSlot)
 	}
 
-	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance, 100) {
+	sg := user.serenceGraceBonus()
+
+	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
 			user.changeStatStageBy(stat, change, false)
 		}
@@ -318,7 +328,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if _, ok := pivotMoves[ma.move.Name]; ok {
 		if ma.userSlot.trainer.canReplace(bs) {
-			bs.injectReplaceAction(ma.userSlot, true)
+			injectReplaceAction(bs, ma.userSlot, true)
 		}
 	}
 
@@ -330,18 +340,17 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		return true
 	}
 
-	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance, 100) {
+	if ma.move.AilmentChance > 0 && !target.Fainted && roll(ma.move.AilmentChance*sg, 100) {
 		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
-	if ma.move.FlinchChance > 0 && !target.Fainted && roll(ma.move.FlinchChance, 100) {
-		targetMove := bs.getActions().getMoveActionBy(target)
-		if targetMove != nil {
+	if ma.move.FlinchChance > 0 && !target.Fainted && target.Ability != "inner-focus" && roll(ma.move.FlinchChance*sg, 100) {
+		if targetMove := bs.getActions().getMoveActionBy(target); targetMove != nil {
 			targetMove.flinch = true
 		}
 	}
 
-	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance, 100) {
+	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
 			target.changeStatStageBy(stat, change, true)
 		}

@@ -11,8 +11,7 @@ type battleState interface {
 	getAllSlots() []*slot
 	getOtherSlots(slot *slot) []*slot
 	getOpponentSlot(slot *slot) *slot
-	injectReplaceAction(slot *slot, midTurn bool)
-	getActions() *ActionQueue
+	getActions() *actionQueue
 }
 
 type slot struct {
@@ -49,6 +48,15 @@ func (s *slot) resolveProtect() {
 	} else {
 		log.Println("but it failed")
 	}
+}
+
+func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
+	bs.getActions().queue.push(&replaceAction{
+		oldSlot: slot,
+		trainer: slot.trainer,
+		midTurn: midTurn,
+	})
+	bs.getActions().sort(bs)
 }
 
 func resolveEndOfTurn(bs battleState) {
@@ -112,7 +120,7 @@ func takeResidualDamage(bs battleState, slot *slot, ailment *Ailment, num, den i
 	slot.mon.changeHpBy(-change)
 	if slot.mon.Hp <= 0 {
 		slot.mon.Fainted = true
-		bs.injectReplaceAction(slot, false)
+		injectReplaceAction(bs, slot, false)
 		log.Printf("%s fainted!", slot.mon.Base.Name)
 	}
 	return change

@@ -15,11 +15,23 @@ func (ra *replaceAction) prio() int {
 	return -10
 }
 
-func (ra *replaceAction) speed() int {
-	return ra.oldSlot.mon.effectiveSpeed()
+func (ra *replaceAction) speed(bs battleState) int {
+	return ra.oldSlot.mon.effectiveSpeed(bs)
 }
 
 func (ra *replaceAction) invoke(bs battleState) {
+	if ra.midTurn {
+		if a, ok := bs.getActions().queue.fetchBy(fetchPursuitMiddleware(ra.oldSlot.mon.Base.Name)); ok {
+			p, _ := a.(*moveAction)
+			p.pursuit = true
+			p.invoke(bs)
+			if ra.oldSlot.mon.Fainted {
+				injectReplaceAction(bs, ra.oldSlot, false)
+				return
+			}
+		}
+	}
+
 	mon := ra.trainer.selectSwitchIn(bs, ra.oldSlot)
 	if mon == nil {
 		return

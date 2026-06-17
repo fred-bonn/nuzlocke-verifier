@@ -1,13 +1,13 @@
 package main
 
 import (
-	"math/rand"
+	"slices"
 )
 
 type action interface {
 	invoke(bs battleState)
 	prio() int
-	speed() int
+	speed(bs battleState) int
 }
 
 func rollInt(numerator int, denominator int) int {
@@ -17,74 +17,93 @@ func rollInt(numerator int, denominator int) int {
 	return 0
 }
 
-type ActionQueue []action
+type PriorityQueue[T any] []T
 
-func (aq ActionQueue) Len() int {
-	return len(aq)
+func (q *PriorityQueue[T]) push(a T) {
+	*q = append(*q, a)
 }
 
-func (aq ActionQueue) Less(i, j int) bool {
-	if am, ok := aq[i].(*moveAction); ok {
-		if am.move.Name == "pursuit" {
-			if _, ok := aq[j].(*switchAction); ok {
-				am.pursuit = true
-				return false
-			}
+func (q *PriorityQueue[T]) pop() (T, bool) {
+	l := len(*q)
+	if l == 0 {
+		return *new(T), false
+	}
+
+	a := (*q)[l-1]
+	*q = (*q)[:l-1]
+
+	return a, true
+}
+
+func (q *PriorityQueue[T]) insertAt(a T, cmp func(T, T) bool) {
+	for i := 0; i < len(*q); i++ {
+		if cmp(a, (*q)[i]) {
+			*q = slices.Insert(*q, i, a)
+			return
 		}
 	}
 
-	if aq[i].prio() < aq[j].prio() {
-		return true
-	} else if aq[i].prio() > aq[j].prio() {
-		return false
-	} else if aq[i].speed() < aq[j].speed() {
-		return true
-	} else if aq[i].speed() > aq[j].speed() {
+	q.push(a)
+}
+
+func (q PriorityQueue[T]) sortBy(f func(a, b T) int) bool {
+	if f == nil {
 		return false
 	}
 
-	return (rand.Int() % 2) == 0
+	slices.SortFunc(q, f)
+
+	return true
 }
 
-func (aq ActionQueue) Swap(i, j int) {
-	aq[i], aq[j] = aq[j], aq[i]
-}
-
-func (aq *ActionQueue) Push(a any) {
-	*aq = append(*aq, a.(action))
-}
-
-func (aq *ActionQueue) Pop() any {
-	if aq.Len() == 0 {
-		return nil
+func (q *PriorityQueue[T]) fetchBy(f func(T) bool) (T, bool) {
+	for i, e := range *q {
+		if f(e) {
+			*q = append((*q)[:i], (*q)[i+1:]...)
+			return e, true
+		}
 	}
-	action := (*aq)[0]
-	*aq = (*aq)[1:]
-	return action
+
+	return *new(T), false
 }
 
-func (aq *ActionQueue) containstSwitchTo(mon *Pokemon) bool {
-	for _, a := range *aq {
-		if sa, ok := a.(*switchAction); ok && sa.new == mon {
+type actionQueue struct {
+	queue PriorityQueue[action]
+}
+
+func (a *actionQueue) sort(bs battleState) {
+	cmp := func(b, c action) int {
+		if b.prio() > c.prio() {
+			return 1
+		}
+		if b.prio() < c.prio() {
+			return -1
+		}
+		if b.speed(bs) > c.speed(bs) {
+			return 1
+		}
+		if b.speed(bs) < c.speed(bs) {
+			return -1
+		}
+		return rollInt(1, 2)*2 - 1
+	}
+
+	a.queue.sortBy(cmp)
+}
+
+func (a *actionQueue) containstSwitchTo(mon *Pokemon) bool {
+	for _, action := range a.queue {
+		if sa, ok := action.(*switchAction); ok && sa.new == mon {
 			return true
 		}
 	}
 	return false
 }
 
-func (aq *ActionQueue) getMoveActionBy(mon *Pokemon) *moveAction {
-	for _, a := range *aq {
-		if ma, ok := a.(*moveAction); ok && mon == ma.userSlot.mon {
+func (a *actionQueue) getMoveActionBy(mon *Pokemon) *moveAction {
+	for _, action := range a.queue {
+		if ma, ok := action.(*moveAction); ok && mon == ma.userSlot.mon {
 			return ma
-		}
-	}
-	return nil
-}
-
-func (aq *ActionQueue) getSwitchActionBy(mon *Pokemon) *switchAction {
-	for _, a := range *aq {
-		if sa, ok := a.(*switchAction); ok && mon == sa.oldSlot.mon {
-			return sa
 		}
 	}
 	return nil

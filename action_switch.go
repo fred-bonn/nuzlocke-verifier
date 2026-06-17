@@ -22,6 +22,12 @@ func (sa *switchAction) invoke(bs battleState) {
 		f(sa.oldSlot, bs, false)
 	}
 
+	if a, ok := bs.getActions().queue.fetchBy(fetchPursuitMiddleware(sa.oldSlot.mon.Base.Name)); ok {
+		p, _ := a.(*moveAction)
+		p.pursuit = true
+		p.invoke(bs)
+	}
+
 	log.Printf("switched %s for %s", sa.oldSlot.mon.Base.Name, sa.new.Base.Name)
 	sa.oldSlot.setMon(sa.new)
 	if f, ok := onSwitchAbilities[sa.oldSlot.mon.Ability]; ok {
@@ -33,6 +39,6 @@ func (sa *switchAction) prio() int {
 	return 10
 }
 
-func (sa *switchAction) speed() int {
-	return sa.oldSlot.mon.effectiveSpeed()
+func (sa *switchAction) speed(bs battleState) int {
+	return sa.oldSlot.mon.effectiveSpeed(bs)
 }
