@@ -20,6 +20,13 @@ func newActionQueue(actions ...action) *ActionQueue {
 	return q
 }
 
+func newEmptyActionQueue() *ActionQueue {
+	res := make(ActionQueue, 0, 5)
+	return &res
+}
+
+// BenchmarkActionQueueHeapInit measures the cost of initializing the heap for a turn:
+// creating a new heap, initializing it, and pushing actions for execution.
 func BenchmarkActionQueueHeapInit(b *testing.B) {
 	actions := []action{
 		&benchAction{priority: 1, spd: 50},
@@ -32,30 +39,16 @@ func BenchmarkActionQueueHeapInit(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q := newActionQueue(actions...)
+		q := newEmptyActionQueue()
 		heap.Init(q)
+		for _, a := range actions {
+			heap.Push(q, a)
+		}
 	}
 }
 
-func BenchmarkActionQueueHeapPushPop(b *testing.B) {
-	actions := []action{
-		&benchAction{priority: 1, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		q := newActionQueue(actions...)
-		heap.Init(q)
-		heap.Push(q, &benchAction{priority: 6, spd: 55})
-		_ = heap.Pop(q).(action)
-	}
-}
-
+// BenchmarkActionQueueHeapDrain measures the cost of draining the heap after initialization.
+// Reuses the same heap allocation across iterations to focus on the drain cost.
 func BenchmarkActionQueueHeapDrain(b *testing.B) {
 	actions := []action{
 		&benchAction{priority: 1, spd: 50},
@@ -65,11 +58,15 @@ func BenchmarkActionQueueHeapDrain(b *testing.B) {
 		&benchAction{priority: 4, spd: 60},
 	}
 
+	q := newEmptyActionQueue()
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		q := newActionQueue(actions...)
-		heap.Init(q)
+		// Push actions to the heap
+		for _, a := range actions {
+			heap.Push(q, a)
+		}
+		// Drain the heap
 		for q.Len() > 0 {
 			_ = heap.Pop(q).(action)
 		}
