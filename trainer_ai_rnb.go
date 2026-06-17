@@ -131,7 +131,6 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				for i := 0; i < rolls; i++ {
 					dmg += calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, new(critRate >= 3), false, true, false)
 				}
-				log.Println(a.move.Name, dmg)
 				if a.userSlot.mon.Hp <= dmg {
 					scores[i] += 11
 					break

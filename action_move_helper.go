@@ -33,7 +33,7 @@ var struggleMove = pokeapi.BaseMove{
 }
 
 func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring, pursuit bool) int {
-	if f, ok := typeImmunityAbilities[target.Ability]; ok && f(target, move.Type, forScoring) && user.Ability != "mold-breaker" {
+	if f, ok := typeImmunityAbilities[target.Ability]; ok && user.Ability != "mold-breaker" && f(target, move.Type, forScoring) {
 		return 0
 	}
 
@@ -81,17 +81,27 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		if maxRoll {
 			return user.Level
 		}
+		*crit = false
 		return (user.Level * (rand.Intn(100) + 51)) / 100
 	}
 	if move.Name == "seismic-toss" || move.Name == "night-shade" {
+		*crit = false
 		return user.Level
 	}
 	if move.Name == "sonic-boom" {
+		*crit = false
 		return 20
 	}
 	if move.Name == "dragon-rage" {
+		*crit = false
 		return 40
-	} else if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
+	}
+	if move.Name == "endeavor" {
+		*crit = false
+		return target.Hp - user.Hp
+	}
+
+	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
 		power *= 2
 	} else if move.Name == "wake-up-slap" && target.hasAilment("sleep") != nil {
 		power *= 2
