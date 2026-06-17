@@ -29,7 +29,9 @@ func newActionQueue(actions ...action) *actionQueue {
 }
 
 func newEmptyActionQueue() *actionQueue {
-	return &actionQueue{}
+	return &actionQueue{
+		queue: make(PriorityQueue[action], 0, 5),
+	}
 }
 
 // BenchmarkActionQueueInit measures the cost of initializing the queue for a turn:
@@ -79,47 +81,6 @@ func BenchmarkActionQueueDrain(b *testing.B) {
 		}
 		q.sort(bs)
 		// Drain the queue
-		for len(q.queue) > 0 {
-			q.queue.pop()
-		}
-	}
-}
-
-func BenchmarkActionQueueSort(b *testing.B) {
-	actions := []action{
-		&benchAction{priority: 1, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
-	}
-	bs := &benchBattleState{}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		q := newActionQueue(actions...)
-		bs.actions = q
-		q.sort(bs)
-	}
-}
-
-func BenchmarkActionQueueDrainOld(b *testing.B) {
-	actions := []action{
-		&benchAction{priority: 1, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
-	}
-	bs := &benchBattleState{}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		q := newActionQueue(actions...)
-		bs.actions = q
-		q.sort(bs)
 		for len(q.queue) > 0 {
 			q.queue.pop()
 		}
