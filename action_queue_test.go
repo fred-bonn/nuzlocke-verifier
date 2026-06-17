@@ -4,12 +4,12 @@ import "testing"
 
 func TestPriorityQueuePush(t *testing.T) {
 	tests := map[string]struct {
-		queue PriorityQueue[int]
-		push  []int
-		want  int
+		queue    PriorityQueue[int]
+		push     []int
+		wantLeft PriorityQueue[int]
 	}{
-		"empty":          {PriorityQueue[int]{}, []int{1, 2, 3}, 3},
-		"three elements": {PriorityQueue[int]{1, 2, 3}, []int{1, 2, 3}, 6},
+		"empty":          {PriorityQueue[int]{}, []int{1, 2, 3}, PriorityQueue[int]{1, 2, 3}},
+		"three elements": {PriorityQueue[int]{1, 2, 3}, []int{1, 2, 3}, PriorityQueue[int]{1, 2, 3, 1, 2, 3}},
 	}
 
 	for name, tc := range tests {
@@ -17,8 +17,13 @@ func TestPriorityQueuePush(t *testing.T) {
 			for _, element := range tc.push {
 				tc.queue.push(element)
 			}
-			if n := len(tc.queue); n != tc.want {
-				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, tc.want)
+			if n := len(tc.queue); n != len(tc.wantLeft) {
+				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, len(tc.wantLeft))
+			}
+			for i, r := range tc.wantLeft {
+				if r != tc.queue[i] {
+					t.Errorf("%s: mismatch at index %d, %d != %d", name, i, r, tc.queue[i])
+				}
 			}
 		})
 	}
@@ -26,26 +31,34 @@ func TestPriorityQueuePush(t *testing.T) {
 
 func TestPriorityQueuePop(t *testing.T) {
 	tests := map[string]struct {
-		queue PriorityQueue[int]
-		empty bool
-		want  int
+		queue    PriorityQueue[int]
+		want     int
+		wantOk   bool
+		wantLeft PriorityQueue[int]
 	}{
-		"empty":          {PriorityQueue[int]{}, true, 0},
-		"three elements": {PriorityQueue[int]{1, 2, 3}, false, 3},
-		"one element":    {PriorityQueue[int]{1}, false, 1},
+		"empty":          {PriorityQueue[int]{}, 0, false, PriorityQueue[int]{}},
+		"three elements": {PriorityQueue[int]{1, 2, 3}, 3, true, PriorityQueue[int]{1, 2}},
+		"one element":    {PriorityQueue[int]{1}, 1, true, PriorityQueue[int]{}},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			res, ok := tc.queue.pop()
-			if !tc.empty && !ok {
+			if tc.wantOk && !ok {
 				t.Fatalf("%s: queue is empty when it wasn't expected to be", name)
-			}
-			if tc.empty && ok {
+			} else if !tc.wantOk && ok {
 				t.Fatalf("%s: queue is not empty when it was expected to be", name)
 			}
-			if res != tc.want {
+			if ok && res != tc.want {
 				t.Fatalf("%s: got %d, want %d", name, res, tc.want)
+			}
+			if len(tc.queue) != len(tc.wantLeft) {
+				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, len(tc.queue), len(tc.wantLeft))
+			}
+			for i, r := range tc.wantLeft {
+				if r != tc.queue[i] {
+					t.Errorf("%s: mismatch at index %d, %d != %d", name, i, r, tc.queue[i])
+				}
 			}
 		})
 	}
@@ -149,7 +162,7 @@ func TestPriorityQueueFetchBy(t *testing.T) {
 			if ok != tc.wantOk {
 				t.Fatalf("%s: got ok=%v, want %v", name, ok, tc.wantOk)
 			}
-			if res != tc.want {
+			if ok && res != tc.want {
 				t.Fatalf("%s: got %d, want %d", name, res, tc.want)
 			}
 			if len(tc.queue) != len(tc.wantLeft) {

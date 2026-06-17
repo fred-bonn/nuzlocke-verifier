@@ -4,6 +4,8 @@ import (
 	"math/rand"
 )
 
+// deprecated
+
 type ActionQueueOld []action
 
 func (aq ActionQueueOld) Len() int {
