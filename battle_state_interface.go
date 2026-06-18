@@ -106,6 +106,11 @@ func resolveEndOfTurn(bs battleState) {
 			slot.mon.changeStatStageBy("speed", 1, false)
 		}
 
+		if slot.mon.Item.name == "leftovers" {
+			log.Printf("%s restored health from leftovers", slot.mon.Base.Name)
+			slot.mon.changeHpBy(slot.mon.maxHP() / 16)
+		}
+
 		slot.mon.LaserFocus = false
 	}
 }

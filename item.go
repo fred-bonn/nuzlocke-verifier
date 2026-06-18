@@ -31,6 +31,7 @@ func (p *Pokemon) checkItemTrigger(consume bool, event any) {
 type ItemFactoryBuilder func(*Pokemon) *item
 
 var itemBuilders = map[string]ItemFactoryBuilder{
+	"berry-juice":    makeBerryJuice,
 	"oran-berry":     makeOranBerry,
 	"sitrus-berry":   makeSitrusBerry,
 	"lum-berry":      makeLumBerry,
@@ -66,6 +67,7 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"yache-berry":    makeResistBerryMiddleware("yache-berry", "ice"),
 	"iron-ball":      makePassiveItemMiddleware("iron-ball"),
 	"scope-lens":     makePassiveItemMiddleware("scope-lens"),
+	"leftovers":      makePassiveItemMiddleware("leftovers"),
 	"mystic-water":   makeTypeBoostingItemMiddleware("mystic-water", "water"),
 	"dragon-fang":    makeTypeBoostingItemMiddleware("dragon-fang", "dragon"),
 	"silver-powder":  makeTypeBoostingItemMiddleware("silver-powder", "bug"),
@@ -171,6 +173,20 @@ func makeTypeBoostingItemMiddleware(itemName, typeName string) func(mon *Pokemon
 	}
 }
 
+func makeBerryJuice(mon *Pokemon) *item {
+	return &item{
+		name: "berry-juice",
+		trigger: func(any) bool {
+			return mon.Hp > 0 && mon.Hp*2 <= mon.maxHP()
+		},
+		activate: func() {
+			mon.changeHpBy(20)
+			log.Printf("%s drank its berry juice and restored 20 hp", mon.Base.Name)
+			cheekPouch(mon)
+		},
+	}
+}
+
 func makeOranBerry(mon *Pokemon) *item {
 	return &item{
 		name: "oran-berry",
@@ -179,7 +195,7 @@ func makeOranBerry(mon *Pokemon) *item {
 		},
 		activate: func() {
 			mon.changeHpBy(10)
-			log.Printf("%s ate its berry and restored 10 hp", mon.Base.Name)
+			log.Printf("%s ate its oran berry and restored 10 hp", mon.Base.Name)
 			cheekPouch(mon)
 		},
 	}
@@ -194,7 +210,7 @@ func makeSitrusBerry(mon *Pokemon) *item {
 		activate: func() {
 			restore := mon.maxHP() / 4
 			mon.changeHpBy(restore)
-			log.Printf("%s ate its berry and restored %d hp", mon.Base.Name, restore)
+			log.Printf("%s ate its sitrus berry and restored %d hp", mon.Base.Name, restore)
 			cheekPouch(mon)
 		},
 	}
