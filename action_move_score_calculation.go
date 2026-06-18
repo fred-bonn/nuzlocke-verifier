@@ -71,6 +71,8 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return ma.scoreToxic()
 	case "focus-energy", "laser-focus":
 		return ma.scoreCritStatus()
+	case "belly-drum":
+		return ma.scoreBellyDrum()
 	}
 
 	return 6
@@ -273,4 +275,32 @@ func (ma *moveAction) scoreCritStatus() int {
 	}
 
 	return 6
+}
+
+func (ma *moveAction) scoreBellyDrum() int {
+	user := ma.userSlot.mon
+	target := ma.targetSlot.mon
+
+	if a := target.hasAilment("freeze"); a != nil && target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+		if _, ok := selfThawingMoves[m.Name]; ok {
+			return true
+		}
+		return false
+	}) {
+		return 9
+	}
+	if a := target.hasAilment("sleep"); a != nil {
+		return 9
+	}
+
+	dmg := calculateMaxDamage(target, user, true)
+	threshhold := user.maxHP() / 2
+	if user.Item.name == "sitrus-berry" {
+		threshhold += user.maxHP() / 4
+	}
+	if dmg < threshhold {
+		return 8
+	}
+
+	return 4
 }

@@ -344,17 +344,14 @@ func makeLeppaBerry(mon *Pokemon) *item {
 
 func makeStatBoostBerryMiddleware(name, stat string) func(mon *Pokemon) *item {
 	return func(mon *Pokemon) *item {
-		d := 4
-		if mon.Ability == "gluttony" {
-			d = 2
-		}
 		return &item{
 			name: name,
 			trigger: func(any) bool {
 				if mon.Ability == "gluttony" {
-
+					log.Println("test")
+					return !mon.Unnerved && mon.Hp > 0 && mon.Hp*2 <= mon.maxHP()
 				}
-				return !mon.Unnerved && mon.Hp > 0 && mon.Hp*d <= mon.maxHP()
+				return !mon.Unnerved && mon.Hp > 0 && mon.Hp*4 <= mon.maxHP()
 			},
 			activate: func() {
 				log.Printf("%s ate its %s", mon.Base.Name, name)

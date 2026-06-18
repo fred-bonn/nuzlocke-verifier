@@ -173,7 +173,6 @@ func (ma *moveAction) invoke(bs battleState) {
 }
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive bool) {
-
 	if _, ok := protectMoves[ma.move.Name]; ok {
 		ma.userSlot.resolveProtect()
 		return
@@ -185,16 +184,23 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive
 		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
 	case "focus-energy":
-		ma.userSlot.mon.FocusEnergy = true
+		target.FocusEnergy = true
 		return
 	case "laser-focus":
-		ma.userSlot.mon.LaserFocus = true
+		target.LaserFocus = true
 		return
+	case "belly-drum":
+		if target.Hp*2 <= target.maxHP() {
+			log.Printf("but it failed")
+			return
+		}
+		target.changeHpBy(-(target.maxHP() / 2))
+		target.changeStatStageBy("attack", 6, false)
 	}
 
 	if ma.move.Heal > 0 {
 		change := target.maxHP() * ma.move.Heal / 100
-		ma.userSlot.mon.changeHpBy(change)
+		target.changeHpBy(change)
 		log.Printf("%s healed for %d", target.Base.Name, change)
 	}
 
