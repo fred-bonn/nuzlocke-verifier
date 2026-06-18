@@ -5,7 +5,6 @@ import (
 	"math/rand"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 var critRateMap = map[int]int{
@@ -53,26 +52,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 	if f, ok := typeConvertingAbilities[user.Ability]; ok {
 		f(&moveType, &power)
 	}
-
-	applyType := func(mult float64) {
-		if target.isGrounded() && target.hasType("flying") && moveType == "ground" {
-			return
-		}
-		switch mult {
-		case 0:
-			numerator = 0
-		case 0.5:
-			denominator *= 2
-		case 1:
-		case 2:
-			numerator *= 2
-		}
-	}
-
-	applyType(pokemon.GetEffectiveness(moveType, target.Base.Types[0]))
-	if len(target.Base.Types) > 1 {
-		applyType(pokemon.GetEffectiveness(moveType, target.Base.Types[1]))
-	}
+	numerator, denominator = target.applyMoveType(numerator, denominator, moveType)
 	if numerator == 0 {
 		return 0
 	}

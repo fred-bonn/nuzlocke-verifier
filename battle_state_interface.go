@@ -14,42 +14,6 @@ type battleState interface {
 	getActions() *actionQueue
 }
 
-type slot struct {
-	mon                *Pokemon
-	trainer            *trainer
-	firstTurn          bool
-	suckerPunch        bool
-	protected          bool
-	protectTurns       int
-	invulnerableAction *moveAction
-	unnerved           bool
-}
-
-func (s *slot) setMon(new *Pokemon) {
-	s.mon.switchReset()
-	s.firstTurn = true
-	s.suckerPunch = false
-	new.Unnerved = s.mon.Unnerved
-	s.mon = new
-}
-
-func (s *slot) isTrapped() bool {
-	return s.mon.hasAilment("trap") != nil || s.mon.hasAilment("bound") != nil
-}
-
-func (s *slot) resolveProtect() {
-	denominator := 1
-	for i := 0; i < s.protectTurns; i++ {
-		denominator *= 3
-	}
-	if roll(1, denominator) {
-		s.protected = true
-		s.protectTurns++
-	} else {
-		log.Println("but it failed")
-	}
-}
-
 func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
 	bs.getActions().queue.push(&replaceAction{
 		oldSlot: slot,

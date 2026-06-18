@@ -1,6 +1,8 @@
 package main
 
-import "github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
+import (
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
+)
 
 func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 	if ma.move.Class == "status" {
@@ -55,10 +57,21 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 
 	switch ma.move.Name {
 	case "sticky-web":
+		if ma.targetSlot.hasFieldEffect(ma.move.Name) {
+			return -64
+		}
 		if ma.userSlot.firstTurn {
 			return 9 + 3*rollInt(3, 4)
 		}
 		return 6 + 3*rollInt(3, 4)
+	case "stealth-rock", "spikes", "toxic-spikes":
+		if ma.targetSlot.hasFieldEffect(ma.move.Name) {
+			return -64
+		}
+		if ma.userSlot.firstTurn {
+			return 8 + rollInt(3, 4)
+		}
+		return 6 + rollInt(3, 4)
 	case "attract":
 		if ma.targetSlot.mon.hasAilment("infatuation") != nil || ma.targetSlot.mon.Ability == "oblivious" {
 			return -64

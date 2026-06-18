@@ -36,9 +36,11 @@ func main() {
 		trainer{
 			ai:     rnbAi{},
 			player: true,
+			field:  map[string]struct{}{},
 		},
 		trainer{
-			ai: rnbAi{},
+			ai:    rnbAi{},
+			field: map[string]struct{}{},
 		},
 		playerParty,
 		opponentParty,

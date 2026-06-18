@@ -8,6 +8,7 @@ type trainer struct {
 	pokemonParty []*Pokemon
 	player       bool
 	ai           ai
+	field        map[string]struct{}
 	lost         bool
 }
 

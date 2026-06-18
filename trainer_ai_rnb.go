@@ -227,14 +227,14 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 			scores[i] = 4
 		} else if outspeeds && monDamagePercent > opponentDamagePercent {
 			scores[i] = 3
-		} else if !outspeeds && monDamagePercent > opponentDamagePercent {
+		} else if !outspeeds && monDamagePercent > opponentDamagePercent && !monKilled {
 			scores[i] = 2
 		} else if outspeeds {
 			scores[i] = 1
 		} else if !outspeeds && monKilled {
 			scores[i] = -1
 		}
-		log.Printf("%s switch in: outspeeds=%t, monDamage=%d, opponentDamage=%d, killsOpponent=%t, monKilled=%t, monDamagePercent=%d, opponentDamagePercent=%d, score=%d\n", mon.Base.Name, outspeeds, monDamage, opponentDamage, killsOpponent, monKilled, monDamagePercent, opponentDamagePercent, scores[i])
+		// log.Printf("%s switch in: outspeeds=%t, monDamage=%d, opponentDamage=%d, killsOpponent=%t, monKilled=%t, monDamagePercent=%d, opponentDamagePercent=%d, score=%d\n", mon.Base.Name, outspeeds, monDamage, opponentDamage, killsOpponent, monKilled, monDamagePercent, opponentDamagePercent, scores[i])
 	}
 
 	maxScore := scores[0]

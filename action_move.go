@@ -178,6 +178,11 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive
 		return
 	}
 
+	if ma.move.Category == "field-effect" {
+		ma.targetSlot.applyFieldEffect(ma.move.Name)
+		return
+	}
+
 	switch ma.move.Name {
 	case "swagger":
 		target.changeStatStageBy("attack", 2, false)
@@ -194,6 +199,8 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *Pokemon, offensive
 			log.Printf("but it failed")
 			return
 		}
+
+		log.Printf("%s took damage from belly drum", target.Base.Name)
 		target.changeHpBy(-(target.maxHP() / 2))
 		target.changeStatStageBy("attack", 6, false)
 	}
@@ -319,6 +326,8 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		for _, slot := range bs.getOtherSlots(ma.targetSlot) {
 			slot.mon.changeStatStageBy("speed", -1, true)
 		}
+	} else if target.Ability == "water-compaction" && ma.move.Type == "water" {
+		target.changeStatStageBy("defense", 2, false)
 	}
 	if f, ok := contactOffensiveAbilities[user.Ability]; ok && ma.move.Contact {
 		f(ma.userSlot, ma.targetSlot)

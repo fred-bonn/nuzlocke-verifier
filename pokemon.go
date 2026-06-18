@@ -352,3 +352,22 @@ func (p *Pokemon) serenceGraceBonus() int {
 	}
 	return 1
 }
+
+func (p *Pokemon) applyMoveType(num, dem int, moveType string) (int, int) {
+	for _, t := range p.Base.Types {
+		if t == "flying" && moveType == "ground" && p.isGrounded() {
+			continue
+		}
+		switch pokemon.GetEffectiveness(moveType, t) {
+		case 0:
+			num = 0
+		case 0.5:
+			dem *= 2
+		case 1:
+		case 2:
+			num *= 2
+		}
+	}
+
+	return num, dem
+}

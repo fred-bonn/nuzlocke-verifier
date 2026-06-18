@@ -49,8 +49,8 @@ func (ra *replaceAction) invoke(bs battleState) {
 		f(ra.oldSlot, bs, false)
 	}
 
-	ra.oldSlot.setMon(mon)
 	log.Printf("%s was sent out", mon.Base.Name)
+	ra.oldSlot.setMon(bs, mon)
 	if f, ok := onSwitchAbilities[ra.oldSlot.mon.Ability]; ok {
 		f(ra.oldSlot, bs, true)
 	}
