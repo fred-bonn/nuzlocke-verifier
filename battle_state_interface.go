@@ -26,31 +26,31 @@ func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
 func resolveEndOfTurn(bs battleState) {
 	for _, slot := range bs.getAllSlots() {
 		// resolve end of return effects from ailments and statuses
-		for _, ailment := range slot.mon.Ailments {
-			switch ailment.Name {
+		for _, ailment := range slot.mon.ailments {
+			switch ailment.name {
 			case "burn":
 				takeResidualDamage(bs, slot, ailment, 1, 16)
 			case "poison":
 				takeResidualDamage(bs, slot, ailment, 1, 8)
 			case "toxic":
-				ailment.Turns++
-				takeResidualDamage(bs, slot, ailment, ailment.Turns, 16)
+				ailment.turns++
+				takeResidualDamage(bs, slot, ailment, ailment.turns, 16)
 			case "trap":
-				ailment.Turns--
+				ailment.turns--
 				takeResidualDamage(bs, slot, ailment, 1, 8)
-				if ailment.Turns <= 0 {
-					log.Printf("%s was freed", slot.mon.Base.Name)
-					delete(slot.mon.Ailments, ailment.Name)
+				if ailment.turns <= 0 {
+					log.Printf("%s was freed", slot.mon.base.Name)
+					delete(slot.mon.ailments, ailment.name)
 				}
 			case "leech-seed":
-				log.Printf("%s leeched health from %s", ailment.AfflictedBy.mon.Base.Name, slot.mon.Base.Name)
+				log.Printf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
 				dmg := takeResidualDamage(bs, slot, ailment, 1, 8)
-				ailment.AfflictedBy.mon.changeHpBy(dmg)
+				ailment.afflictedBy.mon.changeHpBy(dmg)
 			case "yawn":
-				ailment.Turns--
-				if ailment.Turns == 0 {
-					slot.mon.applyAilment("sleep", nil, ailment.AfflictedBy)
-					delete(slot.mon.Ailments, "yawn")
+				ailment.turns--
+				if ailment.turns == 0 {
+					slot.mon.applyAilment("sleep", nil, ailment.afflictedBy)
+					delete(slot.mon.ailments, "yawn")
 				}
 			}
 		}
@@ -62,42 +62,42 @@ func resolveEndOfTurn(bs battleState) {
 			slot.protected = false
 		}
 
-		if slot.mon.Ability == "harvest" && roll(1, 2) && strings.HasSuffix(slot.mon.Item.name, "berry") {
-			log.Printf("%s harvested its %s", slot.mon.Base.Name, slot.mon.Item.name)
-			slot.mon.Item.consumed = false
+		if slot.mon.ability == "harvest" && roll(1, 2) && strings.HasSuffix(slot.mon.item.name, "berry") {
+			log.Printf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.name)
+			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
-		} else if slot.mon.Ability == "speed-boost" && !slot.firstTurn {
+		} else if slot.mon.ability == "speed-boost" && !slot.firstTurn {
 			slot.mon.changeStatStageBy("speed", 1, false)
 		}
 
-		if slot.mon.Item.name == "leftovers" {
-			log.Printf("%s restored health from leftovers", slot.mon.Base.Name)
+		if slot.mon.item.name == "leftovers" {
+			log.Printf("%s restored health from leftovers", slot.mon.base.Name)
 			slot.mon.changeHpBy(slot.mon.maxHP() / 16)
 		}
 
-		slot.mon.LaserFocus = false
+		slot.mon.laserFocus = false
 	}
 }
 
-func takeResidualDamage(bs battleState, slot *slot, ailment *Ailment, num, den int) int {
-	if slot.mon.Fainted {
+func takeResidualDamage(bs battleState, slot *slot, ailment *ailment, num, den int) int {
+	if slot.mon.fainted {
 		return 0
 	}
 
-	log.Printf("%s took damage from %s", slot.mon.Base.Name, ailment.Name)
+	log.Printf("%s took damage from %s", slot.mon.base.Name, ailment.name)
 	change := slot.mon.maxHP() * num / den
 	slot.mon.changeHpBy(-change)
-	if slot.mon.Hp <= 0 {
-		slot.mon.Fainted = true
+	if slot.mon.hp <= 0 {
+		slot.mon.fainted = true
 		injectReplaceAction(bs, slot, false)
-		log.Printf("%s fainted!", slot.mon.Base.Name)
+		log.Printf("%s fainted!", slot.mon.base.Name)
 	}
 	return change
 }
 
 func resolveOnEntry(bs battleState) {
 	for _, slot := range bs.getAllSlots() {
-		if f, ok := onSwitchAbilities[slot.mon.Ability]; ok {
+		if f, ok := onSwitchAbilities[slot.mon.ability]; ok {
 			f(slot, bs, true)
 		}
 	}

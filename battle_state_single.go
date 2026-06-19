@@ -18,7 +18,7 @@ func (sbs *singleBattleState) execute() {
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
 		log.Println("=====")
 		log.Printf("Turn %d:\n", k+1)
-		log.Printf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.Base.Name, sbs.activePlayerSlot.mon.Hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.Base.Name, sbs.activeOpponentSlot.mon.Hp, sbs.activeOpponentSlot.mon.maxHP())
+		log.Printf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.base.Name, sbs.activePlayerSlot.mon.hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.base.Name, sbs.activeOpponentSlot.mon.hp, sbs.activeOpponentSlot.mon.maxHP())
 
 		sbs.gatherActions()
 		sbs.actions.sort(sbs)
@@ -67,7 +67,7 @@ func (sbs *singleBattleState) getActions() *actionQueue {
 	return &sbs.actions
 }
 
-func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*Pokemon) *singleBattleState {
+func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*pokemon) *singleBattleState {
 	player.pokemonParty = playerParty
 	opponent.pokemonParty = opponentParty
 

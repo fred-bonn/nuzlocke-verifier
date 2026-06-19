@@ -39,7 +39,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			scores[i] = 7
 			continue
 		} else if a.move.Name == "fake-out" {
-			if !a.userSlot.firstTurn || a.targetSlot.mon.Ability == "inner-focus" || a.targetSlot.mon.Ability == "shield-dust" {
+			if !a.userSlot.firstTurn || a.targetSlot.mon.ability == "inner-focus" || a.targetSlot.mon.ability == "shield-dust" {
 				damage[i] = -1
 				scores[i] = -64
 				continue
@@ -50,7 +50,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i] = -64
 			continue
-		} else if a.move.Name == "belch" && (!strings.HasSuffix(a.userSlot.mon.Item.name, "berry") || !a.userSlot.mon.Item.consumed) {
+		} else if a.move.Name == "belch" && (!strings.HasSuffix(a.userSlot.mon.item.name, "berry") || !a.userSlot.mon.item.consumed) {
 			damage[i] = -1
 			scores[i] = -64
 			continue
@@ -59,7 +59,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if a.move.Ailment == "trap" {
-			if _, ok := a.targetSlot.mon.Ailments["trap"]; !ok {
+			if _, ok := a.targetSlot.mon.ailments["trap"]; !ok {
 				scores[i] = 6 + 2*rollInt(1, 5)
 			}
 		}
@@ -98,9 +98,9 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			if kills[i] {
 				scores[i] = 10
 			} else {
-				if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()/5 {
+				if a.targetSlot.mon.hp < a.targetSlot.mon.maxHP()/5 {
 					scores[i] = 10
-				} else if a.targetSlot.mon.Hp < a.targetSlot.mon.maxHP()*2/5 {
+				} else if a.targetSlot.mon.hp < a.targetSlot.mon.maxHP()*2/5 {
 					scores[i] = 8 * rollInt(1, 2)
 				}
 			}
@@ -112,11 +112,11 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 
 		// add score if fast dead and the move has priority
 		if a.move.Priority > 0 && !a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
-			for _, move := range a.targetSlot.mon.Moves {
+			for _, move := range a.targetSlot.mon.moves {
 				if move.PP <= 0 || move.Class == "status" {
 					continue
 				}
-				if a.targetSlot.mon.LockedMove != nil && a.targetSlot.mon.LockedMove != move {
+				if a.targetSlot.mon.lockedMove != nil && a.targetSlot.mon.lockedMove != move {
 					continue
 				}
 
@@ -131,7 +131,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				for i := 0; i < rolls; i++ {
 					dmg += calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, new(critRate >= 3), false, true, false)
 				}
-				if a.userSlot.mon.Hp <= dmg {
+				if a.userSlot.mon.hp <= dmg {
 					scores[i] += 11
 					break
 				}
@@ -175,7 +175,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 	}
 
-	log.Println(scores)
+	// log.Println(scores)
 
 	maxScore := scores[0]
 	for _, score := range scores {
@@ -196,7 +196,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 	return actions[bestIndices[resultIndex]], scores[bestIndices[resultIndex]]
 }
 
-func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
+func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot *slot) *pokemon {
 	if len(mons) == 1 {
 		return mons[0]
 	}
@@ -205,7 +205,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 	opponent := opponentSlot.mon
 
 	for i, mon := range mons {
-		if mon.Base.Name == "ditto" || mon.Base.Name == "wobbufet" {
+		if mon.base.Name == "ditto" || mon.base.Name == "wobbufet" {
 			scores[i] = 2
 			continue
 		}
@@ -215,11 +215,11 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 		monDamage := calculateMaxDamage(mon, opponent, false)
 		opponentDamage := calculateMaxDamage(opponent, mon, false)
 
-		killsOpponent := monDamage >= opponent.Hp
-		monKilled := opponentDamage >= mon.Hp
+		killsOpponent := monDamage >= opponent.hp
+		monKilled := opponentDamage >= mon.hp
 
-		monDamagePercent := monDamage * 100 / max(1, opponent.Hp)
-		opponentDamagePercent := opponentDamage * 100 / max(1, mon.Hp)
+		monDamagePercent := monDamage * 100 / max(1, opponent.hp)
+		opponentDamagePercent := opponentDamage * 100 / max(1, mon.hp)
 
 		if outspeeds && killsOpponent {
 			scores[i] = 5
@@ -246,19 +246,19 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*Pokemon, opponentSlot 
 		}
 	}
 
-	log.Println(scores[bestIndex])
+	// log.Println(scores[bestIndex])
 
 	return mons[bestIndex]
 }
 
-func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
+func calculateMaxDamage(user, target *pokemon, checkChoice bool) int {
 	var maxDmg, dmg int
 	rolls := 1
-	for _, move := range user.Moves {
+	for _, move := range user.moves {
 		if move.PP <= 0 || move.Class == "status" {
 			continue
 		}
-		if checkChoice && user.LockedMove != nil && user.LockedMove != move {
+		if checkChoice && user.lockedMove != nil && user.lockedMove != move {
 			continue
 		}
 
@@ -276,8 +276,8 @@ func calculateMaxDamage(user, target *Pokemon, checkChoice bool) int {
 		target.checkItemTrigger(false, focusSashEvent{
 			damage: &dmg,
 		})
-		if target.Ability == "sturdy" && target.Hp == target.maxHP() {
-			dmg = min(dmg, target.Hp-1)
+		if target.ability == "sturdy" && target.hp == target.maxHP() {
+			dmg = min(dmg, target.hp-1)
 		}
 
 		if dmg > maxDmg {

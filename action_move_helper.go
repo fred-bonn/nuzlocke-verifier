@@ -31,8 +31,8 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring, pursuit bool) int {
-	if f, ok := typeImmunityAbilities[target.Ability]; ok && user.Ability != "mold-breaker" && f(target, move.Type, forScoring) {
+func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring, pursuit bool) int {
+	if f, ok := typeImmunityAbilities[target.ability]; ok && user.ability != "mold-breaker" && f(target, move.Type, forScoring) {
 		return 0
 	}
 
@@ -49,7 +49,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		defensiveStat = target.effectiveStat("special-defense", *crit)
 	}
 
-	if f, ok := typeConvertingAbilities[user.Ability]; ok {
+	if f, ok := typeConvertingAbilities[user.ability]; ok {
 		f(&moveType, &power)
 	}
 	numerator, denominator = target.applyMoveType(numerator, denominator, moveType)
@@ -57,31 +57,31 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		return 0
 	}
 
-	if move.Name == "psywave" {
+	switch move.Name {
+	case "psywave":
 		if maxRoll {
-			return user.Level
+			return user.level
 		}
 		*crit = false
-		return (user.Level * (rand.Intn(100) + 51)) / 100
-	}
-	if move.Name == "seismic-toss" || move.Name == "night-shade" {
+		return (user.level * (rand.Intn(100) + 51)) / 100
+	case "seismic-toss", "night-shade":
 		*crit = false
-		return user.Level
-	}
-	if move.Name == "sonic-boom" {
+		return user.level
+	case "sonic-boom":
 		*crit = false
 		return 20
-	}
-	if move.Name == "dragon-rage" {
+	case "dragon-rage":
 		*crit = false
 		return 40
-	}
-	if move.Name == "endeavor" {
+	case "endeavor":
 		*crit = false
-		return target.Hp - user.Hp
+		return target.hp - user.hp
+	case "super-fang":
+		*crit = false
+		return max(1, target.hp/2)
 	}
 
-	if move.Name == "acrobatics" && (user.Item.consumed || user.Item.name == "flying-gem") {
+	if move.Name == "acrobatics" && (user.item.consumed || user.item.name == "flying-gem") {
 		power *= 2
 	} else if move.Name == "wake-up-slap" && target.hasAilment("sleep") != nil {
 		power *= 2
@@ -89,8 +89,8 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		power *= 2
 	} else if move.Name == "hex" && target.hasNonVolatileAilment() {
 		power *= 2
-	} else if move.Name == "flail" {
-		res := int(48 * (float64(user.Hp) / float64(user.maxHP())))
+	} else if move.Name == "flail" || move.Name == "reversal" {
+		res := int(48 * (float64(user.hp) / float64(user.maxHP())))
 		if res <= 1 {
 			power = 200
 		} else if res <= 4 {
@@ -106,17 +106,19 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		}
 	} else if move.Name == "pursuit" && pursuit {
 		power *= 2
+	} else if move.Name == "knock-off" && !target.item.consumed {
+		power *= 2
 	}
 
-	if user.Ability == "technician" && move.Power <= 60 {
+	if user.ability == "technician" && move.Power <= 60 {
 		power = power * 3 / 2
-	} else if t, ok := pinchAbilities[user.Ability]; ok && t == moveType && user.Hp*3 <= user.maxHP() {
+	} else if t, ok := pinchAbilities[user.ability]; ok && t == moveType && user.hp*3 <= user.maxHP() {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.FlashFire && moveType == "fire" {
+	} else if user.flashFire && moveType == "fire" {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.Ability == "hustle" && move.Class == "physical" {
+	} else if user.ability == "hustle" && move.Class == "physical" {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.Ability == "merciless" {
+	} else if user.ability == "merciless" {
 		if a := target.hasAilment("poison"); a != nil {
 			*crit = true
 		} else if a := target.hasAilment("toxic"); a != nil {
@@ -124,7 +126,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		}
 	}
 
-	if _, ok := critBlockingAbilities[target.Ability]; ok && (forScoring || user.Ability != "mold-breaker") {
+	if _, ok := critBlockingAbilities[target.ability]; ok && (forScoring || user.ability != "mold-breaker") {
 		*crit = false
 	}
 
@@ -133,12 +135,12 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		denominator *= 2
 	}
 
-	if target.Ability == "dry-skin" && moveType == "fire" {
+	if target.ability == "dry-skin" && moveType == "fire" {
 		power = power * 5 / 4
 	}
 
 	if *crit {
-		if user.Ability == "sniper" {
+		if user.ability == "sniper" {
 			numerator *= 3
 			denominator *= 2
 		}
@@ -170,7 +172,7 @@ func calculateDamage(user, target *Pokemon, move *pokeapi.BaseMove, crit *bool, 
 		denominator *= 100
 	}
 
-	damage := ((((2*user.Level)/5)+2)*power*offensiveStat)/defensiveStat/50 + 2
+	damage := ((((2*user.level)/5)+2)*power*offensiveStat)/defensiveStat/50 + 2
 	damage = damage * numerator / denominator
 
 	target.checkItemTrigger(false, resistBerryEvent{
@@ -187,8 +189,8 @@ func roll(numerator int, denominator int) bool {
 	return rand.Intn(denominator) < numerator
 }
 
-func accuracyRoll(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove) bool {
-	if user.Ability == "no-guard" || target.Ability == "no-guard" {
+func accuracyRoll(user *pokemon, target *pokemon, move *pokeapi.BaseMove) bool {
+	if user.ability == "no-guard" || target.ability == "no-guard" {
 		return true
 	} else if move.Name == "toxic" && user.hasType("poison") {
 		return true
@@ -197,15 +199,15 @@ func accuracyRoll(user *Pokemon, target *Pokemon, move *pokeapi.BaseMove) bool {
 	}
 
 	moveAccuracy := move.Accuracy
-	if user.Ability == "hustle" && move.Class == "physical" {
+	if user.ability == "hustle" && move.Class == "physical" {
 		moveAccuracy = moveAccuracy * 80 / 100
 	}
 
 	accNum, accDen := user.accuracyFraction()
-	evNum, evDen := target.evasionFraction(user.Ability == "keen-eye")
+	evNum, evDen := target.evasionFraction(user.ability == "keen-eye")
 	numerator := moveAccuracy * accNum * evNum
 	denominator := 100 * accDen * evDen
-	if user.Ability == "compound-eyes" {
+	if user.ability == "compound-eyes" {
 		numerator *= 13
 		denominator *= 10
 	}
@@ -229,25 +231,25 @@ func determineHits(move *pokeapi.BaseMove) int {
 	return move.MaxHits
 }
 
-func determineCrit(user, target *Pokemon, move *pokeapi.BaseMove) *bool {
+func determineCrit(user, target *pokemon, move *pokeapi.BaseMove) *bool {
 	rate := determineCritRate(user, move)
 
 	return new(roll(1, critRateMap[rate]))
 }
 
-func determineCritRate(user *Pokemon, move *pokeapi.BaseMove) int {
-	if user.LaserFocus {
+func determineCritRate(user *pokemon, move *pokeapi.BaseMove) int {
+	if user.laserFocus {
 		return 3
 	}
 
 	rate := move.CritRate
-	if user.Item.name == "scope-lens" {
+	if user.item.name == "scope-lens" {
 		rate++
 	}
-	if user.Ability == "super-luck" {
+	if user.ability == "super-luck" {
 		rate++
 	}
-	if user.FocusEnergy {
+	if user.focusEnergy {
 		rate += 2
 	}
 
@@ -255,15 +257,15 @@ func determineCritRate(user *Pokemon, move *pokeapi.BaseMove) int {
 }
 
 func monFainted(bs battleState, slot *slot, pursuit bool) {
-	if slot.mon.Fainted {
+	if slot.mon.fainted {
 		return
 	}
 
-	slot.mon.Fainted = true
+	slot.mon.fainted = true
 	if !pursuit {
 		injectReplaceAction(bs, slot, false)
 	}
-	log.Printf("%s fainted!", slot.mon.Base.Name)
+	log.Printf("%s fainted!", slot.mon.base.Name)
 }
 
 func fetchPursuitMiddleware(name string) func(a action) bool {
@@ -275,7 +277,7 @@ func fetchPursuitMiddleware(name string) func(a action) bool {
 		if ma.move.Name != "pursuit" {
 			return false
 		}
-		if ma.targetSlot.mon.Base.Name != name {
+		if ma.targetSlot.mon.base.Name != name {
 			return false
 		}
 		return true

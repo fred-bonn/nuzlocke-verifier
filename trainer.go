@@ -5,7 +5,7 @@ import (
 )
 
 type trainer struct {
-	pokemonParty []*Pokemon
+	pokemonParty []*pokemon
 	player       bool
 	ai           ai
 	field        map[string]struct{}
@@ -20,20 +20,20 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	opponentSlots := bs.getOtherSlots(slot)
 
 	possibleActions := make([]*moveAction, 0)
-	if slot.mon.LockedMove != nil && slot.mon.LockedMove.PP > 0 {
+	if slot.mon.lockedMove != nil && slot.mon.lockedMove.PP > 0 {
 		for _, oppSlot := range opponentSlots {
 			possibleActions = append(possibleActions, &moveAction{
 				userSlot:   slot,
 				targetSlot: oppSlot,
-				move:       slot.mon.LockedMove,
+				move:       slot.mon.lockedMove,
 			})
 		}
 	} else {
-		for _, move := range slot.mon.Moves {
+		for _, move := range slot.mon.moves {
 			if move.PP <= 0 {
 				continue
 			}
-			if slot.mon.Item.name == "assault-vest" && move.Class != "status" {
+			if slot.mon.item.name == "assault-vest" && move.Class != "status" {
 				continue
 			}
 			for _, oppSlot := range opponentSlots {
@@ -60,19 +60,19 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	}
 
 	action, score := t.ai.evaluateActions(bs, possibleActions)
-	if strings.HasPrefix(slot.mon.Item.name, "choice") {
-		slot.mon.LockedMove = action.move
+	if strings.HasPrefix(slot.mon.item.name, "choice") {
+		slot.mon.lockedMove = action.move
 	}
 	if score > 0 {
 		return action
 	}
-	if roll(1, 2) || slot.mon.Hp <= slot.mon.maxHP()/2 || !slot.trainer.canReplace(bs) || slot.isTrapped() {
+	if roll(1, 2) || slot.mon.hp <= slot.mon.maxHP()/2 || !slot.trainer.canReplace(bs) || slot.isTrapped() {
 		return action
 	}
 
-	var possibleMons []*Pokemon
+	var possibleMons []*pokemon
 	for _, mon := range t.pokemonParty {
-		if mon == slot.mon || mon.Fainted || bs.getActions().containstSwitchTo(mon) {
+		if mon == slot.mon || mon.fainted || bs.getActions().containstSwitchTo(mon) {
 			continue
 		}
 		possibleMons = append(possibleMons, mon)
@@ -83,10 +83,10 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	}
 }
 
-func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *Pokemon {
-	var possibleMons []*Pokemon
+func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *pokemon {
+	var possibleMons []*pokemon
 	for _, mon := range t.pokemonParty {
-		if mon == slot.mon || mon.Fainted {
+		if mon == slot.mon || mon.fainted {
 			continue
 		}
 		possibleMons = append(possibleMons, mon)
@@ -103,7 +103,7 @@ func (t *trainer) selectSwitchIn(bs battleState, slot *slot) *Pokemon {
 func (t *trainer) canReplace(bs battleState) bool {
 	count := 0
 	for _, mon := range t.pokemonParty {
-		if !mon.Fainted {
+		if !mon.fainted {
 			count++
 		}
 		if count > 1 {

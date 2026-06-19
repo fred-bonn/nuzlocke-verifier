@@ -4,10 +4,10 @@ import (
 	"math/rand"
 )
 
-type Ailment struct {
-	Name        string
-	Turns       int
-	AfflictedBy *slot
+type ailment struct {
+	name        string
+	turns       int
+	afflictedBy *slot
 }
 
 var nonVolatileStatuses = map[string]struct{}{
@@ -28,28 +28,28 @@ var volatileStatuses = map[string]struct{}{
 	"yawn":        {},
 }
 
-func generateAilment(ailment string, afflictedBy *slot) *Ailment {
-	res := Ailment{
-		Name:        ailment,
-		AfflictedBy: afflictedBy,
+func generateAilment(ailmentName string, afflictedBy *slot) *ailment {
+	res := ailment{
+		name:        ailmentName,
+		afflictedBy: afflictedBy,
 	}
-	switch ailment {
+	switch ailmentName {
 	case "sleep":
-		res.Turns = rand.Intn(3) + 1
+		res.turns = rand.Intn(3) + 1
 	case "confusion":
-		res.Turns = rand.Intn(4) + 1
+		res.turns = rand.Intn(4) + 1
 	case "yawn":
-		res.Turns = 2
+		res.turns = 2
 	default:
-		res.Turns = 0
+		res.turns = 0
 	}
 	return &res
 }
 
-func generateTrap(low, high int, mon *slot) *Ailment {
-	return &Ailment{
-		Name:        "trap",
-		Turns:       rand.Intn(high-low+1) + low,
-		AfflictedBy: mon,
+func generateTrap(low, high int, mon *slot) *ailment {
+	return &ailment{
+		name:        "trap",
+		turns:       rand.Intn(high-low+1) + low,
+		afflictedBy: mon,
 	}
 }

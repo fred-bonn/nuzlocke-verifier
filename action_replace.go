@@ -21,11 +21,11 @@ func (ra *replaceAction) speed(bs battleState) int {
 
 func (ra *replaceAction) invoke(bs battleState) {
 	if ra.midTurn {
-		if a, ok := bs.getActions().queue.fetchBy(fetchPursuitMiddleware(ra.oldSlot.mon.Base.Name)); ok {
+		if a, ok := bs.getActions().queue.fetchBy(fetchPursuitMiddleware(ra.oldSlot.mon.base.Name)); ok {
 			p, _ := a.(*moveAction)
 			p.pursuit = true
 			p.invoke(bs)
-			if ra.oldSlot.mon.Fainted {
+			if ra.oldSlot.mon.fainted {
 				injectReplaceAction(bs, ra.oldSlot, false)
 				return
 			}
@@ -38,20 +38,20 @@ func (ra *replaceAction) invoke(bs battleState) {
 	}
 
 	for _, slot := range bs.getOtherSlots(ra.oldSlot) {
-		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
-			delete(slot.mon.Ailments, "infatuation")
+		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.afflictedBy == ra.oldSlot {
+			delete(slot.mon.ailments, "infatuation")
 		}
-		if ailment := slot.mon.hasAilment("trap"); ailment != nil && ailment.AfflictedBy == ra.oldSlot {
-			delete(slot.mon.Ailments, "infatuation")
+		if ailment := slot.mon.hasAilment("trap"); ailment != nil && ailment.afflictedBy == ra.oldSlot {
+			delete(slot.mon.ailments, "infatuation")
 		}
 	}
-	if f, ok := onSwitchAbilities[ra.oldSlot.mon.Ability]; ok {
+	if f, ok := onSwitchAbilities[ra.oldSlot.mon.ability]; ok {
 		f(ra.oldSlot, bs, false)
 	}
 
-	log.Printf("%s was sent out", mon.Base.Name)
+	log.Printf("%s was sent out", mon.base.Name)
 	ra.oldSlot.setMon(bs, mon)
-	if f, ok := onSwitchAbilities[ra.oldSlot.mon.Ability]; ok {
+	if f, ok := onSwitchAbilities[ra.oldSlot.mon.ability]; ok {
 		f(ra.oldSlot, bs, true)
 	}
 }

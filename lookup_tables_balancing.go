@@ -1,10 +1,10 @@
-package pokemon
+package main
 
 import (
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
-type MoveBalance struct {
+type moveBalance struct {
 	Power        *int
 	Accuracy     *int
 	PP           *int
@@ -12,7 +12,7 @@ type MoveBalance struct {
 	Type         *string
 }
 
-func (mb MoveBalance) Apply(m *pokeapi.BaseMove) {
+func (mb moveBalance) apply(m *pokeapi.BaseMove) {
 	if mb.Power != nil {
 		m.Power = *mb.Power
 	}
@@ -30,7 +30,7 @@ func (mb MoveBalance) Apply(m *pokeapi.BaseMove) {
 	}
 }
 
-var MoveBalanceMap = map[string]*MoveBalance{
+var moveBalanceMap = map[string]*moveBalance{
 	"absorb": {
 		Power: new(40),
 	},

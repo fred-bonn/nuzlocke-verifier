@@ -9,14 +9,13 @@ import (
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/parser"
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
 type config struct {
 	client pokeapi.Client
 }
 
-func (cfg *config) validateInput(trainerPath string) ([]*Pokemon, error) {
+func (cfg *config) validateInput(trainerPath string) ([]*pokemon, error) {
 	trainerFullPath, err := filepath.Abs(trainerPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting absolute path: %w", err)
@@ -38,8 +37,8 @@ func (cfg *config) validateInput(trainerPath string) ([]*Pokemon, error) {
 	return trainerParty, nil
 }
 
-func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*Pokemon, error) {
-	var res []*Pokemon
+func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error) {
+	var res []*pokemon
 
 	for _, mon := range mons {
 		var moves []*pokeapi.BaseMove
@@ -69,9 +68,9 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*Pokemon, error)
 		if err != nil {
 			return nil, err
 		}
-		finalPokemon.Item = item
+		finalPokemon.item = item
 
-		finalPokemon.Ability = cleanName(mon.Ability)
+		finalPokemon.ability = cleanName(mon.Ability)
 
 		res = append(res, &finalPokemon)
 	}
@@ -146,8 +145,8 @@ func (cfg *config) loadMove(name string) (pokeapi.BaseMove, error) {
 		writeToFile(fmt.Sprintf("data/moves/%s.json", name), data)
 	}
 
-	if mb, ok := pokemon.MoveBalanceMap[move.Name]; ok {
-		mb.Apply(&move)
+	if mb, ok := moveBalanceMap[move.Name]; ok {
+		mb.apply(&move)
 	}
 
 	return move, nil
@@ -158,7 +157,7 @@ func generateHiddenPower(name string) (pokeapi.BaseMove, error) {
 	if len(parts) != 3 {
 		return pokeapi.BaseMove{}, fmt.Errorf("type not specified for hidden power")
 	}
-	if _, ok := pokemon.TypeChart[parts[2]]; !ok {
+	if _, ok := typeChart[parts[2]]; !ok {
 		return pokeapi.BaseMove{}, fmt.Errorf("invalid type for hidden power")
 	}
 

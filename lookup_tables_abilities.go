@@ -24,7 +24,7 @@ func trace(s *slot, bs battleState, switchIn bool) {
 		return
 	}
 
-	opponentMons := make([]*Pokemon, 0)
+	opponentMons := make([]*pokemon, 0)
 	for _, slot := range bs.getOtherSlots(s) {
 		if slot.trainer == s.trainer {
 			continue
@@ -32,15 +32,15 @@ func trace(s *slot, bs battleState, switchIn bool) {
 		opponentMons = append(opponentMons, slot.mon)
 	}
 
-	s.mon.Ability = opponentMons[rand.Int()%len(opponentMons)].Ability
-	s.mon.Trace = true
-	log.Printf("%s traced %s", s.mon.Base.Name, s.mon.Ability)
+	s.mon.ability = opponentMons[rand.Int()%len(opponentMons)].ability
+	s.mon.trace = true
+	log.Printf("%s traced %s", s.mon.base.Name, s.mon.ability)
 }
 
 func unnerve(s *slot, bs battleState, switchIn bool) {
 	for _, otherSlot := range bs.getOtherSlots(s) {
 		if s.trainer != otherSlot.trainer {
-			otherSlot.mon.Unnerved = switchIn
+			otherSlot.mon.unnerved = switchIn
 			otherSlot.mon.checkItemTrigger(true, nil)
 		}
 	}
@@ -55,7 +55,7 @@ func intimidate(s *slot, bs battleState, switchIn bool) {
 		if slot.trainer == s.trainer {
 			continue
 		}
-		if slot.mon.Ability == "inner-focus" {
+		if slot.mon.ability == "inner-focus" {
 			continue
 		}
 		slot.mon.changeStatStageBy("attack", -1, true)
@@ -63,7 +63,7 @@ func intimidate(s *slot, bs battleState, switchIn bool) {
 }
 
 func regenerator(s *slot, bs battleState, switchIn bool) {
-	if switchIn || s.mon.Fainted {
+	if switchIn || s.mon.fainted {
 		return
 	}
 
@@ -76,7 +76,7 @@ func naturalCure(s *slot, bs battleState, switchIn bool) {
 	}
 
 	for ailment := range nonVolatileStatuses {
-		delete(s.mon.Ailments, ailment)
+		delete(s.mon.ailments, ailment)
 	}
 }
 
@@ -104,7 +104,7 @@ func typeConvertingAbilitiesMiddleware(t1 string) func(t *string, p *int) {
 	}
 }
 
-var typeImmunityAbilities = map[string]func(u *Pokemon, t string, s bool) bool{
+var typeImmunityAbilities = map[string]func(u *pokemon, t string, s bool) bool{
 	"flash-fire":    flashFire,
 	"dry-skin":      drySkin,
 	"water-absorb":  drySkin,
@@ -116,28 +116,28 @@ var typeImmunityAbilities = map[string]func(u *Pokemon, t string, s bool) bool{
 	"levitate":      levitate,
 }
 
-func flashFire(p *Pokemon, t string, s bool) bool {
+func flashFire(p *pokemon, t string, s bool) bool {
 	if t != "fire" {
 		return false
 	}
-	p.FlashFire = true
+	p.flashFire = true
 	return true
 }
 
 // still need to implement sunlight penalty
-func drySkin(p *Pokemon, t string, s bool) bool {
+func drySkin(p *pokemon, t string, s bool) bool {
 	if t != "water" {
 		return false
 	}
 	if s {
 		return true
 	}
-	log.Printf("%s restored health with %s", p.Base.Name, p.Ability)
+	log.Printf("%s restored health with %s", p.base.Name, p.ability)
 	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
 
-func stormDrain(p *Pokemon, t string, s bool) bool {
+func stormDrain(p *pokemon, t string, s bool) bool {
 	if t != "water" {
 		return false
 	}
@@ -148,19 +148,19 @@ func stormDrain(p *Pokemon, t string, s bool) bool {
 	return true
 }
 
-func voltAbsorb(p *Pokemon, t string, s bool) bool {
+func voltAbsorb(p *pokemon, t string, s bool) bool {
 	if t != "electric" {
 		return false
 	}
 	if s {
 		return true
 	}
-	log.Printf("%s restored health with %s", p.Base.Name, p.Ability)
+	log.Printf("%s restored health with %s", p.base.Name, p.ability)
 	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
 
-func lightningRod(p *Pokemon, t string, s bool) bool {
+func lightningRod(p *pokemon, t string, s bool) bool {
 	if t != "electric" {
 		return false
 	}
@@ -171,7 +171,7 @@ func lightningRod(p *Pokemon, t string, s bool) bool {
 	return true
 }
 
-func motorDrive(p *Pokemon, t string, s bool) bool {
+func motorDrive(p *pokemon, t string, s bool) bool {
 	if t != "electric" {
 		return false
 	}
@@ -182,7 +182,7 @@ func motorDrive(p *Pokemon, t string, s bool) bool {
 	return true
 }
 
-func sapSipper(p *Pokemon, t string, s bool) bool {
+func sapSipper(p *pokemon, t string, s bool) bool {
 	if t != "grass" {
 		return false
 	}
@@ -193,7 +193,7 @@ func sapSipper(p *Pokemon, t string, s bool) bool {
 	return true
 }
 
-func levitate(p *Pokemon, t string, s bool) bool {
+func levitate(p *pokemon, t string, s bool) bool {
 	return t == "ground"
 }
 
@@ -222,7 +222,7 @@ var contactDefensiveAbilities = map[string]func(u, t *slot){
 func roughSkin(u, t *slot) {
 	change := u.mon.maxHP() * 1 / 8
 	u.mon.changeHpBy(-change)
-	log.Printf("%s was hurt by %s", u.mon.Base.Name, t.mon.Ability)
+	log.Printf("%s was hurt by %s", u.mon.base.Name, t.mon.ability)
 }
 
 func cuteCharm(u, t *slot) {
@@ -244,7 +244,7 @@ func poisonPoint(u, t *slot) {
 }
 
 func effectSpore(u, t *slot) {
-	if u.mon.hasType("grass") || u.mon.Ability == "overcoat" || u.mon.Item.name == "safety-goggles" {
+	if u.mon.hasType("grass") || u.mon.ability == "overcoat" || u.mon.item.name == "safety-goggles" {
 		return
 	}
 	if roll(30, 100) {
@@ -269,10 +269,10 @@ func poisonTouch(u, t *slot) {
 	}
 }
 
-func cheekPouch(mon *Pokemon) {
-	if mon.Ability == "cheek-pouch" {
+func cheekPouch(mon *pokemon) {
+	if mon.ability == "cheek-pouch" {
 		restore := mon.maxHP() / 3
 		mon.changeHpBy(restore)
-		log.Printf("%s ate its cheek pouch and restored %d hp", mon.Base.Name, restore)
+		log.Printf("%s ate its cheek pouch and restored %d hp", mon.base.Name, restore)
 	}
 }

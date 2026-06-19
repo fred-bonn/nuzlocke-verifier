@@ -6,29 +6,28 @@ import (
 	"slices"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokemon"
 )
 
-type Pokemon struct {
-	Base        pokeapi.BasePokemon
-	Level       int
-	IVs         map[string]int
-	Nature      []string
-	Moves       []*pokeapi.BaseMove
-	LockedMove  *pokeapi.BaseMove
-	Stats       map[string]int
-	Stages      map[string]int
-	Hp          int
-	Fainted     bool
-	Ailments    map[string]*Ailment
-	Item        *item
-	Ability     string
-	Unnerved    bool
-	FlashFire   bool
-	Unburden    bool
-	Trace       bool
-	FocusEnergy bool
-	LaserFocus  bool
+type pokemon struct {
+	base        pokeapi.BasePokemon
+	level       int
+	ivs         map[string]int
+	nature      []string
+	moves       []*pokeapi.BaseMove
+	lockedMove  *pokeapi.BaseMove
+	stats       map[string]int
+	stages      map[string]int
+	hp          int
+	fainted     bool
+	ailments    map[string]*ailment
+	item        *item
+	ability     string
+	unnerved    bool
+	flashFire   bool
+	unburden    bool
+	trace       bool
+	focusEnergy bool
+	laserFocus  bool
 }
 
 var ivMap = map[string]string{
@@ -40,20 +39,58 @@ var ivMap = map[string]string{
 	"spe": "speed",
 }
 
-func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature string, moves []*pokeapi.BaseMove, hp int, status string) (Pokemon, error) {
+var natureChart = map[string][]string{
+	"hardy":   {"attack", "attack"},
+	"lonely":  {"attack", "defense"},
+	"adamant": {"attack", "special-attack"},
+	"naughty": {"attack", "special-defense"},
+	"brave":   {"attack", "speed"},
+	"bold":    {"defense", "attack"},
+	"docile":  {"defense", "defense"},
+	"impish":  {"defense", "special-attack"},
+	"lax":     {"defense", "special-defense"},
+	"relaxed": {"defense", "speed"},
+	"modest":  {"special-attack", "attack"},
+	"mild":    {"special-attack", "defense"},
+	"bashful": {"special-attack", "special-attack"},
+	"rash":    {"special-attack", "special-defense"},
+	"quiet":   {"special-attack", "speed"},
+	"calm":    {"special-defense", "attack"},
+	"gentle":  {"special-defense", "defense"},
+	"careful": {"special-defense", "speed"},
+	"quirky":  {"special-defense", "special-defense"},
+	"sassy":   {"special-defense", "speed"},
+	"timid":   {"speed", "attack"},
+	"hasty":   {"speed", "defense"},
+	"jolly":   {"speed", "special-attack"},
+	"naive":   {"speed", "special-defense"},
+	"serious": {"speed", "speed"},
+}
+
+func getNature(nature string) ([]string, error) {
+	res, ok := natureChart[nature]
+	if !ok {
+		return nil, fmt.Errorf("invalid nature: %s", nature)
+	}
+
+	return res, nil
+
+}
+
+func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature string, moves []*pokeapi.BaseMove, hp int, status string) (pokemon, error) {
 	if level < 1 || level > 100 {
-		return Pokemon{}, fmt.Errorf("invalid level: %d", level)
+		return pokemon{}, fmt.Errorf("invalid level: %d", level)
 	}
 
-	nat, err := pokemon.GetNature(nature)
+	nat, err := getNature(nature)
 	if err != nil {
-		return Pokemon{}, err
+		return pokemon{}, err
 	}
 
-	res := Pokemon{
-		Base:  base,
-		Level: level,
-		IVs: map[string]int{
+	res := pokemon{
+		base:  base,
+		level: level,
+		ivs: map[string]int{
 			"hp":              31,
 			"attack":          31,
 			"defense":         31,
@@ -61,10 +98,10 @@ func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature
 			"special-attack":  31,
 			"special-defense": 31,
 		},
-		Nature: nat,
-		Moves:  moves,
-		Stats:  make(map[string]int, 6),
-		Stages: map[string]int{
+		nature: nat,
+		moves:  moves,
+		stats:  make(map[string]int, 6),
+		stages: map[string]int{
 			"attack":          0,
 			"defense":         0,
 			"speed":           0,
@@ -73,9 +110,9 @@ func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature
 			"accuracy":        0,
 			"evasion":         0,
 		},
-		Hp:       0,
-		Fainted:  false,
-		Ailments: make(map[string]*Ailment),
+		hp:       0,
+		fainted:  false,
+		ailments: make(map[string]*ailment),
 	}
 
 	setIVs(&res, ivs)
@@ -86,75 +123,75 @@ func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature
 		hp = res.maxHP()
 	}
 
-	res.Hp = max(1, min(res.maxHP(), hp))
+	res.hp = max(1, min(res.maxHP(), hp))
 
 	if _, ok := nonVolatileStatuses[status]; ok {
-		res.Ailments[status] = generateAilment(status, nil)
+		res.ailments[status] = generateAilment(status, nil)
 	}
 
 	return res, nil
 }
 
-func setIVs(pokemon *Pokemon, ivs map[string]int) {
+func setIVs(pokemon *pokemon, ivs map[string]int) {
 	for key, val := range ivs {
 		key = ivMap[key]
-		pokemon.IVs[key] = max(0, min(31, val))
+		pokemon.ivs[key] = max(0, min(31, val))
 	}
 }
 
-func calculateStats(pokemon *Pokemon) {
-	for key, val := range pokemon.Base.Stats {
-		pokemon.Stats[key] = ((val*2+pokemon.IVs[key])*pokemon.Level)/100 + 5
+func calculateStats(pokemon *pokemon) {
+	for key, val := range pokemon.base.Stats {
+		pokemon.stats[key] = ((val*2+pokemon.ivs[key])*pokemon.level)/100 + 5
 	}
 	// Shedinja case: if HP is 1, it stays 1 regardless of level or IVs
-	if pokemon.Stats["hp"] == 1 {
-		pokemon.Stats["hp"] = 1
+	if pokemon.stats["hp"] == 1 {
+		pokemon.stats["hp"] = 1
 	} else {
-		pokemon.Stats["hp"] += pokemon.Level + 5
+		pokemon.stats["hp"] += pokemon.level + 5
 	}
 
 	// Apply nature modifiers
-	posNat := pokemon.Nature[0]
-	negNat := pokemon.Nature[1]
+	posNat := pokemon.nature[0]
+	negNat := pokemon.nature[1]
 
 	if posNat != negNat {
-		pokemon.Stats[posNat] = (pokemon.Stats[posNat] * 110) / 100
-		pokemon.Stats[negNat] = (pokemon.Stats[negNat] * 90) / 100
+		pokemon.stats[posNat] = (pokemon.stats[posNat] * 110) / 100
+		pokemon.stats[negNat] = (pokemon.stats[negNat] * 90) / 100
 	}
 }
 
-func (p *Pokemon) switchReset() {
+func (p *pokemon) switchReset() {
 	for a := range volatileStatuses {
-		delete(p.Ailments, a)
+		delete(p.ailments, a)
 	}
 
-	for stat := range p.Stages {
-		p.Stages[stat] = 0
+	for stat := range p.stages {
+		p.stages[stat] = 0
 	}
 
-	if toxic, ok := p.Ailments["toxic"]; ok {
-		toxic.Turns = 0
+	if toxic, ok := p.ailments["toxic"]; ok {
+		toxic.turns = 0
 	}
 
-	if p.Trace {
-		p.Trace = false
-		p.Ability = "trace"
+	if p.trace {
+		p.trace = false
+		p.ability = "trace"
 	}
 
-	p.LockedMove = nil
-	p.FlashFire = false
-	p.Unburden = false
-	p.FocusEnergy = false
-	p.LaserFocus = false
+	p.lockedMove = nil
+	p.flashFire = false
+	p.unburden = false
+	p.focusEnergy = false
+	p.laserFocus = false
 }
 
-func (p *Pokemon) effectiveStat(stat string, crit bool) int {
-	if _, ok := p.Stages[stat]; !ok {
+func (p *pokemon) effectiveStat(stat string, crit bool) int {
+	if _, ok := p.stages[stat]; !ok {
 		panic("invalid stat")
 	}
 
-	stage := p.Stages[stat]
-	base := p.Stats[stat]
+	stage := p.stages[stat]
+	base := p.stats[stat]
 
 	if crit {
 		switch stat {
@@ -171,18 +208,18 @@ func (p *Pokemon) effectiveStat(stat string, crit bool) int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) effectiveSpeed(bs battleState) int {
-	stage := p.Stages["speed"]
-	base := p.Stats["speed"]
+func (p *pokemon) effectiveSpeed(bs battleState) int {
+	stage := p.stages["speed"]
+	base := p.stats["speed"]
 	numerator := 1
 	denominator := 1
 
-	if p.Item.name == "iron-ball" {
+	if p.item.name == "iron-ball" {
 		denominator *= 2
-	} else if p.Unburden && p.Ability == "unburden" {
+	} else if p.unburden && p.ability == "unburden" {
 		numerator *= 2
 	}
-	if _, ok := p.Ailments["paralysis"]; ok {
+	if _, ok := p.ailments["paralysis"]; ok {
 		denominator *= 4
 	}
 
@@ -194,16 +231,16 @@ func (p *Pokemon) effectiveSpeed(bs battleState) int {
 	return base * 2 / (2 - stage)
 }
 
-func (p *Pokemon) isFasterThan(bs battleState, mon *Pokemon) bool {
+func (p *pokemon) isFasterThan(bs battleState, mon *pokemon) bool {
 	return p.effectiveSpeed(bs) >= mon.effectiveSpeed(bs)
 }
 
-func (p *Pokemon) evasionFraction(keenEye bool) (int, int) {
+func (p *pokemon) evasionFraction(keenEye bool) (int, int) {
 	if keenEye {
 		return 1, 1
 	}
 
-	stage := p.Stages["evasion"]
+	stage := p.stages["evasion"]
 	if stage == 0 {
 		return 3, 3
 	} else if stage > 0 {
@@ -212,8 +249,8 @@ func (p *Pokemon) evasionFraction(keenEye bool) (int, int) {
 	return 3 - stage, 3
 }
 
-func (p *Pokemon) accuracyFraction() (int, int) {
-	stage := p.Stages["accuracy"]
+func (p *pokemon) accuracyFraction() (int, int) {
+	stage := p.stages["accuracy"]
 	if stage == 0 {
 		return 3, 3
 	} else if stage > 0 {
@@ -222,8 +259,8 @@ func (p *Pokemon) accuracyFraction() (int, int) {
 	return 3, 3 - stage
 }
 
-func (p *Pokemon) hasType(typeName string) bool {
-	for _, t := range p.Base.Types {
+func (p *pokemon) hasType(typeName string) bool {
+	for _, t := range p.base.Types {
 		if typeName == t {
 			return true
 		}
@@ -231,30 +268,30 @@ func (p *Pokemon) hasType(typeName string) bool {
 	return false
 }
 
-func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflictedBy *slot) {
+func (p *pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflictedBy *slot) {
 	if _, ok := volatileStatuses[ailment]; !ok {
 		if _, ok := nonVolatileStatuses[ailment]; !ok {
 			panic("invalid ailment")
 		}
 	}
 
-	if _, ok := p.Ailments[ailment]; ok {
+	if _, ok := p.ailments[ailment]; ok {
 		return
 	}
 	if _, ok := nonVolatileStatuses[ailment]; ok && p.hasNonVolatileAilment() {
 		return
 	}
-	if ailment == "burn" && (p.hasType("fire") || p.Ability == "water-veil") {
+	if ailment == "burn" && (p.hasType("fire") || p.ability == "water-veil") {
 		return
 	}
-	if ailment == "paralysis" && (p.hasType("electric") || p.Ability == "limber") {
+	if ailment == "paralysis" && (p.hasType("electric") || p.ability == "limber") {
 		return
 	}
 	if ailment == "poison" || ailment == "toxic" {
-		if p.Ability == "immunity" {
+		if p.ability == "immunity" {
 			return
 		}
-		if (p.hasType("poison") || p.hasType("steel")) && (afflictedBy == nil || afflictedBy.mon.Ability != "corrosion") {
+		if (p.hasType("poison") || p.hasType("steel")) && (afflictedBy == nil || afflictedBy.mon.ability != "corrosion") {
 			return
 		}
 	}
@@ -262,46 +299,46 @@ func (p *Pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 		return
 	}
 	if ailment == "sleep" {
-		if _, ok := sleepBlockingAbilities[p.Ability]; ok {
+		if _, ok := sleepBlockingAbilities[p.ability]; ok {
 			return
 		}
 	}
 	if ailment == "yawn" {
-		if _, ok := sleepBlockingAbilities[p.Ability]; ok || p.hasNonVolatileAilment() {
+		if _, ok := sleepBlockingAbilities[p.ability]; ok || p.hasNonVolatileAilment() {
 			return
 		}
 	}
 
 	switch ailment {
 	case "trap":
-		p.Ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
+		p.ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
 	case "poison":
 		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
 			ailment = "toxic"
 		}
 	case "infatuation":
-		if afflictedBy.mon.Ability == "oblivious" {
+		if afflictedBy.mon.ability == "oblivious" {
 			return
 		}
 	}
 
-	p.Ailments[ailment] = generateAilment(ailment, afflictedBy)
-	log.Printf("%s became afflicted with %s", p.Base.Name, ailment)
-	if _, ok := nonVolatileStatuses[ailment]; ok && p.Ability == "synchronize" {
+	p.ailments[ailment] = generateAilment(ailment, afflictedBy)
+	log.Printf("%s became afflicted with %s", p.base.Name, ailment)
+	if _, ok := nonVolatileStatuses[ailment]; ok && p.ability == "synchronize" {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
 	p.checkItemTrigger(true, nil)
 }
 
-func (p *Pokemon) hasAilment(ailment string) *Ailment {
-	if a, ok := p.Ailments[ailment]; ok {
+func (p *pokemon) hasAilment(ailment string) *ailment {
+	if a, ok := p.ailments[ailment]; ok {
 		return a
 	}
 	return nil
 }
 
-func (p *Pokemon) hasNonVolatileAilment() bool {
+func (p *pokemon) hasNonVolatileAilment() bool {
 	for ailment := range nonVolatileStatuses {
 		if p.hasAilment(ailment) != nil {
 			return true
@@ -310,55 +347,55 @@ func (p *Pokemon) hasNonVolatileAilment() bool {
 	return false
 }
 
-func (p *Pokemon) isGrounded() bool {
-	if p.Item.name == "iron-ball" {
+func (p *pokemon) isGrounded() bool {
+	if p.item.name == "iron-ball" {
 		return true
 	}
-	if p.hasType("flying") || p.Ability == "levitate" {
+	if p.hasType("flying") || p.ability == "levitate" {
 		return false
 	}
 	return true
 }
 
-func (p *Pokemon) changeHpBy(change int) {
-	p.Hp = min(p.Hp+change, p.maxHP())
+func (p *pokemon) changeHpBy(change int) {
+	p.hp = min(p.hp+change, p.maxHP())
 	p.checkItemTrigger(true, nil)
 }
 
-func (p *Pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
-	return slices.ContainsFunc(p.Moves, f)
+func (p *pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
+	return slices.ContainsFunc(p.moves, f)
 }
 
-func (p *Pokemon) changeStatStageBy(stat string, change int, offensive bool) {
-	if offensive && (p.Ability == "clear-smoke" || p.Ability == "clear-body") {
+func (p *pokemon) changeStatStageBy(stat string, change int, offensive bool) {
+	if offensive && (p.ability == "clear-smoke" || p.ability == "clear-body") {
 		log.Printf("blocked by clear body")
 		return
 	}
-	if p.Ability == "keen-eye" && stat == "accuracy" && change < 0 {
+	if p.ability == "keen-eye" && stat == "accuracy" && change < 0 {
 		return
 	}
 
-	p.Stages[stat] = max(-6, min(6, p.Stages[stat]+change))
-	log.Printf("%s's %s changed by %d stages (%d)", p.Base.Name, stat, change, p.Stages[stat])
+	p.stages[stat] = max(-6, min(6, p.stages[stat]+change))
+	log.Printf("%s's %s changed by %d stages (%d)", p.base.Name, stat, change, p.stages[stat])
 }
 
-func (p *Pokemon) maxHP() int {
-	return p.Stats["hp"]
+func (p *pokemon) maxHP() int {
+	return p.stats["hp"]
 }
 
-func (p *Pokemon) serenceGraceBonus() int {
-	if p.Ability == "serence-grace" {
+func (p *pokemon) serenceGraceBonus() int {
+	if p.ability == "serence-grace" {
 		return 2
 	}
 	return 1
 }
 
-func (p *Pokemon) applyMoveType(num, dem int, moveType string) (int, int) {
-	for _, t := range p.Base.Types {
+func (p *pokemon) applyMoveType(num, dem int, moveType string) (int, int) {
+	for _, t := range p.base.Types {
 		if t == "flying" && moveType == "ground" && p.isGrounded() {
 			continue
 		}
-		switch pokemon.GetEffectiveness(moveType, t) {
+		switch getEffectiveness(moveType, t) {
 		case 0:
 			num = 0
 		case 0.5:

@@ -3,7 +3,7 @@ package main
 import "log"
 
 type slot struct {
-	mon                *Pokemon
+	mon                *pokemon
 	trainer            *trainer
 	firstTurn          bool
 	suckerPunch        bool
@@ -13,19 +13,19 @@ type slot struct {
 	unnerved           bool
 }
 
-func (s *slot) setMon(bs battleState, new *Pokemon) {
+func (s *slot) setMon(bs battleState, new *pokemon) {
 	s.mon.switchReset()
 	s.firstTurn = true
 	s.suckerPunch = false
 
-	new.Unnerved = s.mon.Unnerved
+	new.unnerved = s.mon.unnerved
 	s.mon = new
 	for effect := range s.trainer.field {
 		if effect == "stealth-rock" {
-			log.Printf("%s took damage from stealth rock", s.mon.Base.Name)
+			log.Printf("%s took damage from stealth rock", s.mon.base.Name)
 			num, dem := s.mon.applyMoveType(1, 1, "rock")
 			s.mon.changeHpBy(-s.mon.maxHP() / 8 * num / dem)
-			if s.mon.Hp <= 0 {
+			if s.mon.hp <= 0 {
 				monFainted(bs, s, false)
 			}
 			continue
@@ -35,7 +35,7 @@ func (s *slot) setMon(bs battleState, new *Pokemon) {
 		}
 		switch effect {
 		case "spikes":
-			log.Printf("%s took damage from spikes", s.mon.Base.Name)
+			log.Printf("%s took damage from spikes", s.mon.base.Name)
 			s.mon.changeHpBy(-s.mon.maxHP() / 8)
 		case "toxic-spikes":
 			s.mon.applyAilment("poison", nil, nil)
