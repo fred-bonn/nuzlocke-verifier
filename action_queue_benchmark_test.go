@@ -8,7 +8,7 @@ type benchAction struct {
 }
 
 func (ba *benchAction) invoke(bs battleState)    {}
-func (ba *benchAction) prio() int                { return ba.priority }
+func (ba *benchAction) prio(bs battleState) int  { return ba.priority }
 func (ba *benchAction) speed(bs battleState) int { return ba.spd }
 
 type benchBattleState struct {

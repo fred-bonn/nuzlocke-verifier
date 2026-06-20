@@ -35,7 +35,7 @@ func (sa *switchAction) invoke(bs battleState) {
 	}
 }
 
-func (sa *switchAction) prio() int {
+func (sa *switchAction) prio(bs battleState) int {
 	return 10
 }
 

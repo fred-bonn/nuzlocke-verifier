@@ -6,7 +6,7 @@ import (
 
 type action interface {
 	invoke(bs battleState)
-	prio() int
+	prio(bs battleState) int
 	speed(bs battleState) int
 }
 
@@ -73,10 +73,10 @@ type actionQueue struct {
 
 func (a *actionQueue) sort(bs battleState) {
 	cmp := func(b, c action) int {
-		if b.prio() > c.prio() {
+		if b.prio(bs) > c.prio(bs) {
 			return 1
 		}
-		if b.prio() < c.prio() {
+		if b.prio(bs) < c.prio(bs) {
 			return -1
 		}
 		if b.speed(bs) > c.speed(bs) {

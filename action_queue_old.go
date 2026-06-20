@@ -13,9 +13,9 @@ func (aq ActionQueueOld) Len() int {
 }
 
 func (aq ActionQueueOld) Less(i, j int) bool {
-	if aq[i].prio() < aq[j].prio() {
+	if aq[i].prio(nil) < aq[j].prio(nil) {
 		return true
-	} else if aq[i].prio() > aq[j].prio() {
+	} else if aq[i].prio(nil) > aq[j].prio(nil) {
 		return false
 	} else if aq[i].speed(nil) < aq[j].speed(nil) {
 		return true

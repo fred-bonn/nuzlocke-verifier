@@ -15,7 +15,7 @@ type moveAction struct {
 	pursuit    bool
 }
 
-func (ma *moveAction) prio() int {
+func (ma *moveAction) prio(bs battleState) int {
 	bonus := 0
 	if ma.userSlot.mon.ability == "prankster" && ma.move.Class == "status" {
 		bonus++

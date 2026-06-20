@@ -8,7 +8,7 @@ type replaceAction struct {
 	midTurn bool
 }
 
-func (ra *replaceAction) prio() int {
+func (ra *replaceAction) prio(bs battleState) int {
 	if ra.midTurn {
 		return 10
 	}
