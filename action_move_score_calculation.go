@@ -18,7 +18,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 		rolls = ma.move.MaxHits
 	}
 	for i := 0; i < rolls; i++ {
-		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, new(critRate >= 3), false, true, false)
+		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, new(critRate >= 3), bs.getWeather(), false, true, false)
 	}
 
 	ma.targetSlot.mon.checkItemTrigger(false, focusSashEvent{
@@ -81,11 +81,11 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 			return -64
 		}
 	case "toxic":
-		return ma.scoreToxic()
+		return ma.scoreToxic(bs)
 	case "focus-energy", "laser-focus":
 		return ma.scoreCritStatus()
 	case "belly-drum":
-		return ma.scoreBellyDrum()
+		return ma.scoreBellyDrum(bs)
 	}
 
 	return 6
@@ -96,7 +96,7 @@ func (ma *moveAction) shouldMonHeal(bs battleState) bool {
 		return false
 	}
 
-	maxDmg := calculateMaxDamage(ma.targetSlot.mon, ma.userSlot.mon, true)
+	maxDmg := calculateMaxDamage(bs, ma.targetSlot.mon, ma.userSlot.mon, true)
 	if maxDmg >= ma.userSlot.mon.maxHP()*ma.move.Heal/100 {
 		return false
 	}
@@ -165,7 +165,7 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 	}
 
 	score := 6
-	maxDmg := calculateMaxDamage(target, ma.userSlot.mon, true)
+	maxDmg := calculateMaxDamage(bs, target, ma.userSlot.mon, true)
 	if maxDmg < user.hp && roll(1, 2) {
 		if user.hasMovePredicate(isHex) {
 			score += 1
@@ -189,7 +189,7 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 	return score
 }
 
-func (ma *moveAction) scoreToxic() int {
+func (ma *moveAction) scoreToxic(bs battleState) int {
 	target := ma.targetSlot.mon
 	user := ma.userSlot.mon
 
@@ -204,7 +204,7 @@ func (ma *moveAction) scoreToxic() int {
 	}
 
 	score := 6
-	maxDmg := calculateMaxDamage(target, user, true)
+	maxDmg := calculateMaxDamage(bs, target, user, true)
 	if maxDmg < user.hp && roll(19, 50) {
 		if !target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
 			return m.Class == "physical" || m.Class == "special"
@@ -252,17 +252,23 @@ func (ma *moveAction) scoreProtectMove(bs battleState) int {
 }
 
 func deadToSecondaryDamage(mon *pokemon, bs battleState) bool {
-	// update when weather is implemented
+	if mon.ability == "magic-guard" {
+		return false
+	}
+
 	dmg := 0
-	if a := mon.hasAilment("burn"); a != nil {
+	if mon.hasAilment("burn") != nil {
 		dmg += mon.maxHP() / 16
-	} else if a := mon.hasAilment("poison"); a != nil {
+	} else if mon.hasAilment("poison") != nil {
 		dmg += mon.maxHP() / 8
 	} else if a := mon.hasAilment("toxic"); a != nil {
 		dmg += (mon.maxHP() * (a.turns + 1)) / 16
 	}
-	if a := mon.hasAilment("trap"); a != nil {
+	if mon.hasAilment("trap") != nil {
 		dmg += mon.maxHP() / 8
+	}
+	if bs.getWeather().affectsMon(mon) {
+		dmg += mon.maxHP() / 16
 	}
 
 	return dmg >= mon.hp
@@ -290,7 +296,7 @@ func (ma *moveAction) scoreCritStatus() int {
 	return 6
 }
 
-func (ma *moveAction) scoreBellyDrum() int {
+func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 	user := ma.userSlot.mon
 	target := ma.targetSlot.mon
 
@@ -306,7 +312,7 @@ func (ma *moveAction) scoreBellyDrum() int {
 		return 9
 	}
 
-	dmg := calculateMaxDamage(target, user, true)
+	dmg := calculateMaxDamage(bs, target, user, true)
 	threshhold := user.maxHP() / 2
 	if user.item.name == "sitrus-berry" {
 		threshhold += user.maxHP() / 4

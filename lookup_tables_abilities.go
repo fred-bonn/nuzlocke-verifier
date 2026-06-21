@@ -17,6 +17,10 @@ var onSwitchAbilities = map[string]func(s *slot, bs battleState, switchIn bool){
 	"intimidate":   intimidate,
 	"regenerator":  regenerator,
 	"natural-cure": naturalCure,
+	"drizzle":      drizzle,
+	"drought":      drought,
+	"snow-warning": snowWarning,
+	"sand-stream":  sandStream,
 }
 
 func trace(s *slot, bs battleState, switchIn bool) {
@@ -78,6 +82,38 @@ func naturalCure(s *slot, bs battleState, switchIn bool) {
 	for ailment := range nonVolatileStatuses {
 		delete(s.mon.ailments, ailment)
 	}
+}
+
+func drizzle(s *slot, bs battleState, switchIn bool) {
+	if !switchIn {
+		return
+	}
+	log.Println("it started to rain")
+	bs.setWeather(Rain, 0)
+}
+
+func drought(s *slot, bs battleState, switchIn bool) {
+	if !switchIn {
+		return
+	}
+	log.Println("the sunlight turned harsh")
+	bs.setWeather(Sun, 0)
+}
+
+func snowWarning(s *slot, bs battleState, switchIn bool) {
+	if !switchIn {
+		return
+	}
+	log.Println("it started to hail")
+	bs.setWeather(Hail, 0)
+}
+
+func sandStream(s *slot, bs battleState, switchIn bool) {
+	if !switchIn {
+		return
+	}
+	log.Println("a sandstorm brewed")
+	bs.setWeather(Sandstorm, 0)
 }
 
 var typeConvertingAbilities = map[string]func(t *string, p *int){

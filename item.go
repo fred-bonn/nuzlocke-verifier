@@ -68,6 +68,7 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"iron-ball":      makePassiveItemMiddleware("iron-ball"),
 	"scope-lens":     makePassiveItemMiddleware("scope-lens"),
 	"leftovers":      makePassiveItemMiddleware("leftovers"),
+	"safety-goggles": makePassiveItemMiddleware("safety-goggles"),
 	"mystic-water":   makeTypeBoostingItemMiddleware("mystic-water", "water"),
 	"dragon-fang":    makeTypeBoostingItemMiddleware("dragon-fang", "dragon"),
 	"silver-powder":  makeTypeBoostingItemMiddleware("silver-powder", "bug"),

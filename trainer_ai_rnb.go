@@ -129,7 +129,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 					rolls = move.MaxHits
 				}
 				for i := 0; i < rolls; i++ {
-					dmg += calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, new(critRate >= 3), false, true, false)
+					dmg += calculateDamage(a.targetSlot.mon, a.userSlot.mon, move, new(critRate >= 3), bs.getWeather(), false, true, false)
 				}
 				if a.userSlot.mon.hp <= dmg {
 					scores[i] += 11
@@ -212,8 +212,8 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot 
 
 		outspeeds := mon.isFasterThan(bs, opponent)
 
-		monDamage := calculateMaxDamage(mon, opponent, false)
-		opponentDamage := calculateMaxDamage(opponent, mon, false)
+		monDamage := calculateMaxDamage(bs, mon, opponent, false)
+		opponentDamage := calculateMaxDamage(bs, opponent, mon, false)
 
 		killsOpponent := monDamage >= opponent.hp
 		monKilled := opponentDamage >= mon.hp
@@ -251,7 +251,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot 
 	return mons[bestIndex]
 }
 
-func calculateMaxDamage(user, target *pokemon, checkChoice bool) int {
+func calculateMaxDamage(bs battleState, user, target *pokemon, checkChoice bool) int {
 	var maxDmg, dmg int
 	rolls := 1
 	for _, move := range user.moves {
@@ -270,7 +270,7 @@ func calculateMaxDamage(user, target *pokemon, checkChoice bool) int {
 			rolls = move.MaxHits
 		}
 		for i := 0; i < rolls; i++ {
-			dmg += calculateDamage(user, target, move, new(critRate >= 3), true, true, false)
+			dmg += calculateDamage(user, target, move, new(critRate >= 3), bs.getWeather(), true, true, false)
 		}
 
 		target.checkItemTrigger(false, focusSashEvent{

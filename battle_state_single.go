@@ -10,6 +10,7 @@ type singleBattleState struct {
 	player             *trainer
 	opponent           *trainer
 	actions            actionQueue
+	weather            weatherState
 }
 
 func (sbs *singleBattleState) execute() {
@@ -65,6 +66,14 @@ func (sbs *singleBattleState) getOpponentSlot(s *slot) *slot {
 
 func (sbs *singleBattleState) getActions() *actionQueue {
 	return &sbs.actions
+}
+
+func (sbs *singleBattleState) getWeather() weatherState {
+	return sbs.weather
+}
+
+func (sbs *singleBattleState) setWeather(w weatherState, turns int) {
+	sbs.weather = w
 }
 
 func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*pokemon) *singleBattleState {

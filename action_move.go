@@ -75,7 +75,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			confusion.turns -= 1
 			log.Printf("%s is confused", ma.userSlot.mon.base.Name)
 			if roll(1, 3) {
-				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), false, false, false)
+				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), bs.getWeather(), false, false, false)
 				ma.userSlot.invulnerableAction = nil
 				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
 				ma.userSlot.mon.hp -= int(damage)
@@ -132,7 +132,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	target := ma.targetSlot.mon
-	if ma.move.Accuracy > 0 && !ma.pursuit && !accuracyRoll(ma.userSlot.mon, target, ma.move) {
+	if ma.move.Accuracy > 0 && !ma.pursuit && !accuracyRoll(bs, ma.userSlot.mon, target, ma.move) {
 		log.Printf("%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
 		return
 	}
@@ -248,7 +248,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	crit := determineCrit(user, target, ma.move)
 
-	damage := calculateDamage(user, target, ma.move, crit, false, false, ma.pursuit)
+	damage := calculateDamage(user, target, ma.move, crit, bs.getWeather(), false, false, ma.pursuit)
 	if damage == 0 {
 		log.Printf("it does not affect %s", target.base.Name)
 		return false
@@ -272,11 +272,6 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if *crit {
 		log.Printf("it was a critical hit!")
 	}
-	target.changeHpBy(-damage)
-	if target.hp <= 0 {
-		monFainted(bs, ma.targetSlot, ma.pursuit)
-	}
-
 	if ma.move.Name == "bug-bite" && strings.HasSuffix(target.item.name, "berry") && !target.item.consumed {
 		log.Printf("%s's %s was consumed by bug bite", target.base.Name, target.item.name)
 		item, _ := registerItem(target.item.name, user)
@@ -293,6 +288,10 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		target.item = &item{
 			consumed: true,
 		}
+	}
+	target.changeHpBy(-damage)
+	if target.hp <= 0 {
+		monFainted(bs, ma.targetSlot, ma.pursuit)
 	}
 
 	if ma.move.Drain != 0 {

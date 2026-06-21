@@ -222,6 +222,26 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 	if _, ok := p.ailments["paralysis"]; ok {
 		denominator *= 4
 	}
+	if bs.getWeather() != None {
+		switch bs.getWeather() {
+		case Rain:
+			if p.ability == "swift-swim" {
+				numerator *= 2
+			}
+		case Sun:
+			if p.ability == "chlorophyll" {
+				numerator *= 2
+			}
+		case Hail:
+			if p.ability == "slush-rush" {
+				numerator *= 2
+			}
+		case Sandstorm:
+			if p.ability == "sand-rush" {
+				numerator *= 2
+			}
+		}
+	}
 
 	base = base * numerator / denominator
 

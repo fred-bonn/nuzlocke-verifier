@@ -12,6 +12,8 @@ type battleState interface {
 	getOtherSlots(slot *slot) []*slot
 	getOpponentSlot(slot *slot) *slot
 	getActions() *actionQueue
+	getWeather() weatherState
+	setWeather(weatherState, int)
 }
 
 func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
@@ -29,22 +31,22 @@ func resolveEndOfTurn(bs battleState) {
 		for _, ailment := range slot.mon.ailments {
 			switch ailment.name {
 			case "burn":
-				takeResidualDamage(bs, slot, ailment, 1, 16)
+				takeResidualDamage(bs, slot, ailment.name, 1, 16)
 			case "poison":
-				takeResidualDamage(bs, slot, ailment, 1, 8)
+				takeResidualDamage(bs, slot, ailment.name, 1, 8)
 			case "toxic":
 				ailment.turns++
-				takeResidualDamage(bs, slot, ailment, ailment.turns, 16)
+				takeResidualDamage(bs, slot, ailment.name, ailment.turns, 16)
 			case "trap":
 				ailment.turns--
-				takeResidualDamage(bs, slot, ailment, 1, 8)
+				takeResidualDamage(bs, slot, ailment.name, 1, 8)
 				if ailment.turns <= 0 {
 					log.Printf("%s was freed", slot.mon.base.Name)
 					delete(slot.mon.ailments, ailment.name)
 				}
 			case "leech-seed":
 				log.Printf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
-				dmg := takeResidualDamage(bs, slot, ailment, 1, 8)
+				dmg := takeResidualDamage(bs, slot, ailment.name, 1, 8)
 				ailment.afflictedBy.mon.changeHpBy(dmg)
 			case "yawn":
 				ailment.turns--
@@ -53,6 +55,15 @@ func resolveEndOfTurn(bs battleState) {
 					delete(slot.mon.ailments, "yawn")
 				}
 			}
+		}
+
+		// resolve end of turn effects of weather
+		w := bs.getWeather()
+		if w != None {
+			if w.affectsMon(slot.mon) {
+				takeResidualDamage(bs, slot, w.String(), 1, 16)
+			}
+			w.activateMonAbility(bs, slot)
 		}
 
 		// reset protect counter if the slot was not protected this turn
@@ -79,12 +90,12 @@ func resolveEndOfTurn(bs battleState) {
 	}
 }
 
-func takeResidualDamage(bs battleState, slot *slot, ailment *ailment, num, den int) int {
+func takeResidualDamage(bs battleState, slot *slot, effect string, num, den int) int {
 	if slot.mon.fainted {
 		return 0
 	}
 
-	log.Printf("%s took damage from %s", slot.mon.base.Name, ailment.name)
+	log.Printf("%s took damage from %s", slot.mon.base.Name, effect)
 	change := slot.mon.maxHP() * num / den
 	slot.mon.changeHpBy(-change)
 	if slot.mon.hp <= 0 {

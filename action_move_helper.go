@@ -31,7 +31,7 @@ var struggleMove = pokeapi.BaseMove{
 	Class: "physical",
 }
 
-func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, maxRoll, forScoring, pursuit bool) int {
+func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, weather weatherState, maxRoll, forScoring, pursuit bool) int {
 	if f, ok := typeImmunityAbilities[target.ability]; ok && user.ability != "mold-breaker" && f(target, move.Type, forScoring) {
 		return 0
 	}
@@ -47,12 +47,30 @@ func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, 
 	} else {
 		offensiveStat = user.effectiveStat("special-attack", *crit)
 		defensiveStat = target.effectiveStat("special-defense", *crit)
+		if weather == Sandstorm && target.hasType("rock") {
+			defensiveStat = defensiveStat * 3 / 2
+		}
 	}
 
 	if f, ok := typeConvertingAbilities[user.ability]; ok {
 		f(&moveType, &power)
 	}
 	numerator, denominator = target.applyMoveType(numerator, denominator, moveType)
+	if weather != None {
+		if f, ok := weatherFuncs[weather]; ok {
+			f(&numerator, &denominator, moveType)
+		}
+		switch weather {
+		case Sun:
+			if user.ability == "solar-power" && move.Class == "special" {
+				offensiveStat = offensiveStat * 3 / 2
+			}
+		case Sandstorm:
+			if user.ability == "sand-force" && (moveType == "rock" || moveType == "ground" || moveType == "steel") {
+				power = power * 13 / 10
+			}
+		}
+	}
 	if numerator == 0 {
 		return 0
 	}
@@ -189,7 +207,7 @@ func roll(numerator int, denominator int) bool {
 	return rand.Intn(denominator) < numerator
 }
 
-func accuracyRoll(user *pokemon, target *pokemon, move *pokeapi.BaseMove) bool {
+func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *pokeapi.BaseMove) bool {
 	if user.ability == "no-guard" || target.ability == "no-guard" {
 		return true
 	} else if move.Name == "toxic" && user.hasType("poison") {
@@ -210,6 +228,21 @@ func accuracyRoll(user *pokemon, target *pokemon, move *pokeapi.BaseMove) bool {
 	if user.ability == "compound-eyes" {
 		numerator *= 13
 		denominator *= 10
+	}
+
+	if bs.getWeather() != None {
+		switch bs.getWeather() {
+		case Hail:
+			if target.ability == "snow-cloak" {
+				numerator *= 4
+				denominator *= 5
+			}
+		case Sandstorm:
+			if target.ability == "sand-veil" {
+				numerator *= 4
+				denominator *= 5
+			}
+		}
 	}
 
 	return roll(numerator, denominator)
