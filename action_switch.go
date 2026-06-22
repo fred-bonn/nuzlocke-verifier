@@ -1,9 +1,5 @@
 package main
 
-import (
-	"log"
-)
-
 type switchAction struct {
 	oldSlot *slot
 	new     *pokemon
@@ -28,7 +24,7 @@ func (sa *switchAction) invoke(bs battleState) {
 		p.invoke(bs)
 	}
 
-	log.Printf("switched %s for %s", sa.oldSlot.mon.base.Name, sa.new.base.Name)
+	vlogf("switched %s for %s", sa.oldSlot.mon.base.Name, sa.new.base.Name)
 	sa.oldSlot.setMon(bs, sa.new)
 	if f, ok := onSwitchAbilities[sa.oldSlot.mon.ability]; ok {
 		f(sa.oldSlot, bs, true)

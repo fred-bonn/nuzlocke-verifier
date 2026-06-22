@@ -1,7 +1,5 @@
 package main
 
-import "log"
-
 type weatherState int
 
 const (
@@ -60,24 +58,24 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 	switch ws {
 	case Hail:
 		if mon.ability == "ice-body" {
-			log.Printf("%s healed due to ice body", mon.base.Name)
+			vlogf("%s healed due to ice body", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
 		}
 	case Rain:
 		switch mon.ability {
 		case "rain-dish":
-			log.Printf("%s healed due to rain dish", mon.base.Name)
+			vlogf("%s healed due to rain dish", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
 		case "dry-skin":
 			takeResidualDamage(bs, slot, "dry skin", 1, 8)
-			log.Printf("%s healed due to dry skin", mon.base.Name)
+			vlogf("%s healed due to dry skin", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 8)
 		case "hydration":
 			if mon.hasNonVolatileAilment() {
 				for ailment := range nonVolatileStatuses {
 					if mon.hasAilment(ailment) != nil {
 						delete(mon.ailments, ailment)
-						log.Printf("%s had its %s removed", mon.base.Name, ailment)
+						vlogf("%s had its %s removed", mon.base.Name, ailment)
 						return
 					}
 				}
@@ -105,5 +103,18 @@ func (ws weatherState) String() string {
 		return "sandstorm"
 	default:
 		return ""
+	}
+}
+
+func (ws weatherState) onset() {
+	switch ws {
+	case Rain:
+		vlogln("it started to rain")
+	case Sun:
+		vlogln("the sunlight turned harsh")
+	case Sandstorm:
+		vlogln("a sandstorm brewed")
+	case Hail:
+		vlogln("it started to hail")
 	}
 }

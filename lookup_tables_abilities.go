@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math/rand"
 )
 
@@ -38,7 +37,7 @@ func trace(s *slot, bs battleState, switchIn bool) {
 
 	s.mon.ability = opponentMons[rand.Int()%len(opponentMons)].ability
 	s.mon.trace = true
-	log.Printf("%s traced %s", s.mon.base.Name, s.mon.ability)
+	vlogf("%s traced %s", s.mon.base.Name, s.mon.ability)
 }
 
 func unnerve(s *slot, bs battleState, switchIn bool) {
@@ -88,32 +87,32 @@ func drizzle(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	log.Println("it started to rain")
-	bs.setWeather(Rain, 0)
+	vlogln("it started to rain")
+	bs.setWeather(Rain)
 }
 
 func drought(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	log.Println("the sunlight turned harsh")
-	bs.setWeather(Sun, 0)
+	vlogln("the sunlight turned harsh")
+	bs.setWeather(Sun)
 }
 
 func snowWarning(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	log.Println("it started to hail")
-	bs.setWeather(Hail, 0)
+	vlogln("it started to hail")
+	bs.setWeather(Hail)
 }
 
 func sandStream(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	log.Println("a sandstorm brewed")
-	bs.setWeather(Sandstorm, 0)
+	vlogln("a sandstorm brewed")
+	bs.setWeather(Sandstorm)
 }
 
 var typeConvertingAbilities = map[string]func(t *string, p *int){
@@ -168,7 +167,7 @@ func drySkin(p *pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	log.Printf("%s restored health with %s", p.base.Name, p.ability)
+	vlogf("%s restored health with %s", p.base.Name, p.ability)
 	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
@@ -191,7 +190,7 @@ func voltAbsorb(p *pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	log.Printf("%s restored health with %s", p.base.Name, p.ability)
+	vlogf("%s restored health with %s", p.base.Name, p.ability)
 	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
@@ -258,7 +257,7 @@ var contactDefensiveAbilities = map[string]func(u, t *slot){
 func roughSkin(u, t *slot) {
 	change := u.mon.maxHP() * 1 / 8
 	u.mon.changeHpBy(-change)
-	log.Printf("%s was hurt by %s", u.mon.base.Name, t.mon.ability)
+	vlogf("%s was hurt by %s", u.mon.base.Name, t.mon.ability)
 }
 
 func cuteCharm(u, t *slot) {
@@ -309,6 +308,6 @@ func cheekPouch(mon *pokemon) {
 	if mon.ability == "cheek-pouch" {
 		restore := mon.maxHP() / 3
 		mon.changeHpBy(restore)
-		log.Printf("%s ate its cheek pouch and restored %d hp", mon.base.Name, restore)
+		vlogf("%s ate its cheek pouch and restored %d hp", mon.base.Name, restore)
 	}
 }

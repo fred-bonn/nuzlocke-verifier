@@ -1,7 +1,5 @@
 package main
 
-import "log"
-
 type replaceAction struct {
 	oldSlot *slot
 	trainer *trainer
@@ -49,7 +47,7 @@ func (ra *replaceAction) invoke(bs battleState) {
 		f(ra.oldSlot, bs, false)
 	}
 
-	log.Printf("%s was sent out", mon.base.Name)
+	vlogf("%s was sent out", mon.base.Name)
 	ra.oldSlot.setMon(bs, mon)
 	if f, ok := onSwitchAbilities[ra.oldSlot.mon.ability]; ok {
 		f(ra.oldSlot, bs, true)

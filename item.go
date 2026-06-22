@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
@@ -182,7 +181,7 @@ func makeBerryJuice(mon *pokemon) *item {
 		},
 		activate: func() {
 			mon.changeHpBy(20)
-			log.Printf("%s drank its berry juice and restored 20 hp", mon.base.Name)
+			vlogf("%s drank its berry juice and restored 20 hp", mon.base.Name)
 			cheekPouch(mon)
 		},
 	}
@@ -196,7 +195,7 @@ func makeOranBerry(mon *pokemon) *item {
 		},
 		activate: func() {
 			mon.changeHpBy(10)
-			log.Printf("%s ate its oran berry and restored 10 hp", mon.base.Name)
+			vlogf("%s ate its oran berry and restored 10 hp", mon.base.Name)
 			cheekPouch(mon)
 		},
 	}
@@ -211,7 +210,7 @@ func makeSitrusBerry(mon *pokemon) *item {
 		activate: func() {
 			restore := mon.maxHP() / 4
 			mon.changeHpBy(restore)
-			log.Printf("%s ate its sitrus berry and restored %d hp", mon.base.Name, restore)
+			vlogf("%s ate its sitrus berry and restored %d hp", mon.base.Name, restore)
 			cheekPouch(mon)
 		},
 	}
@@ -224,7 +223,7 @@ func makeCheriBerry(mon *pokemon) *item {
 			return !mon.unnerved && mon.hasAilment("paralysis") != nil
 		},
 		activate: func() {
-			log.Printf("%s ate its cheri berry", mon.base.Name)
+			vlogf("%s ate its cheri berry", mon.base.Name)
 			delete(mon.ailments, "paralysis")
 			cheekPouch(mon)
 		},
@@ -238,7 +237,7 @@ func makeChestoBerry(mon *pokemon) *item {
 			return !mon.unnerved && mon.hasAilment("sleep") != nil
 		},
 		activate: func() {
-			log.Printf("%s ate its chesto berry", mon.base.Name)
+			vlogf("%s ate its chesto berry", mon.base.Name)
 			delete(mon.ailments, "sleep")
 			cheekPouch(mon)
 		},
@@ -252,7 +251,7 @@ func makePechaBerry(mon *pokemon) *item {
 			return !mon.unnerved && (mon.hasAilment("poison") != nil || mon.hasAilment("toxic") != nil)
 		},
 		activate: func() {
-			log.Printf("%s ate its pecha berry", mon.base.Name)
+			vlogf("%s ate its pecha berry", mon.base.Name)
 			delete(mon.ailments, "poison")
 			delete(mon.ailments, "toxic")
 			cheekPouch(mon)
@@ -267,7 +266,7 @@ func makeRawstBerry(mon *pokemon) *item {
 			return !mon.unnerved && mon.hasAilment("burn") != nil
 		},
 		activate: func() {
-			log.Printf("%s ate its rawst berry", mon.base.Name)
+			vlogf("%s ate its rawst berry", mon.base.Name)
 			delete(mon.ailments, "burn")
 			cheekPouch(mon)
 		},
@@ -281,7 +280,7 @@ func makeAspearBerry(mon *pokemon) *item {
 			return !mon.unnerved && mon.hasAilment("freeze") != nil
 		},
 		activate: func() {
-			log.Printf("%s ate its aspear berry", mon.base.Name)
+			vlogf("%s ate its aspear berry", mon.base.Name)
 			delete(mon.ailments, "freeze")
 			cheekPouch(mon)
 		},
@@ -295,7 +294,7 @@ func makePersimBerry(mon *pokemon) *item {
 			return !mon.unnerved && mon.hasAilment("confusion") != nil
 		},
 		activate: func() {
-			log.Printf("%s ate its persim berry", mon.base.Name)
+			vlogf("%s ate its persim berry", mon.base.Name)
 			delete(mon.ailments, "confusion")
 			cheekPouch(mon)
 		},
@@ -309,16 +308,16 @@ func makeLumBerry(mon *pokemon) *item {
 			return !mon.unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment("confusion") != nil)
 		},
 		activate: func() {
-			log.Printf("%s ate its lum berry", mon.base.Name)
+			vlogf("%s ate its lum berry", mon.base.Name)
 			for ailment := range nonVolatileStatuses {
 				if mon.hasAilment(ailment) != nil {
 					delete(mon.ailments, ailment)
-					log.Printf("%s had its %s removed", mon.base.Name, ailment)
+					vlogf("%s had its %s removed", mon.base.Name, ailment)
 				}
 			}
 			if mon.hasAilment("confusion") != nil {
 				delete(mon.ailments, "confusion")
-				log.Printf("%s had its confusion removed", mon.base.Name)
+				vlogf("%s had its confusion removed", mon.base.Name)
 				cheekPouch(mon)
 			}
 		},
@@ -354,7 +353,7 @@ func makeStatBoostBerryMiddleware(name, stat string) func(mon *pokemon) *item {
 				return !mon.unnerved && mon.hp > 0 && mon.hp*4 <= mon.maxHP()
 			},
 			activate: func() {
-				log.Printf("%s ate its %s", mon.base.Name, name)
+				vlogf("%s ate its %s", mon.base.Name, name)
 				mon.changeStatStageBy(stat, 1, false)
 				cheekPouch(mon)
 			},
@@ -377,7 +376,7 @@ func makeResistBerryMiddleware(name, typeName string) func(mon *pokemon) *item {
 			},
 			activate: func() {
 				if d == nil {
-					log.Printf("%s ate its %s and reduced the damage", mon.base.Name, name)
+					vlogf("%s ate its %s and reduced the damage", mon.base.Name, name)
 					cheekPouch(mon)
 				} else {
 					*d /= 2
@@ -402,7 +401,7 @@ func makeGemMiddleware(typeName string) func(mon *pokemon) *item {
 			},
 			activate: func() {
 				if p == nil {
-					log.Printf("%s consumed its %s gem and boosted the damage", mon.base.Name, typeName)
+					vlogf("%s consumed its %s gem and boosted the damage", mon.base.Name, typeName)
 				} else {
 					*p = *p * 3 / 2
 				}

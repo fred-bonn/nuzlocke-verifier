@@ -1,7 +1,5 @@
 package main
 
-import "log"
-
 type slot struct {
 	mon                *pokemon
 	trainer            *trainer
@@ -22,7 +20,7 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 	s.mon = new
 	for effect := range s.trainer.field {
 		if effect == "stealth-rock" {
-			log.Printf("%s took damage from stealth rock", s.mon.base.Name)
+			vlogf("%s took damage from stealth rock", s.mon.base.Name)
 			num, dem := s.mon.applyMoveType(1, 1, "rock")
 			s.mon.changeHpBy(-s.mon.maxHP() / 8 * num / dem)
 			if s.mon.hp <= 0 {
@@ -35,7 +33,7 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 		}
 		switch effect {
 		case "spikes":
-			log.Printf("%s took damage from spikes", s.mon.base.Name)
+			vlogf("%s took damage from spikes", s.mon.base.Name)
 			s.mon.changeHpBy(-s.mon.maxHP() / 8)
 		case "toxic-spikes":
 			s.mon.applyAilment("poison", nil, nil)
@@ -58,7 +56,7 @@ func (s *slot) resolveProtect() {
 		s.protected = true
 		s.protectTurns++
 	} else {
-		log.Println("but it failed")
+		vlogln("but it failed")
 	}
 }
 

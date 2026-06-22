@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math/rand"
 	"strings"
 
@@ -105,7 +104,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				}
 			}
 			if a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
-				log.Println(3)
+				vlogln(3)
 				scores[i] += 3
 			}
 		}

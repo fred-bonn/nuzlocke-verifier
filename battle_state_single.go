@@ -1,9 +1,5 @@
 package main
 
-import (
-	"log"
-)
-
 type singleBattleState struct {
 	activePlayerSlot   *slot
 	activeOpponentSlot *slot
@@ -14,12 +10,12 @@ type singleBattleState struct {
 }
 
 func (sbs *singleBattleState) execute() {
-	log.Println("Starting battle...")
+	vlogln("Starting battle...")
 
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
-		log.Println("=====")
-		log.Printf("Turn %d:\n", k+1)
-		log.Printf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.base.Name, sbs.activePlayerSlot.mon.hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.base.Name, sbs.activeOpponentSlot.mon.hp, sbs.activeOpponentSlot.mon.maxHP())
+		vlogln("=====")
+		vlogf("Turn %d:\n", k+1)
+		vlogf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.base.Name, sbs.activePlayerSlot.mon.hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.base.Name, sbs.activeOpponentSlot.mon.hp, sbs.activeOpponentSlot.mon.maxHP())
 
 		sbs.gatherActions()
 		sbs.actions.sort(sbs)
@@ -34,8 +30,8 @@ func (sbs *singleBattleState) execute() {
 			action.invoke(sbs)
 		}
 	}
-	log.Println("=====")
-	log.Println("Ending battle...")
+	vlogln("=====")
+	vlogln("Ending battle...")
 }
 
 func (sbs *singleBattleState) gatherActions() {
@@ -72,11 +68,12 @@ func (sbs *singleBattleState) getWeather() weatherState {
 	return sbs.weather
 }
 
-func (sbs *singleBattleState) setWeather(w weatherState, turns int) {
+func (sbs *singleBattleState) setWeather(w weatherState) {
 	sbs.weather = w
+	w.onset()
 }
 
-func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*pokemon) *singleBattleState {
+func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*pokemon, weather weatherState) *singleBattleState {
 	player.pokemonParty = playerParty
 	opponent.pokemonParty = opponentParty
 
@@ -97,6 +94,8 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 			queue: make(priorityQueue[action], 0, 3),
 		},
 	}
+
+	res.setWeather(weather)
 
 	resolveOnEntry(&res)
 

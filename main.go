@@ -1,20 +1,22 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"io"
 	"log"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
+	"github.com/spf13/pflag"
 )
 
-var verbose = flag.Bool("v", true, "verbose logging")
+var verbose = pflag.BoolP("verbose", "v", false, "verbose logging")
 
 func main() {
-	flag.Parse()
-	args := flag.Args()
-	fmt.Println(args)
+	weather := pflag.IntP("weather", "w", 0, "weather\n 0: None\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
+	pflag.Parse()
+	if *weather < 0 || *weather > 4 {
+		log.Fatalf("error: weather (-w) must be tween 0 and 4")
+	}
+
+	args := pflag.Args()
 	if len(args) != 2 {
 		log.Fatalf("error: missing arguments: usage: <executable> <player_showdown> <opponent_showdown> <flags>")
 	}
@@ -44,11 +46,8 @@ func main() {
 		},
 		playerParty,
 		opponentParty,
+		weatherState(*weather),
 	)
-
-	if !*verbose {
-		log.SetOutput(io.Discard)
-	}
 
 	sbs.execute()
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math/rand"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
@@ -298,7 +297,7 @@ func monFainted(bs battleState, slot *slot, pursuit bool) {
 	if !pursuit {
 		injectReplaceAction(bs, slot, false)
 	}
-	log.Printf("%s fainted!", slot.mon.base.Name)
+	vlogf("%s fainted!", slot.mon.base.Name)
 }
 
 func fetchPursuitMiddleware(name string) func(a action) bool {

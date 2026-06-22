@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strings"
 )
 
@@ -13,7 +12,7 @@ type battleState interface {
 	getOpponentSlot(slot *slot) *slot
 	getActions() *actionQueue
 	getWeather() weatherState
-	setWeather(weatherState, int)
+	setWeather(weatherState)
 }
 
 func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
@@ -41,11 +40,11 @@ func resolveEndOfTurn(bs battleState) {
 				ailment.turns--
 				takeResidualDamage(bs, slot, ailment.name, 1, 8)
 				if ailment.turns <= 0 {
-					log.Printf("%s was freed", slot.mon.base.Name)
+					vlogf("%s was freed", slot.mon.base.Name)
 					delete(slot.mon.ailments, ailment.name)
 				}
 			case "leech-seed":
-				log.Printf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
+				vlogf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
 				dmg := takeResidualDamage(bs, slot, ailment.name, 1, 8)
 				ailment.afflictedBy.mon.changeHpBy(dmg)
 			case "yawn":
@@ -74,7 +73,7 @@ func resolveEndOfTurn(bs battleState) {
 		}
 
 		if slot.mon.ability == "harvest" && roll(1, 2) && strings.HasSuffix(slot.mon.item.name, "berry") {
-			log.Printf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.name)
+			vlogf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.name)
 			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.ability == "speed-boost" && !slot.firstTurn {
@@ -82,7 +81,7 @@ func resolveEndOfTurn(bs battleState) {
 		}
 
 		if slot.mon.item.name == "leftovers" {
-			log.Printf("%s restored health from leftovers", slot.mon.base.Name)
+			vlogf("%s restored health from leftovers", slot.mon.base.Name)
 			slot.mon.changeHpBy(slot.mon.maxHP() / 16)
 		}
 
@@ -95,13 +94,13 @@ func takeResidualDamage(bs battleState, slot *slot, effect string, num, den int)
 		return 0
 	}
 
-	log.Printf("%s took damage from %s", slot.mon.base.Name, effect)
+	vlogf("%s took damage from %s", slot.mon.base.Name, effect)
 	change := slot.mon.maxHP() * num / den
 	slot.mon.changeHpBy(-change)
 	if slot.mon.hp <= 0 {
 		slot.mon.fainted = true
 		injectReplaceAction(bs, slot, false)
-		log.Printf("%s fainted!", slot.mon.base.Name)
+		vlogf("%s fainted!", slot.mon.base.Name)
 	}
 	return change
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"slices"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
@@ -344,7 +343,7 @@ func (p *pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflicted
 	}
 
 	p.ailments[ailment] = generateAilment(ailment, afflictedBy)
-	log.Printf("%s became afflicted with %s", p.base.Name, ailment)
+	vlogf("%s became afflicted with %s", p.base.Name, ailment)
 	if _, ok := nonVolatileStatuses[ailment]; ok && p.ability == "synchronize" {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
@@ -388,7 +387,7 @@ func (p *pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
 
 func (p *pokemon) changeStatStageBy(stat string, change int, offensive bool) {
 	if offensive && (p.ability == "clear-smoke" || p.ability == "clear-body") {
-		log.Printf("blocked by clear body")
+		vlogf("blocked by clear body")
 		return
 	}
 	if p.ability == "keen-eye" && stat == "accuracy" && change < 0 {
@@ -396,7 +395,7 @@ func (p *pokemon) changeStatStageBy(stat string, change int, offensive bool) {
 	}
 
 	p.stages[stat] = max(-6, min(6, p.stages[stat]+change))
-	log.Printf("%s's %s changed by %d stages (%d)", p.base.Name, stat, change, p.stages[stat])
+	vlogf("%s's %s changed by %d stages (%d)", p.base.Name, stat, change, p.stages[stat])
 }
 
 func (p *pokemon) maxHP() int {

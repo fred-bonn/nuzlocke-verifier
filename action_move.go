@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"strings"
 
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
@@ -34,8 +33,8 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	if (ma.move.Name == "fake-out" || ma.move.Name == "first-impression") && !ma.userSlot.firstTurn {
-		log.Printf("%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
-		log.Printf("but it failed")
+		vlogf("%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
+		vlogf("but it failed")
 		return
 	}
 
@@ -45,18 +44,18 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	if _, ok := ma.userSlot.mon.ailments["freeze"]; ok {
 		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
-			log.Printf("%s thawed out", ma.userSlot.mon.base.Name)
+			vlogf("%s thawed out", ma.userSlot.mon.base.Name)
 			delete(ma.userSlot.mon.ailments, "freeze")
 		} else {
 			ma.userSlot.invulnerableAction = nil
-			log.Printf("%s is frozen", ma.userSlot.mon.base.Name)
+			vlogf("%s is frozen", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
 
 	if sleep := ma.userSlot.mon.hasAilment("sleep"); sleep != nil {
 		if sleep.turns <= 0 {
-			log.Printf("%s woke up", ma.userSlot.mon.base.Name)
+			vlogf("%s woke up", ma.userSlot.mon.base.Name)
 			delete(ma.userSlot.mon.ailments, "sleep")
 		} else {
 			if ma.userSlot.mon.ability == "early-bird" {
@@ -65,7 +64,7 @@ func (ma *moveAction) invoke(bs battleState) {
 				sleep.turns--
 			}
 			ma.userSlot.invulnerableAction = nil
-			log.Printf("%s is asleep", ma.userSlot.mon.base.Name)
+			vlogf("%s is asleep", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
@@ -73,11 +72,11 @@ func (ma *moveAction) invoke(bs battleState) {
 	if confusion := ma.userSlot.mon.hasAilment("confusion"); confusion != nil {
 		if confusion.turns > 0 {
 			confusion.turns -= 1
-			log.Printf("%s is confused", ma.userSlot.mon.base.Name)
+			vlogf("%s is confused", ma.userSlot.mon.base.Name)
 			if roll(1, 3) {
 				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), bs.getWeather(), false, false, false)
 				ma.userSlot.invulnerableAction = nil
-				log.Printf("%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
+				vlogf("%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
 				ma.userSlot.mon.hp -= int(damage)
 				if ma.userSlot.mon.hp <= 0 {
 					monFainted(bs, ma.userSlot, false)
@@ -86,14 +85,14 @@ func (ma *moveAction) invoke(bs battleState) {
 			}
 		} else {
 			delete(ma.userSlot.mon.ailments, "confusion")
-			log.Printf("%s snapped out of confusion", ma.userSlot.mon.base.Name)
+			vlogf("%s snapped out of confusion", ma.userSlot.mon.base.Name)
 		}
 	}
 
 	if paralysis := ma.userSlot.mon.hasAilment("paralysis"); paralysis != nil {
 		if roll(1, 4) {
 			ma.userSlot.invulnerableAction = nil
-			log.Printf("%s is paralysed", ma.userSlot.mon.base.Name)
+			vlogf("%s is paralysed", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
@@ -101,13 +100,13 @@ func (ma *moveAction) invoke(bs battleState) {
 	if infatuation := ma.userSlot.mon.hasAilment("infatuation"); infatuation != nil {
 		if roll(1, 2) {
 			ma.userSlot.invulnerableAction = nil
-			log.Printf("%s is infatuated with %s", ma.userSlot.mon.base.Name, infatuation.afflictedBy.mon.base.Name)
+			vlogf("%s is infatuated with %s", ma.userSlot.mon.base.Name, infatuation.afflictedBy.mon.base.Name)
 			return
 		}
 	}
 
 	if ma.flinch {
-		log.Printf("%s flinched", ma.userSlot.mon.base.Name)
+		vlogf("%s flinched", ma.userSlot.mon.base.Name)
 		return
 	}
 
@@ -117,7 +116,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		if ma.userSlot.invulnerableAction == nil {
 			ma.move.PP++
 			ma.userSlot.invulnerableAction = ma
-			log.Printf("%s used %s and became invulnerable", ma.userSlot.mon.base.Name, ma.move.Name)
+			vlogf("%s used %s and became invulnerable", ma.userSlot.mon.base.Name, ma.move.Name)
 			return
 		}
 		ma.userSlot.invulnerableAction = nil
@@ -126,25 +125,25 @@ func (ma *moveAction) invoke(bs battleState) {
 	if ma.userSlot.suckerPunch {
 		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
 		if targetMove == nil || targetMove.move.Class == "status" {
-			log.Printf("%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
+			vlogf("%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
 
 	target := ma.targetSlot.mon
 	if ma.move.Accuracy > 0 && !ma.pursuit && !accuracyRoll(bs, ma.userSlot.mon, target, ma.move) {
-		log.Printf("%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
+		vlogf("%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
 		return
 	}
 
-	log.Printf("%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
+	vlogf("%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
 
 	if ma.move.Name == "struggle" {
 		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.maxHP() / 4))
 	}
 
 	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
-		log.Printf("but it failed")
+		vlogf("but it failed")
 		return
 	}
 
@@ -196,11 +195,11 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 		return
 	case "belly-drum":
 		if target.hp*2 <= target.maxHP() {
-			log.Printf("but it failed")
+			vlogf("but it failed")
 			return
 		}
 
-		log.Printf("%s took damage from belly drum", target.base.Name)
+		vlogf("%s took damage from belly drum", target.base.Name)
 		target.changeHpBy(-(target.maxHP() / 2))
 		target.changeStatStageBy("attack", 6, false)
 	}
@@ -208,7 +207,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	if ma.move.Heal > 0 {
 		change := target.maxHP() * ma.move.Heal / 100
 		target.changeHpBy(change)
-		log.Printf("%s healed for %d", target.base.Name, change)
+		vlogf("%s healed for %d", target.base.Name, change)
 	}
 
 	if ma.move.Ailment != "none" {
@@ -250,7 +249,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	damage := calculateDamage(user, target, ma.move, crit, bs.getWeather(), false, false, ma.pursuit)
 	if damage == 0 {
-		log.Printf("it does not affect %s", target.base.Name)
+		vlogf("it does not affect %s", target.base.Name)
 		return false
 	}
 
@@ -268,23 +267,23 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	})
 
 	damage = min(damage, target.hp)
-	log.Printf("%s took %d damage", target.base.Name, int(damage))
+	vlogf("%s took %d damage", target.base.Name, int(damage))
 	if *crit {
-		log.Printf("it was a critical hit!")
+		vlogf("it was a critical hit!")
 	}
 	if ma.move.Name == "bug-bite" && strings.HasSuffix(target.item.name, "berry") && !target.item.consumed {
-		log.Printf("%s's %s was consumed by bug bite", target.base.Name, target.item.name)
+		vlogf("%s's %s was consumed by bug bite", target.base.Name, target.item.name)
 		item, _ := registerItem(target.item.name, user)
 		item.activate()
 		target.item, _ = registerItem("", target)
 
 	} else if ma.move.Name == "wake-up-slap" {
 		if a := target.hasAilment("sleep"); a != nil {
-			log.Printf("%s woke up", target.base.Name)
+			vlogf("%s woke up", target.base.Name)
 			delete(target.ailments, "sleep")
 		}
 	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != "sticky-hold" {
-		log.Printf("%s had its %s knocked off", target.base.Name, target.item.name)
+		vlogf("%s had its %s knocked off", target.base.Name, target.item.name)
 		target.item = &item{
 			consumed: true,
 		}
@@ -311,9 +310,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 		user.changeHpBy(change)
 		if change >= 0 {
-			log.Printf("%s healed for %d", user.base.Name, change)
+			vlogf("%s healed for %d", user.base.Name, change)
 		} else {
-			log.Printf("%s took recoil for %d", user.base.Name, -change)
+			vlogf("%s took recoil for %d", user.base.Name, -change)
 			if user.hp <= 0 {
 				monFainted(bs, ma.userSlot, false)
 			}
