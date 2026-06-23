@@ -41,11 +41,11 @@ func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, 
 	power := move.Power
 	var offensiveStat, defensiveStat int
 	if move.Class == "physical" {
-		offensiveStat = user.effectiveStat("attack", *crit)
-		defensiveStat = target.effectiveStat("defense", *crit)
+		offensiveStat = user.effectiveStat(Attack, *crit)
+		defensiveStat = target.effectiveStat(Defense, *crit)
 	} else {
-		offensiveStat = user.effectiveStat("special-attack", *crit)
-		defensiveStat = target.effectiveStat("special-defense", *crit)
+		offensiveStat = user.effectiveStat(SpecialAttack, *crit)
+		defensiveStat = target.effectiveStat(SpecialDefense, *crit)
 		if weather == Sandstorm && target.hasType("rock") {
 			defensiveStat = defensiveStat * 3 / 2
 		}
@@ -204,6 +204,13 @@ func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, 
 
 func roll(numerator int, denominator int) bool {
 	return rand.Intn(denominator) < numerator
+}
+
+func rollInt(numerator int, denominator int) int {
+	if roll(numerator, denominator) {
+		return 1
+	}
+	return 0
 }
 
 func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *pokeapi.BaseMove) bool {

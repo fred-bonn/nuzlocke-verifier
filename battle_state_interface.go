@@ -57,8 +57,7 @@ func resolveEndOfTurn(bs battleState) {
 		}
 
 		// resolve end of turn effects of weather
-		w := bs.getWeather()
-		if w != None {
+		if w := bs.getWeather(); w != None {
 			if w.affectsMon(slot.mon) {
 				takeResidualDamage(bs, slot, w.String(), 1, 16)
 			}
@@ -77,12 +76,13 @@ func resolveEndOfTurn(bs battleState) {
 			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.ability == "speed-boost" && !slot.firstTurn {
-			slot.mon.changeStatStageBy("speed", 1, false)
+			slot.mon.changeStatStageBy(Speed, 1, false)
 		}
 
 		if slot.mon.item.name == "leftovers" {
-			vlogf("%s restored health from leftovers", slot.mon.base.Name)
-			slot.mon.changeHpBy(slot.mon.maxHP() / 16)
+			change := slot.mon.maxHP() / 16
+			vlogItem("%s restored %d health from leftovers", slot.mon.base.Name, change)
+			slot.mon.changeHpBy(change)
 		}
 
 		slot.mon.laserFocus = false
@@ -94,8 +94,8 @@ func takeResidualDamage(bs battleState, slot *slot, effect string, num, den int)
 		return 0
 	}
 
-	vlogf("%s took damage from %s", slot.mon.base.Name, effect)
 	change := slot.mon.maxHP() * num / den
+	vlogf("%s took %d damage from %s", slot.mon.base.Name, change, effect)
 	slot.mon.changeHpBy(-change)
 	if slot.mon.hp <= 0 {
 		slot.mon.fainted = true

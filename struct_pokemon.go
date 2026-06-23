@@ -10,12 +10,12 @@ import (
 type pokemon struct {
 	base        pokeapi.BasePokemon
 	level       int
-	ivs         map[string]int
-	nature      []string
+	ivs         []int
+	nature      []stats
 	moves       []*pokeapi.BaseMove
 	lockedMove  *pokeapi.BaseMove
-	stats       map[string]int
-	stages      map[string]int
+	stats       []int
+	stages      []int
 	hp          int
 	fainted     bool
 	ailments    map[string]*ailment
@@ -29,44 +29,7 @@ type pokemon struct {
 	laserFocus  bool
 }
 
-var ivMap = map[string]string{
-	"hp":  "hp",
-	"atk": "attack",
-	"def": "defense",
-	"spa": "special-attack",
-	"spd": "special-defense",
-	"spe": "speed",
-}
-
-var natureChart = map[string][]string{
-	"hardy":   {"attack", "attack"},
-	"lonely":  {"attack", "defense"},
-	"adamant": {"attack", "special-attack"},
-	"naughty": {"attack", "special-defense"},
-	"brave":   {"attack", "speed"},
-	"bold":    {"defense", "attack"},
-	"docile":  {"defense", "defense"},
-	"impish":  {"defense", "special-attack"},
-	"lax":     {"defense", "special-defense"},
-	"relaxed": {"defense", "speed"},
-	"modest":  {"special-attack", "attack"},
-	"mild":    {"special-attack", "defense"},
-	"bashful": {"special-attack", "special-attack"},
-	"rash":    {"special-attack", "special-defense"},
-	"quiet":   {"special-attack", "speed"},
-	"calm":    {"special-defense", "attack"},
-	"gentle":  {"special-defense", "defense"},
-	"careful": {"special-defense", "speed"},
-	"quirky":  {"special-defense", "special-defense"},
-	"sassy":   {"special-defense", "speed"},
-	"timid":   {"speed", "attack"},
-	"hasty":   {"speed", "defense"},
-	"jolly":   {"speed", "special-attack"},
-	"naive":   {"speed", "special-defense"},
-	"serious": {"speed", "speed"},
-}
-
-func getNature(nature string) ([]string, error) {
+func getNature(nature string) ([]stats, error) {
 	res, ok := natureChart[nature]
 	if !ok {
 		return nil, fmt.Errorf("invalid nature: %s", nature)
@@ -87,28 +50,13 @@ func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature
 	}
 
 	res := pokemon{
-		base:  base,
-		level: level,
-		ivs: map[string]int{
-			"hp":              31,
-			"attack":          31,
-			"defense":         31,
-			"speed":           31,
-			"special-attack":  31,
-			"special-defense": 31,
-		},
-		nature: nat,
-		moves:  moves,
-		stats:  make(map[string]int, 6),
-		stages: map[string]int{
-			"attack":          0,
-			"defense":         0,
-			"speed":           0,
-			"special-attack":  0,
-			"special-defense": 0,
-			"accuracy":        0,
-			"evasion":         0,
-		},
+		base:     base,
+		level:    level,
+		ivs:      []int{31, 31, 31, 31, 31, 31},
+		nature:   nat,
+		moves:    moves,
+		stats:    []int{0, 0, 0, 0, 0, 0},
+		stages:   []int{0, 0, 0, 0, 0, 0, 0, 0},
 		hp:       0,
 		fainted:  false,
 		ailments: make(map[string]*ailment),
@@ -133,20 +81,21 @@ func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature
 
 func setIVs(pokemon *pokemon, ivs map[string]int) {
 	for key, val := range ivs {
-		key = ivMap[key]
-		pokemon.ivs[key] = max(0, min(31, val))
+		stat := stringToStat(key)
+		pokemon.ivs[stat] = max(0, min(31, val))
 	}
 }
 
 func calculateStats(pokemon *pokemon) {
 	for key, val := range pokemon.base.Stats {
-		pokemon.stats[key] = ((val*2+pokemon.ivs[key])*pokemon.level)/100 + 5
+		stat := stringToStat(key)
+		pokemon.stats[stat] = ((val*2+pokemon.ivs[stat])*pokemon.level)/100 + 5
 	}
 	// Shedinja case: if HP is 1, it stays 1 regardless of level or IVs
-	if pokemon.stats["hp"] == 1 {
-		pokemon.stats["hp"] = 1
+	if pokemon.stats[HitPoints] == 1 {
+		pokemon.stats[HitPoints] = 1
 	} else {
-		pokemon.stats["hp"] += pokemon.level + 5
+		pokemon.stats[HitPoints] += pokemon.level + 5
 	}
 
 	// Apply nature modifiers
@@ -184,19 +133,15 @@ func (p *pokemon) switchReset() {
 	p.laserFocus = false
 }
 
-func (p *pokemon) effectiveStat(stat string, crit bool) int {
-	if _, ok := p.stages[stat]; !ok {
-		panic("invalid stat")
-	}
-
+func (p *pokemon) effectiveStat(stat stats, crit bool) int {
 	stage := p.stages[stat]
 	base := p.stats[stat]
 
 	if crit {
 		switch stat {
-		case "defense", "special-defense":
+		case Defense, SpecialDefense:
 			stage = min(0, stage)
-		case "attack", "special-attack":
+		case Attack, SpecialAttack:
 			stage = max(0, stage)
 		}
 	}
@@ -208,8 +153,8 @@ func (p *pokemon) effectiveStat(stat string, crit bool) int {
 }
 
 func (p *pokemon) effectiveSpeed(bs battleState) int {
-	stage := p.stages["speed"]
-	base := p.stats["speed"]
+	stage := p.stages[Speed]
+	base := p.stats[Speed]
 	numerator := 1
 	denominator := 1
 
@@ -259,7 +204,7 @@ func (p *pokemon) evasionFraction(keenEye bool) (int, int) {
 		return 1, 1
 	}
 
-	stage := p.stages["evasion"]
+	stage := p.stages[Evasion]
 	if stage == 0 {
 		return 3, 3
 	} else if stage > 0 {
@@ -269,7 +214,7 @@ func (p *pokemon) evasionFraction(keenEye bool) (int, int) {
 }
 
 func (p *pokemon) accuracyFraction() (int, int) {
-	stage := p.stages["accuracy"]
+	stage := p.stages[Accuracy]
 	if stage == 0 {
 		return 3, 3
 	} else if stage > 0 {
@@ -290,7 +235,7 @@ func (p *pokemon) hasType(typeName string) bool {
 func (p *pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflictedBy *slot) {
 	if _, ok := volatileStatuses[ailment]; !ok {
 		if _, ok := nonVolatileStatuses[ailment]; !ok {
-			panic("invalid ailment")
+			elogf("%s is not a valid ailment", ailment)
 		}
 	}
 
@@ -385,12 +330,12 @@ func (p *pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
 	return slices.ContainsFunc(p.moves, f)
 }
 
-func (p *pokemon) changeStatStageBy(stat string, change int, offensive bool) {
+func (p *pokemon) changeStatStageBy(stat stats, change int, offensive bool) {
 	if offensive && (p.ability == "clear-smoke" || p.ability == "clear-body") {
 		vlogf("blocked by clear body")
 		return
 	}
-	if p.ability == "keen-eye" && stat == "accuracy" && change < 0 {
+	if p.ability == "keen-eye" && stat == Accuracy && change < 0 {
 		return
 	}
 
@@ -399,7 +344,7 @@ func (p *pokemon) changeStatStageBy(stat string, change int, offensive bool) {
 }
 
 func (p *pokemon) maxHP() int {
-	return p.stats["hp"]
+	return p.stats[HitPoints]
 }
 
 func (p *pokemon) serenceGraceBonus() int {

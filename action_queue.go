@@ -10,13 +10,6 @@ type action interface {
 	speed(bs battleState) int
 }
 
-func rollInt(numerator int, denominator int) int {
-	if roll(numerator, denominator) {
-		return 1
-	}
-	return 0
-}
-
 type priorityQueue[T any] []T
 
 func (q *priorityQueue[T]) push(a T) {

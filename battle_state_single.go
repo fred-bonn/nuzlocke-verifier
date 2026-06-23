@@ -10,11 +10,11 @@ type singleBattleState struct {
 }
 
 func (sbs *singleBattleState) execute() {
-	vlogln("Starting battle...")
+	vlogln("\nStarting battle...")
 
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
 		vlogln("=====")
-		vlogf("Turn %d:\n", k+1)
+		vlogf("Turn %d:", k+1)
 		vlogf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.base.Name, sbs.activePlayerSlot.mon.hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.base.Name, sbs.activeOpponentSlot.mon.hp, sbs.activeOpponentSlot.mon.maxHP())
 
 		sbs.gatherActions()

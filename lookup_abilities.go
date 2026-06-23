@@ -61,7 +61,7 @@ func intimidate(s *slot, bs battleState, switchIn bool) {
 		if slot.mon.ability == "inner-focus" {
 			continue
 		}
-		slot.mon.changeStatStageBy("attack", -1, true)
+		slot.mon.changeStatStageBy(Attack, -1, true)
 	}
 }
 
@@ -179,7 +179,7 @@ func stormDrain(p *pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("special-attack", 1, false)
+	p.changeStatStageBy(SpecialAttack, 1, false)
 	return true
 }
 
@@ -202,7 +202,7 @@ func lightningRod(p *pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("special-attack", 1, false)
+	p.changeStatStageBy(SpecialAttack, 1, false)
 	return true
 }
 
@@ -213,7 +213,7 @@ func motorDrive(p *pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("speed", 1, false)
+	p.changeStatStageBy(Speed, 1, false)
 	return true
 }
 
@@ -224,7 +224,7 @@ func sapSipper(p *pokemon, t string, s bool) bool {
 	if s {
 		return true
 	}
-	p.changeStatStageBy("attack", 1, false)
+	p.changeStatStageBy(Attack, 1, false)
 	return true
 }
 

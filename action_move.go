@@ -33,7 +33,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	if (ma.move.Name == "fake-out" || ma.move.Name == "first-impression") && !ma.userSlot.firstTurn {
-		vlogf("%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
+		vlogMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
 		vlogf("but it failed")
 		return
 	}
@@ -48,7 +48,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			delete(ma.userSlot.mon.ailments, "freeze")
 		} else {
 			ma.userSlot.invulnerableAction = nil
-			vlogf("%s is frozen", ma.userSlot.mon.base.Name)
+			vlogMove(ma.prio(bs), ma.speed(bs), "%s is frozen", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
@@ -64,7 +64,7 @@ func (ma *moveAction) invoke(bs battleState) {
 				sleep.turns--
 			}
 			ma.userSlot.invulnerableAction = nil
-			vlogf("%s is asleep", ma.userSlot.mon.base.Name)
+			vlogMove(ma.prio(bs), ma.speed(bs), "%s is asleep", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
@@ -76,7 +76,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			if roll(1, 3) {
 				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), bs.getWeather(), false, false, false)
 				ma.userSlot.invulnerableAction = nil
-				vlogf("%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
+				vlogMove(ma.prio(bs), ma.speed(bs), "%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
 				ma.userSlot.mon.hp -= int(damage)
 				if ma.userSlot.mon.hp <= 0 {
 					monFainted(bs, ma.userSlot, false)
@@ -116,7 +116,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		if ma.userSlot.invulnerableAction == nil {
 			ma.move.PP++
 			ma.userSlot.invulnerableAction = ma
-			vlogf("%s used %s and became invulnerable", ma.userSlot.mon.base.Name, ma.move.Name)
+			vlogMove(ma.prio(bs), ma.speed(bs), "%s used %s and became invulnerable", ma.userSlot.mon.base.Name, ma.move.Name)
 			return
 		}
 		ma.userSlot.invulnerableAction = nil
@@ -125,25 +125,25 @@ func (ma *moveAction) invoke(bs battleState) {
 	if ma.userSlot.suckerPunch {
 		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
 		if targetMove == nil || targetMove.move.Class == "status" {
-			vlogf("%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
+			vlogMove(ma.prio(bs), ma.speed(bs), "%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
 
 	target := ma.targetSlot.mon
 	if ma.move.Accuracy > 0 && !ma.pursuit && !accuracyRoll(bs, ma.userSlot.mon, target, ma.move) {
-		vlogf("%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
+		vlogMove(ma.prio(bs), ma.speed(bs), "%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
 		return
 	}
 
-	vlogf("%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
+	vlogMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
 
 	if ma.move.Name == "struggle" {
 		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.maxHP() / 4))
 	}
 
 	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
-		vlogf("but it failed")
+		vlogln("but it failed")
 		return
 	}
 
@@ -184,7 +184,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 
 	switch ma.move.Name {
 	case "swagger":
-		target.changeStatStageBy("attack", 2, false)
+		target.changeStatStageBy(Attack, 2, false)
 		target.applyAilment("confusion", ma.move, ma.userSlot)
 		return
 	case "focus-energy":
@@ -201,7 +201,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 
 		vlogf("%s took damage from belly drum", target.base.Name)
 		target.changeHpBy(-(target.maxHP() / 2))
-		target.changeStatStageBy("attack", 6, false)
+		target.changeStatStageBy(Attack, 6, false)
 	}
 
 	if ma.move.Heal > 0 {
@@ -215,7 +215,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	}
 
 	for stat, change := range ma.move.StatChanges {
-		target.changeStatStageBy(stat, change, offensive)
+		target.changeStatStageBy(stringToStat(stat), change, offensive)
 	}
 }
 
@@ -326,10 +326,10 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		}
 	} else if target.ability == "cotten-down" {
 		for _, slot := range bs.getOtherSlots(ma.targetSlot) {
-			slot.mon.changeStatStageBy("speed", -1, true)
+			slot.mon.changeStatStageBy(Speed, -1, true)
 		}
 	} else if target.ability == "water-compaction" && ma.move.Type == "water" {
-		target.changeStatStageBy("defense", 2, false)
+		target.changeStatStageBy(Defense, 2, false)
 	}
 	if f, ok := contactOffensiveAbilities[user.ability]; ok && ma.move.Contact {
 		f(ma.userSlot, ma.targetSlot)
@@ -339,7 +339,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
-			user.changeStatStageBy(stat, change, false)
+			user.changeStatStageBy(stringToStat(stat), change, false)
 		}
 	}
 
@@ -369,7 +369,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
-			target.changeStatStageBy(stat, change, true)
+			target.changeStatStageBy(stringToStat(stat), change, true)
 		}
 	}
 

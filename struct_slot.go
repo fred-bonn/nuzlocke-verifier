@@ -20,12 +20,8 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 	s.mon = new
 	for effect := range s.trainer.field {
 		if effect == "stealth-rock" {
-			vlogf("%s took damage from stealth rock", s.mon.base.Name)
-			num, dem := s.mon.applyMoveType(1, 1, "rock")
-			s.mon.changeHpBy(-s.mon.maxHP() / 8 * num / dem)
-			if s.mon.hp <= 0 {
-				monFainted(bs, s, false)
-			}
+			num, dem := s.mon.applyMoveType(1, 8, "rock")
+			takeResidualDamage(bs, s, "stealth rock", num, dem)
 			continue
 		}
 		if !s.mon.isGrounded() {
@@ -33,12 +29,11 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 		}
 		switch effect {
 		case "spikes":
-			vlogf("%s took damage from spikes", s.mon.base.Name)
-			s.mon.changeHpBy(-s.mon.maxHP() / 8)
+			takeResidualDamage(bs, s, "spikes", 1, 8)
 		case "toxic-spikes":
 			s.mon.applyAilment("poison", nil, nil)
 		case "sticky-web":
-			s.mon.changeStatStageBy("speed", -1, true)
+			s.mon.changeStatStageBy(Speed, -1, true)
 		}
 	}
 }

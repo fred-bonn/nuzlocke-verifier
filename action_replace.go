@@ -47,7 +47,7 @@ func (ra *replaceAction) invoke(bs battleState) {
 		f(ra.oldSlot, bs, false)
 	}
 
-	vlogf("%s was sent out", mon.base.Name)
+	vlogReplace("%s was sent out", mon.base.Name)
 	ra.oldSlot.setMon(bs, mon)
 	if f, ok := onSwitchAbilities[ra.oldSlot.mon.ability]; ok {
 		f(ra.oldSlot, bs, true)
