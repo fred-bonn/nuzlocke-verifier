@@ -42,10 +42,6 @@ func vlogItem(format string, v ...any) {
 	vlogWithPrefix("[ITEM]", format, v...)
 }
 
-func elogln(v ...any) {
-	log.Println(v...)
-}
-
 func elogf(format string, v ...any) {
 	log.Printf(format, v...)
 }
