@@ -2,8 +2,6 @@ package main
 
 import (
 	"math/rand"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 var critRateMap = map[int]int{
@@ -16,21 +14,21 @@ var critRateMap = map[int]int{
 	6: 1,
 }
 
-var confusionMove = pokeapi.BaseMove{
+var confusionMove = move{
 	Name:  "confusion",
 	Type:  "no-type",
 	Power: 40,
 	Class: "physical",
 }
 
-var struggleMove = pokeapi.BaseMove{
+var struggleMove = move{
 	Name:  "struggle",
 	Type:  "no-type",
 	Power: 50,
 	Class: "physical",
 }
 
-func calculateDamage(user, target *pokemon, move *pokeapi.BaseMove, crit *bool, weather weatherState, maxRoll, forScoring, pursuit bool) int {
+func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weatherState, maxRoll, forScoring, pursuit bool) int {
 	if f, ok := typeImmunityAbilities[target.ability]; ok && user.ability != "mold-breaker" && f(target, move.Type, forScoring) {
 		return 0
 	}
@@ -213,7 +211,7 @@ func rollInt(numerator int, denominator int) int {
 	return 0
 }
 
-func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *pokeapi.BaseMove) bool {
+func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *move) bool {
 	if user.ability == "no-guard" || target.ability == "no-guard" {
 		return true
 	} else if move.Name == "toxic" && user.hasType("poison") {
@@ -254,7 +252,7 @@ func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *pokeapi.
 	return roll(numerator, denominator)
 }
 
-func determineHits(move *pokeapi.BaseMove) int {
+func determineHits(move *move) int {
 	if move.MaxHits == 5 && move.MinHits == 2 {
 		r := rand.Intn(100) + 1
 		if r <= 35 {
@@ -270,13 +268,13 @@ func determineHits(move *pokeapi.BaseMove) int {
 	return move.MaxHits
 }
 
-func determineCrit(user, target *pokemon, move *pokeapi.BaseMove) *bool {
+func determineCrit(user, target *pokemon, move *move) *bool {
 	rate := determineCritRate(user, move)
 
 	return new(roll(1, critRateMap[rate]))
 }
 
-func determineCritRate(user *pokemon, move *pokeapi.BaseMove) int {
+func determineCritRate(user *pokemon, move *move) int {
 	if user.laserFocus {
 		return 3
 	}

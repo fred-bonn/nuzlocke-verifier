@@ -3,8 +3,6 @@ package main
 import (
 	"math/rand"
 	"strings"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 type rnbAi struct{}
@@ -163,7 +161,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if c, ok := offenseControlMoves[a.move.Name]; ok {
-			if a.targetSlot.mon.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+			if a.targetSlot.mon.hasMovePredicate(func(m *move) bool {
 				return m.Class == c
 			}) {
 				scores[i] = 6

@@ -1,11 +1,6 @@
 package pokeapi
 
-import (
-	"encoding/json"
-	"os"
-)
-
-type moveJSON struct {
+type MoveJSON struct {
 	Name  string `json:"name"`
 	Power int    `json:"power"`
 	PP    int    `json:"pp"`
@@ -44,76 +39,4 @@ type moveJSON struct {
 	Target struct {
 		Name string `json:"name"`
 	} `json:"target"`
-}
-
-var contactMoves map[string]any
-
-func (mj moveJSON) toMove() BaseMove {
-	isContact := false
-	statChanges := make(map[string]int)
-	for _, sc := range mj.StatChanges {
-		statChanges[sc.Stat.Name] = sc.Change
-	}
-	var statChance int
-	var ailmentChance int
-	if mj.DamageClass.Name == "status" {
-		statChance = 100
-		ailmentChance = 100
-	} else {
-		statChance = mj.Meta.StatChance
-		ailmentChance = mj.Meta.AilmentChance
-	}
-
-	if contactMoves == nil {
-		initContactMoves()
-	}
-
-	_, isContact = contactMoves[mj.Name]
-
-	return BaseMove{
-		Name:          mj.Name,
-		Type:          mj.Type.Name,
-		Power:         mj.Power,
-		Accuracy:      mj.Accuracy,
-		PP:            mj.PP,
-		MaxPP:         mj.PP,
-		Class:         mj.DamageClass.Name,
-		Priority:      mj.Priority,
-		CritRate:      mj.Meta.CritRate,
-		Drain:         mj.Meta.Drain,
-		Heal:          mj.Meta.Heal,
-		FlinchChance:  mj.Meta.FlinchChance,
-		Contact:       isContact,
-		Ailment:       mj.Meta.Ailment.Name,
-		AilmentChance: ailmentChance,
-		MaxHits:       mj.Meta.MaxHits,
-		MinHits:       mj.Meta.MinHits,
-		MaxTurns:      mj.Meta.MaxTurns,
-		MinTurns:      mj.Meta.MinTurns,
-		StatChance:    statChance,
-		StatChanges:   statChanges,
-		Target:        mj.Target.Name,
-		Category:      mj.Meta.Category.Name,
-	}
-}
-
-func initContactMoves() error {
-	var moves []string
-
-	data, err := os.ReadFile("./contact_moves.json")
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, &moves)
-	if err != nil {
-		return err
-	}
-
-	contactMoves = make(map[string]any, len(moves))
-	for _, move := range moves {
-		contactMoves[move] = struct{}{}
-	}
-
-	return nil
 }

@@ -1,9 +1,5 @@
 package main
 
-import (
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-)
-
 type moveBalance struct {
 	Power        *int
 	Accuracy     *int
@@ -12,7 +8,7 @@ type moveBalance struct {
 	Type         *string
 }
 
-func (mb moveBalance) apply(m *pokeapi.BaseMove) {
+func (mb moveBalance) apply(m *move) {
 	if mb.Power != nil {
 		m.Power = *mb.Power
 	}

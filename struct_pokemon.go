@@ -3,17 +3,15 @@ package main
 import (
 	"fmt"
 	"slices"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 type pokemon struct {
-	base        pokeapi.BasePokemon
+	base        basePokemon
 	level       int
 	ivs         []int
 	nature      []stats
-	moves       []*pokeapi.BaseMove
-	lockedMove  *pokeapi.BaseMove
+	moves       []*move
+	lockedMove  *move
 	stats       []int
 	stages      []int
 	hp          int
@@ -39,7 +37,7 @@ func getNature(nature string) ([]stats, error) {
 
 }
 
-func initPokemon(base pokeapi.BasePokemon, level int, ivs map[string]int, nature string, moves []*pokeapi.BaseMove, hp int, status string) (pokemon, error) {
+func initPokemon(base basePokemon, level int, ivs map[string]int, nature string, moves []*move, hp int, status string) (pokemon, error) {
 	if level < 1 || level > 100 {
 		return pokemon{}, fmt.Errorf("invalid level: %d", level)
 	}
@@ -232,7 +230,7 @@ func (p *pokemon) hasType(typeName string) bool {
 	return false
 }
 
-func (p *pokemon) applyAilment(ailment string, move *pokeapi.BaseMove, afflictedBy *slot) {
+func (p *pokemon) applyAilment(ailment string, move *move, afflictedBy *slot) {
 	if _, ok := volatileStatuses[ailment]; !ok {
 		if _, ok := nonVolatileStatuses[ailment]; !ok {
 			elogf("%s is not a valid ailment", ailment)
@@ -326,7 +324,7 @@ func (p *pokemon) changeHpBy(change int) {
 	p.checkItemTrigger(true, nil)
 }
 
-func (p *pokemon) hasMovePredicate(f func(*pokeapi.BaseMove) bool) bool {
+func (p *pokemon) hasMovePredicate(f func(*move) bool) bool {
 	return slices.ContainsFunc(p.moves, f)
 }
 

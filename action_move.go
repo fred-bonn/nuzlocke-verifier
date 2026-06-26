@@ -2,14 +2,12 @@ package main
 
 import (
 	"strings"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 type moveAction struct {
 	userSlot   *slot
 	targetSlot *slot
-	move       *pokeapi.BaseMove
+	move       *move
 	flinch     bool
 	pursuit    bool
 }

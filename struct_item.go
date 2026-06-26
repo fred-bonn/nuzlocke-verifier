@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
 type item struct {
@@ -325,7 +323,7 @@ func makeLumBerry(mon *pokemon) *item {
 }
 
 func makeLeppaBerry(mon *pokemon) *item {
-	var m *pokeapi.BaseMove
+	var m *move
 	return &item{
 		trigger: func(e any) bool {
 			event, ok := e.(leppaBerryEvent)
@@ -494,11 +492,11 @@ type gemEvent struct {
 }
 
 type leppaBerryEvent struct {
-	move *pokeapi.BaseMove
+	move *move
 }
 
 type choiceItemEvent struct {
-	move *pokeapi.BaseMove
+	move *move
 	stat *int
 }
 

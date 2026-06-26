@@ -1,9 +1,5 @@
 package main
 
-import (
-	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
-)
-
 func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 	if ma.move.Class == "status" {
 		return ma.scoreStatusMove(bs), false
@@ -133,7 +129,7 @@ func (ma *moveAction) scoreParalysisMove(bs battleState) int {
 	score := 6
 	if target.isFasterThan(bs, user) && user.effectiveSpeed(bs) > target.effectiveSpeed(bs)/4 {
 		score++
-	} else if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+	} else if user.hasMovePredicate(func(m *move) bool {
 		return m.Name == "hex" || m.FlinchChance > 0
 	}) {
 		score++
@@ -160,7 +156,7 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 		return -64
 	}
 
-	isHex := func(m *pokeapi.BaseMove) bool {
+	isHex := func(m *move) bool {
 		return m.Name == "hex"
 	}
 
@@ -177,9 +173,9 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 			}
 		}
 
-		if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+		if user.hasMovePredicate(func(m *move) bool {
 			return m.Name == "dream-eater" || m.Name == "nightmare"
-		}) && !target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+		}) && !target.hasMovePredicate(func(m *move) bool {
 			return m.Name == "snore" || m.Name == "sleep-talk"
 		}) {
 			score += 1
@@ -206,13 +202,13 @@ func (ma *moveAction) scoreToxic(bs battleState) int {
 	score := 6
 	maxDmg := calculateMaxDamage(bs, target, user, true)
 	if maxDmg < user.hp && roll(19, 50) {
-		if !target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+		if !target.hasMovePredicate(func(m *move) bool {
 			return m.Class == "physical" || m.Class == "special"
 		}) {
 			score += 1
 		}
 
-		if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+		if user.hasMovePredicate(func(m *move) bool {
 			return m.Name == "hex" || m.Name == "venoshock"
 		}) || user.ability == "merciless" {
 			score += 2
@@ -283,7 +279,7 @@ func (ma *moveAction) scoreCritStatus() int {
 		return -64
 	}
 
-	if user.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+	if user.hasMovePredicate(func(m *move) bool {
 		return m.CritRate > 0
 	}) {
 		return 7
@@ -300,7 +296,7 @@ func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 	user := ma.userSlot.mon
 	target := ma.targetSlot.mon
 
-	if a := target.hasAilment("freeze"); a != nil && target.hasMovePredicate(func(m *pokeapi.BaseMove) bool {
+	if a := target.hasAilment("freeze"); a != nil && target.hasMovePredicate(func(m *move) bool {
 		if _, ok := selfThawingMoves[m.Name]; ok {
 			return true
 		}

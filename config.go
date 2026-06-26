@@ -41,7 +41,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 	var res []*pokemon
 
 	for _, mon := range mons {
-		var moves []*pokeapi.BaseMove
+		var moves []*move
 
 		cleanedMonName := cleanName(mon.Name)
 		basePokemon, err := cfg.loadPokemon(cleanedMonName)
@@ -78,90 +78,94 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 	return res, nil
 }
 
-func (cfg *config) loadPokemon(name string) (pokeapi.BasePokemon, error) {
-	var pokemon pokeapi.BasePokemon
+func (cfg *config) loadPokemon(name string) (basePokemon, error) {
+	var p basePokemon
 
 	data, err := os.ReadFile(fmt.Sprintf("data/pokemon/%s.json", name))
 	if err == nil {
 		// If the file exists and is read successfully, unmarshal it into a Pokemon struct
-		err = json.Unmarshal(data, &pokemon)
+		err = json.Unmarshal(data, &p)
 		if err != nil {
-			return pokeapi.BasePokemon{}, fmt.Errorf("failed unmarshaling '%s' Pokemon data: %w", name, err)
+			return basePokemon{}, fmt.Errorf("failed unmarshaling '%s' Pokemon data: %w", name, err)
 		}
 		fmt.Printf("Loaded '%s' from file\n", name)
 	} else {
 		// Otherwise, fetch the Pokemon data from the API
-		pokemon, err = cfg.client.FetchPokemon(name)
+		pokemonJSON, err := cfg.client.FetchPokemon(name)
 		if err != nil {
-			return pokeapi.BasePokemon{}, fmt.Errorf("failed fetching Pokemon '%s': %w", name, err)
+			return basePokemon{}, fmt.Errorf("failed fetching Pokemon '%s': %w", name, err)
 		}
 		fmt.Printf("Fetched '%s' from API\n", name)
 
+		p = toPokemon(pokemonJSON)
+
 		// Save the fetched Pokemon data using the internal Pokemon struct to a file for future use
-		data, err = json.Marshal(pokemon)
+		data, err = json.Marshal(p)
 		if err != nil {
-			return pokeapi.BasePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
+			return basePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
 		}
 		writeToFile(fmt.Sprintf("data/pokemon/%s.json", name), data)
 	}
 
-	return pokemon, nil
+	return p, nil
 }
 
-func (cfg *config) loadMove(name string) (pokeapi.BaseMove, error) {
-	var move pokeapi.BaseMove
+func (cfg *config) loadMove(name string) (move, error) {
+	var m move
 
 	if strings.HasPrefix(name, "hidden-power") {
 		// If the move is Hidden Power, generate it
 		var err error
-		move, err = generateHiddenPower(name)
+		m, err = generateHiddenPower(name)
 		if err != nil {
-			return pokeapi.BaseMove{}, err
+			return move{}, err
 		}
-		return move, nil
+		return m, nil
 	}
 
 	data, err := os.ReadFile(fmt.Sprintf("data/moves/%s.json", name))
 	if err == nil {
 		// If the file exists and is read successfully, unmarshal it into a Move struct
-		err = json.Unmarshal(data, &move)
+		err = json.Unmarshal(data, &m)
 		if err != nil {
-			return pokeapi.BaseMove{}, fmt.Errorf("failed unmarshaling Move '%s' data: %w", name, err)
+			return move{}, fmt.Errorf("failed unmarshaling Move '%s' data: %w", name, err)
 		}
 		fmt.Printf("Loaded '%s' from file\n", name)
 	} else {
 		// Otherwise, fetch the Move data from the API
-		move, err = cfg.client.FetchMove(name)
+		moveJson, err := cfg.client.FetchMove(name)
 		if err != nil {
-			return pokeapi.BaseMove{}, fmt.Errorf("failed fetching Move '%s': %w", name, err)
+			return move{}, fmt.Errorf("failed fetching Move '%s': %w", name, err)
 		}
 		fmt.Printf("Fetched '%s' from API\n", name)
 
+		m = toMove(moveJson)
+
 		// Save the fetched Move data using the internal Move struct to a file for future use
-		data, err = json.Marshal(move)
+		data, err = json.Marshal(m)
 		if err != nil {
-			return pokeapi.BaseMove{}, fmt.Errorf("failed marshaling Move JSON data '%s' to file: %w", name, err)
+			return m, fmt.Errorf("failed marshaling Move JSON data '%s' to file: %w", name, err)
 		}
 		writeToFile(fmt.Sprintf("data/moves/%s.json", name), data)
 	}
 
-	if mb, ok := moveBalanceMap[move.Name]; ok {
-		mb.apply(&move)
+	if mb, ok := moveBalanceMap[m.Name]; ok {
+		mb.apply(&m)
 	}
 
-	return move, nil
+	return m, nil
 }
 
-func generateHiddenPower(name string) (pokeapi.BaseMove, error) {
+func generateHiddenPower(name string) (move, error) {
 	parts := strings.Split(name, "-")
 	if len(parts) != 3 {
-		return pokeapi.BaseMove{}, fmt.Errorf("type not specified for hidden power")
+		return move{}, fmt.Errorf("type not specified for hidden power")
 	}
 	if _, ok := typeChart[parts[2]]; !ok {
-		return pokeapi.BaseMove{}, fmt.Errorf("invalid type for hidden power")
+		return move{}, fmt.Errorf("invalid type for hidden power")
 	}
 
-	move := pokeapi.BaseMove{
+	move := move{
 		Name:     "hidden-power",
 		Type:     parts[2],
 		Power:    60,
