@@ -164,7 +164,7 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 	if _, ok := p.ailments[Paralysis]; ok {
 		denominator *= 4
 	}
-	if bs.getWeather() != None {
+	if bs.getWeather() != NoneWeather {
 		switch bs.getWeather() {
 		case Rain:
 			if p.ability == "swift-swim" {
@@ -231,10 +231,9 @@ func (p *pokemon) hasType(typeName string) bool {
 }
 
 func (p *pokemon) applyAilment(ailment ailmentState, move *move, afflictedBy *slot) {
-	if _, ok := volatileStatuses[ailment]; !ok {
-		if _, ok := nonVolatileStatuses[ailment]; !ok {
-			elogf("%s is not a valid ailment", ailment)
-		}
+	if ailment == NoneAilment {
+		elogf("%s applies an ailment but is none", ailment.String())
+		return
 	}
 
 	if _, ok := p.ailments[ailment]; ok {
@@ -286,7 +285,7 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *move, afflictedBy *sl
 	}
 
 	p.ailments[ailment] = generateAilment(ailment, afflictedBy)
-	vlogf("%s became afflicted with %s", p.base.Name, ailment)
+	vlogf("%s became afflicted with %s", p.base.Name, ailment.String())
 	if _, ok := nonVolatileStatuses[ailment]; ok && p.ability == "synchronize" {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}

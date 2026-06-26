@@ -21,7 +21,7 @@ func (bs *benchBattleState) getAllSlots() []*slot          { return nil }
 func (bs *benchBattleState) getOtherSlots(s *slot) []*slot { return nil }
 func (bs *benchBattleState) getOpponentSlot(s *slot) *slot { return nil }
 func (bs *benchBattleState) getActions() *actionQueue      { return bs.actions }
-func (bs *benchBattleState) getWeather() weatherState      { return None }
+func (bs *benchBattleState) getWeather() weatherState      { return NoneWeather }
 func (bs *benchBattleState) setWeather(weatherState)       {}
 
 func newEmptyActionQueue() *actionQueue {

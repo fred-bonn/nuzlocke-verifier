@@ -1,7 +1,7 @@
 package main
 
 func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
-	if ma.move.Class == "status" {
+	if ma.move.Class == Status {
 		return ma.scoreStatusMove(bs), false
 	}
 
@@ -203,7 +203,7 @@ func (ma *moveAction) scoreToxic(bs battleState) int {
 	maxDmg := calculateMaxDamage(bs, target, user, true)
 	if maxDmg < user.hp && roll(19, 50) {
 		if !target.hasMovePredicate(func(m *move) bool {
-			return m.Class == "physical" || m.Class == "special"
+			return m.Class == Physical || m.Class == Special
 		}) {
 			score += 1
 		}

@@ -32,15 +32,15 @@ var speedControlMoves = map[string]struct{}{
 	"glaciate":   {},
 }
 
-var offenseControlMoves = map[string]string{
-	"mystical-fire":  "special",
-	"skitter-smack":  "special",
-	"breaking-swipe": "physical",
-	"snarl":          "special",
-	"struggle-bug":   "special",
-	"trop-kick":      "special",
-	"chilling-water": "physical",
-	"lunge":          "physical",
+var offenseControlMoves = map[string]moveClass{
+	"mystical-fire":  Special,
+	"skitter-smack":  Special,
+	"breaking-swipe": Physical,
+	"snarl":          Special,
+	"struggle-bug":   Special,
+	"trop-kick":      Special,
+	"chilling-water": Physical,
+	"lunge":          Physical,
 }
 
 var protectMoves = map[string]struct{}{

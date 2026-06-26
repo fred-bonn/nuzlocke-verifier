@@ -7,6 +7,29 @@ import (
 	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
 
+type moveClass int
+
+const (
+	Physical moveClass = iota
+	Special
+	Status
+	InvalidClass
+)
+
+func stringToMoveClass(s string) moveClass {
+	switch s {
+	case "physical":
+		return Physical
+	case "special":
+		return Special
+	case "status":
+		return Status
+	default:
+		elogFatalf("%s is not a valid move class", s)
+		return InvalidClass
+	}
+}
+
 type move struct {
 	Name          string
 	Type          string
@@ -14,14 +37,14 @@ type move struct {
 	Accuracy      int
 	PP            int
 	MaxPP         int
-	Class         string
+	Class         moveClass
 	Priority      int
 	CritRate      int
 	Drain         int
 	Heal          int
 	FlinchChance  int
 	Contact       bool
-	Ailment       string
+	Ailment       ailmentState
 	AilmentChance int
 	MaxHits       int
 	MinHits       int
@@ -64,14 +87,14 @@ func toMove(mj pokeapi.MoveJSON) move {
 		Accuracy:      mj.Accuracy,
 		PP:            mj.PP,
 		MaxPP:         mj.PP,
-		Class:         mj.DamageClass.Name,
+		Class:         stringToMoveClass(mj.DamageClass.Name),
 		Priority:      mj.Priority,
 		CritRate:      mj.Meta.CritRate,
 		Drain:         mj.Meta.Drain,
 		Heal:          mj.Meta.Heal,
 		FlinchChance:  mj.Meta.FlinchChance,
 		Contact:       isContact,
-		Ailment:       mj.Meta.Ailment.Name,
+		Ailment:       stringToAilmentState(mj.Meta.Ailment.Name),
 		AilmentChance: ailmentChance,
 		MaxHits:       mj.Meta.MaxHits,
 		MinHits:       mj.Meta.MinHits,

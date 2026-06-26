@@ -14,7 +14,7 @@ type moveAction struct {
 
 func (ma *moveAction) prio(bs battleState) int {
 	bonus := 0
-	if ma.userSlot.mon.ability == "prankster" && ma.move.Class == "status" {
+	if ma.userSlot.mon.ability == "prankster" && ma.move.Class == Status {
 		bonus++
 	}
 
@@ -122,7 +122,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	if ma.userSlot.suckerPunch {
 		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
-		if targetMove == nil || targetMove.move.Class == "status" {
+		if targetMove == nil || targetMove.move.Class == Status {
 			vlogMove(ma.prio(bs), ma.speed(bs), "%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
 			return
 		}
@@ -145,7 +145,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
-	if ma.move.Class == "status" {
+	if ma.move.Class == Status {
 		if strings.HasPrefix(ma.move.Target, "user") {
 			ma.applyStatusMove(bs, ma.userSlot.mon, false)
 		} else {
@@ -208,8 +208,8 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 		vlogf("%s healed for %d", target.base.Name, change)
 	}
 
-	if ma.move.Ailment != "none" {
-		target.applyAilment(stringToAilmentState(ma.move.Ailment), ma.move, ma.userSlot)
+	if ma.move.Ailment != NoneAilment {
+		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
 	for stat, change := range ma.move.StatChanges {
@@ -356,7 +356,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	if ma.move.AilmentChance > 0 && !target.fainted && roll(ma.move.AilmentChance*sg, 100) {
-		target.applyAilment(stringToAilmentState(ma.move.Ailment), ma.move, ma.userSlot)
+		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
 	if ma.move.FlinchChance > 0 && !target.fainted && target.ability != "inner-focus" && roll(ma.move.FlinchChance*sg, 100) {

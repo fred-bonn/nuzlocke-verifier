@@ -19,7 +19,7 @@ const (
 	Bound
 	LeechSeed
 	Yawn
-	Invalid
+	NoneAilment
 )
 
 func stringToAilmentState(s string) ailmentState {
@@ -49,7 +49,7 @@ func stringToAilmentState(s string) ailmentState {
 	case "yawn":
 		return Yawn
 	default:
-		return Invalid
+		return NoneAilment
 	}
 }
 
@@ -120,8 +120,6 @@ func generateAilment(as ailmentState, afflictedBy *slot) *ailment {
 		res.turns = rand.Intn(4) + 1
 	case Yawn:
 		res.turns = 2
-	default:
-		res.turns = 0
 	}
 	return &res
 }

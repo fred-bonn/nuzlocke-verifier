@@ -18,14 +18,14 @@ var confusionMove = move{
 	Name:  "confusion",
 	Type:  "no-type",
 	Power: 40,
-	Class: "physical",
+	Class: Physical,
 }
 
 var struggleMove = move{
 	Name:  "struggle",
 	Type:  "no-type",
 	Power: 50,
-	Class: "physical",
+	Class: Physical,
 }
 
 func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weatherState, maxRoll, forScoring, pursuit bool) int {
@@ -38,7 +38,7 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 	moveType := move.Type
 	power := move.Power
 	var offensiveStat, defensiveStat int
-	if move.Class == "physical" {
+	if move.Class == Physical {
 		offensiveStat = user.effectiveStat(Attack, *crit)
 		defensiveStat = target.effectiveStat(Defense, *crit)
 	} else {
@@ -53,13 +53,13 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 		f(&moveType, &power)
 	}
 	numerator, denominator = target.applyMoveType(numerator, denominator, moveType)
-	if weather != None {
+	if weather != NoneWeather {
 		if f, ok := weatherFuncs[weather]; ok {
 			f(&numerator, &denominator, moveType)
 		}
 		switch weather {
 		case Sun:
-			if user.ability == "solar-power" && move.Class == "special" {
+			if user.ability == "solar-power" && move.Class == Special {
 				offensiveStat = offensiveStat * 3 / 2
 			}
 		case Sandstorm:
@@ -131,7 +131,7 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 		offensiveStat = offensiveStat * 3 / 2
 	} else if user.flashFire && moveType == "fire" {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.ability == "hustle" && move.Class == "physical" {
+	} else if user.ability == "hustle" && move.Class == Physical {
 		offensiveStat = offensiveStat * 3 / 2
 	} else if user.ability == "merciless" {
 		if a := target.hasAilment(Poison); a != nil {
@@ -163,7 +163,7 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 		denominator *= 2
 	}
 
-	if move.Class == "physical" && user.hasAilment(Burn) != nil {
+	if move.Class == Physical && user.hasAilment(Burn) != nil {
 		denominator *= 2
 	}
 
@@ -221,7 +221,7 @@ func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *move) bo
 	}
 
 	moveAccuracy := move.Accuracy
-	if user.ability == "hustle" && move.Class == "physical" {
+	if user.ability == "hustle" && move.Class == Physical {
 		moveAccuracy = moveAccuracy * 80 / 100
 	}
 
@@ -234,7 +234,7 @@ func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *move) bo
 		denominator *= 10
 	}
 
-	if bs.getWeather() != None {
+	if bs.getWeather() != NoneWeather {
 		switch bs.getWeather() {
 		case Hail:
 			if target.ability == "snow-cloak" {

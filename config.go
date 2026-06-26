@@ -170,7 +170,7 @@ func generateHiddenPower(name string) (move, error) {
 		Type:     parts[2],
 		Power:    60,
 		Accuracy: 100,
-		Class:    "special",
+		Class:    Special,
 	}
 
 	return move, nil

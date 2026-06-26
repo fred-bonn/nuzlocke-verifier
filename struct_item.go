@@ -310,7 +310,7 @@ func makeLumBerry(mon *pokemon) *item {
 			for ailment := range nonVolatileStatuses {
 				if mon.hasAilment(ailment) != nil {
 					delete(mon.ailments, ailment)
-					vlogItem("%s had its %s removed", mon.base.Name, ailment)
+					vlogItem("%s had its %s removed", mon.base.Name, ailment.String())
 				}
 			}
 			if mon.hasAilment(Confusion) != nil {
@@ -431,7 +431,7 @@ func makeChoiceBand(mon *pokemon) *item {
 			if !ok {
 				return false
 			}
-			if event.move.Class != "physical" {
+			if event.move.Class != Physical {
 				return false
 			}
 			s = event.stat
@@ -452,7 +452,7 @@ func makeChoiceSpecs(mon *pokemon) *item {
 			if !ok {
 				return false
 			}
-			if event.move.Class != "special" {
+			if event.move.Class != Special {
 				return false
 			}
 			s = event.stat

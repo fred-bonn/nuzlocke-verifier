@@ -3,7 +3,7 @@ package main
 type weatherState int
 
 const (
-	None weatherState = iota
+	NoneWeather weatherState = iota
 	Rain
 	Sun
 	Sandstorm
@@ -75,7 +75,7 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 				for ailment := range nonVolatileStatuses {
 					if mon.hasAilment(ailment) != nil {
 						delete(mon.ailments, ailment)
-						vlogf("%s had its %s removed", mon.base.Name, ailment)
+						vlogf("%s had its %s removed", mon.base.Name, ailment.String())
 						return
 					}
 				}

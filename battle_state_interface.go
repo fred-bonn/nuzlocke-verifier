@@ -57,7 +57,7 @@ func resolveEndOfTurn(bs battleState) {
 		}
 
 		// resolve end of turn effects of weather
-		if w := bs.getWeather(); w != None {
+		if w := bs.getWeather(); w != NoneWeather {
 			if w.affectsMon(slot.mon) {
 				takeResidualDamage(bs, slot, w.String(), 1, 16)
 			}
