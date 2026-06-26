@@ -301,7 +301,7 @@ func (p *pokemon) hasAilment(ailment ailmentState) *ailment {
 }
 
 func (p *pokemon) hasNonVolatileAilment() bool {
-	for ailment := range nonVolatileStatuses {
+	for ailment := range p.ailments {
 		if ailment <= Sleep {
 			return true
 		}

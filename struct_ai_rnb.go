@@ -66,7 +66,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i] = -64
 		}
-		// fmt.Println(a.move.Name, damage[i])
+		// vlogln(a.move.Name, damage[i])
 
 		canHighestKill = canHighestKill || kills[i]
 		if !canHighestKill && (highestDamageIndex == -1 || damage[highestDamageIndex] < damage[i]) {
@@ -172,7 +172,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 	}
 
-	// log.Println(scores)
+	// vlogln(scores)
 
 	maxScore := scores[0]
 	for _, score := range scores {
@@ -231,7 +231,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot 
 		} else if !outspeeds && monKilled {
 			scores[i] = -1
 		}
-		// log.Printf("%s switch in: outspeeds=%t, monDamage=%d, opponentDamage=%d, killsOpponent=%t, monKilled=%t, monDamagePercent=%d, opponentDamagePercent=%d, score=%d\n", mon.Base.Name, outspeeds, monDamage, opponentDamage, killsOpponent, monKilled, monDamagePercent, opponentDamagePercent, scores[i])
+		// vlogln("%s switch in: outspeeds=%t, monDamage=%d, opponentDamage=%d, killsOpponent=%t, monKilled=%t, monDamagePercent=%d, opponentDamagePercent=%d, score=%d\n", mon.Base.Name, outspeeds, monDamage, opponentDamage, killsOpponent, monKilled, monDamagePercent, opponentDamagePercent, scores[i])
 	}
 
 	maxScore := scores[0]
@@ -243,7 +243,7 @@ func (rnb rnbAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot 
 		}
 	}
 
-	// log.Println(scores[bestIndex])
+	// vlogln(scores[bestIndex])
 
 	return mons[bestIndex]
 }
