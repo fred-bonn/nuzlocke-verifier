@@ -4,41 +4,121 @@ import (
 	"math/rand"
 )
 
+type ailmentState int
+
+const (
+	Paralysis ailmentState = iota
+	Poison
+	Toxic
+	Burn
+	Freeze
+	Sleep
+	Infatuation
+	Confusion
+	Trap
+	Bound
+	LeechSeed
+	Yawn
+	Invalid
+)
+
+func stringToAilmentState(s string) ailmentState {
+	switch s {
+	case "paralysis":
+		return Paralysis
+	case "poison":
+		return Poison
+	case "toxic":
+		return Toxic
+	case "burn":
+		return Burn
+	case "freeze":
+		return Freeze
+	case "sleep":
+		return Sleep
+	case "infatuation":
+		return Infatuation
+	case "confusion":
+		return Confusion
+	case "trap":
+		return Trap
+	case "bound":
+		return Bound
+	case "leech-seed":
+		return LeechSeed
+	case "yawn":
+		return Yawn
+	default:
+		return Invalid
+	}
+}
+
+func (as ailmentState) String() string {
+	switch as {
+	case Paralysis:
+		return "paralysis"
+	case Poison:
+		return "poison"
+	case Toxic:
+		return "toxic"
+	case Burn:
+		return "burn"
+	case Freeze:
+		return "freeze"
+	case Sleep:
+		return "sleep"
+	case Infatuation:
+		return "infatuation"
+	case Confusion:
+		return "confusion"
+	case Trap:
+		return "trap"
+	case Bound:
+		return "bound"
+	case LeechSeed:
+		return "leech-seed"
+	case Yawn:
+		return "yawn"
+	default:
+		return "invalid"
+	}
+}
+
 type ailment struct {
-	name        string
+	state       ailmentState
 	turns       int
 	afflictedBy *slot
 }
 
-var nonVolatileStatuses = map[string]struct{}{
-	"paralysis": {},
-	"poison":    {},
-	"toxic":     {},
-	"burn":      {},
-	"freeze":    {},
-	"sleep":     {},
+var nonVolatileStatuses = map[ailmentState]struct{}{
+	Paralysis: {},
+	Poison:    {},
+	Toxic:     {},
+	Burn:      {},
+	Freeze:    {},
+	Sleep:     {},
 }
 
-var volatileStatuses = map[string]struct{}{
-	"infatuation": {},
-	"confusion":   {},
-	"trap":        {},
-	"bound":       {},
-	"leech-seed":  {},
-	"yawn":        {},
+var volatileStatuses = map[ailmentState]struct{}{
+	Infatuation: {},
+	Confusion:   {},
+	Trap:        {},
+	Bound:       {},
+	LeechSeed:   {},
+	Yawn:        {},
 }
 
-func generateAilment(ailmentName string, afflictedBy *slot) *ailment {
+func generateAilment(as ailmentState, afflictedBy *slot) *ailment {
 	res := ailment{
-		name:        ailmentName,
+		state:       as,
 		afflictedBy: afflictedBy,
 	}
-	switch ailmentName {
-	case "sleep":
+	switch as {
+	case Sleep:
 		res.turns = rand.Intn(3) + 1
-	case "confusion":
+	case Confusion:
 		res.turns = rand.Intn(4) + 1
-	case "yawn":
+	case Yawn:
 		res.turns = 2
 	default:
 		res.turns = 0
@@ -48,7 +128,7 @@ func generateAilment(ailmentName string, afflictedBy *slot) *ailment {
 
 func generateTrap(low, high int, mon *slot) *ailment {
 	return &ailment{
-		name:        "trap",
+		state:       Trap,
 		turns:       rand.Intn(high-low+1) + low,
 		afflictedBy: mon,
 	}

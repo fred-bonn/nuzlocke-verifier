@@ -28,30 +28,30 @@ func resolveEndOfTurn(bs battleState) {
 	for _, slot := range bs.getAllSlots() {
 		// resolve end of return effects from ailments and statuses
 		for _, ailment := range slot.mon.ailments {
-			switch ailment.name {
-			case "burn":
-				takeResidualDamage(bs, slot, ailment.name, 1, 16)
-			case "poison":
-				takeResidualDamage(bs, slot, ailment.name, 1, 8)
-			case "toxic":
+			switch ailment.state {
+			case Burn:
+				takeResidualDamage(bs, slot, ailment.state.String(), 1, 16)
+			case Poison:
+				takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
+			case Toxic:
 				ailment.turns++
-				takeResidualDamage(bs, slot, ailment.name, ailment.turns, 16)
-			case "trap":
+				takeResidualDamage(bs, slot, ailment.state.String(), ailment.turns, 16)
+			case Trap:
 				ailment.turns--
-				takeResidualDamage(bs, slot, ailment.name, 1, 8)
+				takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
 				if ailment.turns <= 0 {
 					vlogf("%s was freed", slot.mon.base.Name)
-					delete(slot.mon.ailments, ailment.name)
+					delete(slot.mon.ailments, ailment.state)
 				}
-			case "leech-seed":
+			case LeechSeed:
 				vlogf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
-				dmg := takeResidualDamage(bs, slot, ailment.name, 1, 8)
+				dmg := takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
 				ailment.afflictedBy.mon.changeHpBy(dmg)
-			case "yawn":
+			case Yawn:
 				ailment.turns--
 				if ailment.turns == 0 {
-					slot.mon.applyAilment("sleep", nil, ailment.afflictedBy)
-					delete(slot.mon.ailments, "yawn")
+					slot.mon.applyAilment(Sleep, nil, ailment.afflictedBy)
+					delete(slot.mon.ailments, ailment.state)
 				}
 			}
 		}

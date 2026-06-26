@@ -16,7 +16,7 @@ type pokemon struct {
 	stages      []int
 	hp          int
 	fainted     bool
-	ailments    map[string]*ailment
+	ailments    map[ailmentState]*ailment
 	item        *item
 	ability     string
 	unnerved    bool
@@ -37,7 +37,7 @@ func getNature(nature string) ([]stats, error) {
 
 }
 
-func initPokemon(base basePokemon, level int, ivs map[string]int, nature string, moves []*move, hp int, status string) (pokemon, error) {
+func initPokemon(base basePokemon, level int, ivs map[string]int, nature string, moves []*move, hp int, status ailmentState) (pokemon, error) {
 	if level < 1 || level > 100 {
 		return pokemon{}, fmt.Errorf("invalid level: %d", level)
 	}
@@ -57,7 +57,7 @@ func initPokemon(base basePokemon, level int, ivs map[string]int, nature string,
 		stages:   []int{0, 0, 0, 0, 0, 0, 0, 0},
 		hp:       0,
 		fainted:  false,
-		ailments: make(map[string]*ailment),
+		ailments: make(map[ailmentState]*ailment),
 	}
 
 	setIVs(&res, ivs)
@@ -115,7 +115,7 @@ func (p *pokemon) switchReset() {
 		p.stages[stat] = 0
 	}
 
-	if toxic, ok := p.ailments["toxic"]; ok {
+	if toxic, ok := p.ailments[Toxic]; ok {
 		toxic.turns = 0
 	}
 
@@ -161,7 +161,7 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 	} else if p.unburden && p.ability == "unburden" {
 		numerator *= 2
 	}
-	if _, ok := p.ailments["paralysis"]; ok {
+	if _, ok := p.ailments[Paralysis]; ok {
 		denominator *= 4
 	}
 	if bs.getWeather() != None {
@@ -230,7 +230,7 @@ func (p *pokemon) hasType(typeName string) bool {
 	return false
 }
 
-func (p *pokemon) applyAilment(ailment string, move *move, afflictedBy *slot) {
+func (p *pokemon) applyAilment(ailment ailmentState, move *move, afflictedBy *slot) {
 	if _, ok := volatileStatuses[ailment]; !ok {
 		if _, ok := nonVolatileStatuses[ailment]; !ok {
 			elogf("%s is not a valid ailment", ailment)
@@ -243,13 +243,13 @@ func (p *pokemon) applyAilment(ailment string, move *move, afflictedBy *slot) {
 	if _, ok := nonVolatileStatuses[ailment]; ok && p.hasNonVolatileAilment() {
 		return
 	}
-	if ailment == "burn" && (p.hasType("fire") || p.ability == "water-veil") {
+	if ailment == Burn && (p.hasType("fire") || p.ability == "water-veil") {
 		return
 	}
-	if ailment == "paralysis" && (p.hasType("electric") || p.ability == "limber") {
+	if ailment == Paralysis && (p.hasType("electric") || p.ability == "limber") {
 		return
 	}
-	if ailment == "poison" || ailment == "toxic" {
+	if ailment == Poison || ailment == Toxic {
 		if p.ability == "immunity" {
 			return
 		}
@@ -257,29 +257,29 @@ func (p *pokemon) applyAilment(ailment string, move *move, afflictedBy *slot) {
 			return
 		}
 	}
-	if ailment == "freeze" && p.hasType("ice") {
+	if ailment == Freeze && p.hasType("ice") {
 		return
 	}
-	if ailment == "sleep" {
+	if ailment == Sleep {
 		if _, ok := sleepBlockingAbilities[p.ability]; ok {
 			return
 		}
 	}
-	if ailment == "yawn" {
+	if ailment == Yawn {
 		if _, ok := sleepBlockingAbilities[p.ability]; ok || p.hasNonVolatileAilment() {
 			return
 		}
 	}
 
 	switch ailment {
-	case "trap":
+	case Trap:
 		p.ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
-	case "poison":
+	case Poison:
 		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
-			ailment = "toxic"
+			ailment = Toxic
 		}
-	case "infatuation":
+	case Infatuation:
 		if afflictedBy.mon.ability == "oblivious" {
 			return
 		}
@@ -293,7 +293,7 @@ func (p *pokemon) applyAilment(ailment string, move *move, afflictedBy *slot) {
 	p.checkItemTrigger(true, nil)
 }
 
-func (p *pokemon) hasAilment(ailment string) *ailment {
+func (p *pokemon) hasAilment(ailment ailmentState) *ailment {
 	if a, ok := p.ailments[ailment]; ok {
 		return a
 	}
@@ -302,7 +302,7 @@ func (p *pokemon) hasAilment(ailment string) *ailment {
 
 func (p *pokemon) hasNonVolatileAilment() bool {
 	for ailment := range nonVolatileStatuses {
-		if p.hasAilment(ailment) != nil {
+		if ailment <= Sleep {
 			return true
 		}
 	}

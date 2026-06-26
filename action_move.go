@@ -40,10 +40,10 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	ma.userSlot.suckerPunch = ma.move.Name == "sucker-punch"
 
-	if _, ok := ma.userSlot.mon.ailments["freeze"]; ok {
+	if _, ok := ma.userSlot.mon.ailments[Freeze]; ok {
 		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
 			vlogf("%s thawed out", ma.userSlot.mon.base.Name)
-			delete(ma.userSlot.mon.ailments, "freeze")
+			delete(ma.userSlot.mon.ailments, Freeze)
 		} else {
 			ma.userSlot.invulnerableAction = nil
 			vlogMove(ma.prio(bs), ma.speed(bs), "%s is frozen", ma.userSlot.mon.base.Name)
@@ -51,10 +51,10 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if sleep := ma.userSlot.mon.hasAilment("sleep"); sleep != nil {
+	if sleep := ma.userSlot.mon.hasAilment(Sleep); sleep != nil {
 		if sleep.turns <= 0 {
 			vlogf("%s woke up", ma.userSlot.mon.base.Name)
-			delete(ma.userSlot.mon.ailments, "sleep")
+			delete(ma.userSlot.mon.ailments, Sleep)
 		} else {
 			if ma.userSlot.mon.ability == "early-bird" {
 				sleep.turns -= 2
@@ -67,7 +67,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if confusion := ma.userSlot.mon.hasAilment("confusion"); confusion != nil {
+	if confusion := ma.userSlot.mon.hasAilment(Confusion); confusion != nil {
 		if confusion.turns > 0 {
 			confusion.turns -= 1
 			vlogf("%s is confused", ma.userSlot.mon.base.Name)
@@ -82,12 +82,12 @@ func (ma *moveAction) invoke(bs battleState) {
 				return
 			}
 		} else {
-			delete(ma.userSlot.mon.ailments, "confusion")
+			delete(ma.userSlot.mon.ailments, Confusion)
 			vlogf("%s snapped out of confusion", ma.userSlot.mon.base.Name)
 		}
 	}
 
-	if paralysis := ma.userSlot.mon.hasAilment("paralysis"); paralysis != nil {
+	if paralysis := ma.userSlot.mon.hasAilment(Paralysis); paralysis != nil {
 		if roll(1, 4) {
 			ma.userSlot.invulnerableAction = nil
 			vlogf("%s is paralysed", ma.userSlot.mon.base.Name)
@@ -95,7 +95,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if infatuation := ma.userSlot.mon.hasAilment("infatuation"); infatuation != nil {
+	if infatuation := ma.userSlot.mon.hasAilment(Infatuation); infatuation != nil {
 		if roll(1, 2) {
 			ma.userSlot.invulnerableAction = nil
 			vlogf("%s is infatuated with %s", ma.userSlot.mon.base.Name, infatuation.afflictedBy.mon.base.Name)
@@ -165,7 +165,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	})
 
 	if ma.move.Type == "fire" {
-		delete(ma.targetSlot.mon.ailments, "freeze")
+		delete(ma.targetSlot.mon.ailments, Freeze)
 	}
 }
 
@@ -183,7 +183,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	switch ma.move.Name {
 	case "swagger":
 		target.changeStatStageBy(Attack, 2, false)
-		target.applyAilment("confusion", ma.move, ma.userSlot)
+		target.applyAilment(Confusion, ma.move, ma.userSlot)
 		return
 	case "focus-energy":
 		target.focusEnergy = true
@@ -209,7 +209,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	}
 
 	if ma.move.Ailment != "none" {
-		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
+		target.applyAilment(stringToAilmentState(ma.move.Ailment), ma.move, ma.userSlot)
 	}
 
 	for stat, change := range ma.move.StatChanges {
@@ -276,9 +276,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		target.item, _ = registerItem("", target)
 
 	} else if ma.move.Name == "wake-up-slap" {
-		if a := target.hasAilment("sleep"); a != nil {
+		if a := target.hasAilment(Sleep); a != nil {
 			vlogf("%s woke up", target.base.Name)
-			delete(target.ailments, "sleep")
+			delete(target.ailments, Sleep)
 		}
 	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != "sticky-hold" {
 		vlogf("%s had its %s knocked off", target.base.Name, target.item.name)
@@ -356,7 +356,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	if ma.move.AilmentChance > 0 && !target.fainted && roll(ma.move.AilmentChance*sg, 100) {
-		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
+		target.applyAilment(stringToAilmentState(ma.move.Ailment), ma.move, ma.userSlot)
 	}
 
 	if ma.move.FlinchChance > 0 && !target.fainted && target.ability != "inner-focus" && roll(ma.move.FlinchChance*sg, 100) {

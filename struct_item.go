@@ -218,11 +218,11 @@ func makeCheriBerry(mon *pokemon) *item {
 	return &item{
 		name: "cheri-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment("paralysis") != nil
+			return !mon.unnerved && mon.hasAilment(Paralysis) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its cheri berry", mon.base.Name)
-			delete(mon.ailments, "paralysis")
+			delete(mon.ailments, Paralysis)
 			cheekPouch(mon)
 		},
 	}
@@ -232,11 +232,11 @@ func makeChestoBerry(mon *pokemon) *item {
 	return &item{
 		name: "chesto-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment("sleep") != nil
+			return !mon.unnerved && mon.hasAilment(Sleep) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its chesto berry", mon.base.Name)
-			delete(mon.ailments, "sleep")
+			delete(mon.ailments, Sleep)
 			cheekPouch(mon)
 		},
 	}
@@ -246,12 +246,12 @@ func makePechaBerry(mon *pokemon) *item {
 	return &item{
 		name: "pecha-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && (mon.hasAilment("poison") != nil || mon.hasAilment("toxic") != nil)
+			return !mon.unnerved && (mon.hasAilment(Poison) != nil || mon.hasAilment(Toxic) != nil)
 		},
 		activate: func() {
 			vlogItem("%s ate its pecha berry", mon.base.Name)
-			delete(mon.ailments, "poison")
-			delete(mon.ailments, "toxic")
+			delete(mon.ailments, Poison)
+			delete(mon.ailments, Toxic)
 			cheekPouch(mon)
 		},
 	}
@@ -261,11 +261,11 @@ func makeRawstBerry(mon *pokemon) *item {
 	return &item{
 		name: "rawst-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment("burn") != nil
+			return !mon.unnerved && mon.hasAilment(Burn) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its rawst berry", mon.base.Name)
-			delete(mon.ailments, "burn")
+			delete(mon.ailments, Burn)
 			cheekPouch(mon)
 		},
 	}
@@ -275,11 +275,11 @@ func makeAspearBerry(mon *pokemon) *item {
 	return &item{
 		name: "aspear-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment("freeze") != nil
+			return !mon.unnerved && mon.hasAilment(Freeze) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its aspear berry", mon.base.Name)
-			delete(mon.ailments, "freeze")
+			delete(mon.ailments, Freeze)
 			cheekPouch(mon)
 		},
 	}
@@ -289,11 +289,11 @@ func makePersimBerry(mon *pokemon) *item {
 	return &item{
 		name: "persim-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment("confusion") != nil
+			return !mon.unnerved && mon.hasAilment(Confusion) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its persim berry", mon.base.Name)
-			delete(mon.ailments, "confusion")
+			delete(mon.ailments, Confusion)
 			cheekPouch(mon)
 		},
 	}
@@ -303,7 +303,7 @@ func makeLumBerry(mon *pokemon) *item {
 	return &item{
 		name: "lum-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment("confusion") != nil)
+			return !mon.unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment(Confusion) != nil)
 		},
 		activate: func() {
 			vlogItem("%s ate its lum berry", mon.base.Name)
@@ -313,8 +313,8 @@ func makeLumBerry(mon *pokemon) *item {
 					vlogItem("%s had its %s removed", mon.base.Name, ailment)
 				}
 			}
-			if mon.hasAilment("confusion") != nil {
-				delete(mon.ailments, "confusion")
+			if mon.hasAilment(Confusion) != nil {
+				delete(mon.ailments, Confusion)
 				vlogItem("%s had its confusion removed", mon.base.Name)
 				cheekPouch(mon)
 			}

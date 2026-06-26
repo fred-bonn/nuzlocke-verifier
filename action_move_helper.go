@@ -98,9 +98,9 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 
 	if move.Name == "acrobatics" && (user.item.consumed || user.item.name == "flying-gem") {
 		power *= 2
-	} else if move.Name == "wake-up-slap" && target.hasAilment("sleep") != nil {
+	} else if move.Name == "wake-up-slap" && target.hasAilment(Sleep) != nil {
 		power *= 2
-	} else if move.Name == "venoshock" && (target.hasAilment("poison") != nil || target.hasAilment("toxic") != nil) {
+	} else if move.Name == "venoshock" && (target.hasAilment(Poison) != nil || target.hasAilment(Toxic) != nil) {
 		power *= 2
 	} else if move.Name == "hex" && target.hasNonVolatileAilment() {
 		power *= 2
@@ -134,9 +134,9 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 	} else if user.ability == "hustle" && move.Class == "physical" {
 		offensiveStat = offensiveStat * 3 / 2
 	} else if user.ability == "merciless" {
-		if a := target.hasAilment("poison"); a != nil {
+		if a := target.hasAilment(Poison); a != nil {
 			*crit = true
-		} else if a := target.hasAilment("toxic"); a != nil {
+		} else if a := target.hasAilment(Toxic); a != nil {
 			*crit = true
 		}
 	}
@@ -163,7 +163,7 @@ func calculateDamage(user, target *pokemon, move *move, crit *bool, weather weat
 		denominator *= 2
 	}
 
-	if move.Class == "physical" && user.hasAilment("burn") != nil {
+	if move.Class == "physical" && user.hasAilment(Burn) != nil {
 		denominator *= 2
 	}
 

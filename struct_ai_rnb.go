@@ -56,7 +56,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if a.move.Ailment == "trap" {
-			if _, ok := a.targetSlot.mon.ailments["trap"]; !ok {
+			if _, ok := a.targetSlot.mon.ailments[Trap]; !ok {
 				scores[i] = 6 + 2*rollInt(1, 5)
 			}
 		}

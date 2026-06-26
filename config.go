@@ -59,7 +59,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 			moves = append(moves, &baseMove)
 		}
 
-		finalPokemon, err := initPokemon(basePokemon, mon.Level, mon.IVs, mon.Nature, moves, mon.HP, mon.Status)
+		finalPokemon, err := initPokemon(basePokemon, mon.Level, mon.IVs, mon.Nature, moves, mon.HP, stringToAilmentState(mon.Status))
 		if err != nil {
 			return nil, err
 		}

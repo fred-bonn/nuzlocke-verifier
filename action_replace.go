@@ -36,11 +36,11 @@ func (ra *replaceAction) invoke(bs battleState) {
 	}
 
 	for _, slot := range bs.getOtherSlots(ra.oldSlot) {
-		if ailment := slot.mon.hasAilment("infatuation"); ailment != nil && ailment.afflictedBy == ra.oldSlot {
-			delete(slot.mon.ailments, "infatuation")
+		if ailment := slot.mon.hasAilment(Infatuation); ailment != nil && ailment.afflictedBy == ra.oldSlot {
+			delete(slot.mon.ailments, Infatuation)
 		}
-		if ailment := slot.mon.hasAilment("trap"); ailment != nil && ailment.afflictedBy == ra.oldSlot {
-			delete(slot.mon.ailments, "infatuation")
+		if ailment := slot.mon.hasAilment(Trap); ailment != nil && ailment.afflictedBy == ra.oldSlot {
+			delete(slot.mon.ailments, Infatuation)
 		}
 	}
 	if f, ok := onSwitchAbilities[ra.oldSlot.mon.ability]; ok {

@@ -262,19 +262,19 @@ func roughSkin(u, t *slot) {
 
 func cuteCharm(u, t *slot) {
 	if roll(30, 100) {
-		u.mon.applyAilment("infatuation", nil, t)
+		u.mon.applyAilment(Infatuation, nil, t)
 	}
 }
 
 func flameBody(u, t *slot) {
 	if roll(30, 100) {
-		u.mon.applyAilment("burn", nil, t)
+		u.mon.applyAilment(Burn, nil, t)
 	}
 }
 
 func poisonPoint(u, t *slot) {
 	if roll(30, 100) {
-		u.mon.applyAilment("poison", nil, t)
+		u.mon.applyAilment(Poison, nil, t)
 	}
 }
 
@@ -285,11 +285,11 @@ func effectSpore(u, t *slot) {
 	if roll(30, 100) {
 		ailmentRoll := rand.Intn(30)
 		if ailmentRoll <= 8 {
-			u.mon.applyAilment("poison", nil, t)
+			u.mon.applyAilment(Poison, nil, t)
 		} else if ailmentRoll <= 18 {
-			u.mon.applyAilment("paralysis", nil, t)
+			u.mon.applyAilment(Paralysis, nil, t)
 		} else {
-			u.mon.applyAilment("sleep", nil, t)
+			u.mon.applyAilment(Sleep, nil, t)
 		}
 	}
 }
@@ -300,7 +300,7 @@ var contactOffensiveAbilities = map[string]func(u, t *slot){
 
 func poisonTouch(u, t *slot) {
 	if roll(30, 100) {
-		t.mon.applyAilment("poison", nil, u)
+		t.mon.applyAilment(Poison, nil, u)
 	}
 }
 

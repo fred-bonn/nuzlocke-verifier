@@ -69,11 +69,11 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		}
 		return 6 + rollInt(3, 4)
 	case "attract":
-		if ma.targetSlot.mon.hasAilment("infatuation") != nil || ma.targetSlot.mon.ability == "oblivious" {
+		if ma.targetSlot.mon.hasAilment(Infatuation) != nil || ma.targetSlot.mon.ability == "oblivious" {
 			return -64
 		}
 	case "leech-seed":
-		if ma.targetSlot.mon.hasAilment("leech-seed") != nil || ma.targetSlot.mon.hasType("grass") {
+		if ma.targetSlot.mon.hasAilment(LeechSeed) != nil || ma.targetSlot.mon.hasType("grass") {
 			return -64
 		}
 	case "toxic":
@@ -88,7 +88,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 }
 
 func (ma *moveAction) shouldMonHeal(bs battleState) bool {
-	if ma.userSlot.mon.hasAilment("toxic") != nil {
+	if ma.userSlot.mon.hasAilment(Toxic) != nil {
 		return false
 	}
 
@@ -133,9 +133,9 @@ func (ma *moveAction) scoreParalysisMove(bs battleState) int {
 		return m.Name == "hex" || m.FlinchChance > 0
 	}) {
 		score++
-	} else if target.hasAilment("confusion") != nil {
+	} else if target.hasAilment(Confusion) != nil {
 		score++
-	} else if target.hasAilment("infatuation") != nil {
+	} else if target.hasAilment(Infatuation) != nil {
 		score++
 	}
 
@@ -149,7 +149,7 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 	if _, ok := sleepBlockingAbilities[target.ability]; ok {
 		return -64
 	}
-	if a := target.hasAilment("yawn"); a != nil {
+	if a := target.hasAilment(Yawn); a != nil {
 		return -64
 	}
 	if target.hasNonVolatileAilment() {
@@ -236,11 +236,11 @@ func (ma *moveAction) scoreProtectMove(bs battleState) int {
 		score--
 	}
 	// still needs perish song and cursed
-	if target.hasAilment("poison") != nil || target.hasAilment("toxic") != nil || target.hasAilment("burn") != nil || target.hasAilment("leech-seed") != nil || target.hasAilment("yawn") != nil || target.hasAilment("infatuation") != nil {
+	if target.hasAilment(Poison) != nil || target.hasAilment(Toxic) != nil || target.hasAilment(Burn) != nil || target.hasAilment(LeechSeed) != nil || target.hasAilment(Yawn) != nil || target.hasAilment(Infatuation) != nil {
 		score++
 	}
 
-	if user.hasAilment("poison") != nil || user.hasAilment("toxic") != nil || user.hasAilment("burn") != nil || user.hasAilment("leech-seed") != nil || user.hasAilment("yawn") != nil || user.hasAilment("infatuation") != nil {
+	if user.hasAilment(Poison) != nil || user.hasAilment(Toxic) != nil || user.hasAilment(Burn) != nil || user.hasAilment(LeechSeed) != nil || user.hasAilment(Yawn) != nil || user.hasAilment(Infatuation) != nil {
 		score -= 2
 	}
 
@@ -253,14 +253,14 @@ func deadToSecondaryDamage(mon *pokemon, bs battleState) bool {
 	}
 
 	dmg := 0
-	if mon.hasAilment("burn") != nil {
+	if mon.hasAilment(Burn) != nil {
 		dmg += mon.maxHP() / 16
-	} else if mon.hasAilment("poison") != nil {
+	} else if mon.hasAilment(Poison) != nil {
 		dmg += mon.maxHP() / 8
-	} else if a := mon.hasAilment("toxic"); a != nil {
+	} else if a := mon.hasAilment(Toxic); a != nil {
 		dmg += (mon.maxHP() * (a.turns + 1)) / 16
 	}
-	if mon.hasAilment("trap") != nil {
+	if mon.hasAilment(Trap) != nil {
 		dmg += mon.maxHP() / 8
 	}
 	if bs.getWeather().affectsMon(mon) {
@@ -296,7 +296,7 @@ func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 	user := ma.userSlot.mon
 	target := ma.targetSlot.mon
 
-	if a := target.hasAilment("freeze"); a != nil && target.hasMovePredicate(func(m *move) bool {
+	if a := target.hasAilment(Freeze); a != nil && target.hasMovePredicate(func(m *move) bool {
 		if _, ok := selfThawingMoves[m.Name]; ok {
 			return true
 		}
@@ -304,7 +304,7 @@ func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 	}) {
 		return 9
 	}
-	if a := target.hasAilment("sleep"); a != nil {
+	if a := target.hasAilment(Sleep); a != nil {
 		return 9
 	}
 

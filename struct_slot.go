@@ -31,7 +31,7 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 		case "spikes":
 			takeResidualDamage(bs, s, "spikes", 1, 8)
 		case "toxic-spikes":
-			s.mon.applyAilment("poison", nil, nil)
+			s.mon.applyAilment(Poison, nil, nil)
 		case "sticky-web":
 			s.mon.changeStatStageBy(Speed, -1, true)
 		}
@@ -39,7 +39,7 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 }
 
 func (s *slot) isTrapped() bool {
-	return s.mon.hasAilment("trap") != nil || s.mon.hasAilment("bound") != nil
+	return s.mon.hasAilment(Trap) != nil || s.mon.hasAilment(Bound) != nil
 }
 
 func (s *slot) resolveProtect() {
