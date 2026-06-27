@@ -8,19 +8,19 @@ func TestStringToAilmentState(t *testing.T) {
 		input string
 		want  ailmentState
 	}{
-		{name: "paralysis", input: "paralysis", want: Paralysis},
-		{name: "poison", input: "poison", want: Poison},
-		{name: "toxic", input: "toxic", want: Toxic},
-		{name: "burn", input: "burn", want: Burn},
-		{name: "freeze", input: "freeze", want: Freeze},
-		{name: "sleep", input: "sleep", want: Sleep},
-		{name: "infatuation", input: "infatuation", want: Infatuation},
-		{name: "confusion", input: "confusion", want: Confusion},
-		{name: "trap", input: "trap", want: Trap},
-		{name: "bound", input: "bound", want: Bound},
-		{name: "leech-seed", input: "leech-seed", want: LeechSeed},
-		{name: "yawn", input: "yawn", want: Yawn},
-		{name: "unknown", input: "unknown", want: NoneAilment},
+		{name: "paralysis", input: "paralysis", want: paralysisAilment},
+		{name: "poison", input: "poison", want: poisonAilment},
+		{name: "toxic", input: "toxic", want: toxicAilment},
+		{name: "burn", input: "burn", want: burnAilment},
+		{name: "freeze", input: "freeze", want: freezeAilment},
+		{name: "sleep", input: "sleep", want: sleepAilment},
+		{name: "infatuation", input: "infatuation", want: infatuationAilment},
+		{name: "confusion", input: "confusion", want: confusionAilment},
+		{name: "trap", input: "trap", want: trapAilment},
+		{name: "bound", input: "bound", want: boundAilment},
+		{name: "leech-seed", input: "leech-seed", want: leechSeedAilment},
+		{name: "yawn", input: "yawn", want: yawnAilment},
+		{name: "unknown", input: "unknown", want: noneAilment},
 	}
 
 	for _, tt := range tests {

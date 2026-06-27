@@ -3,28 +3,28 @@ package main
 type weatherState int
 
 const (
-	NoneWeather weatherState = iota
-	Rain
-	Sun
-	Sandstorm
-	Hail
+	rainWeather weatherState = iota
+	sunWeather
+	sandstormWeather
+	hailWeather
+	noneWeather
 )
 
-var weatherFuncs = map[weatherState]func(*int, *int, string){
-	Rain: func(num, den *int, moveType string) {
-		switch moveType {
-		case "water":
+var weatherFuncs = map[weatherState]func(*int, *int, pokemonType){
+	rainWeather: func(num, den *int, t pokemonType) {
+		switch t {
+		case waterType:
 			*num = *num * 3
 			*den = *den * 2
-		case "fire":
+		case fireType:
 			*den = *den * 2
 		}
 	},
-	Sun: func(num, den *int, typeName string) {
-		switch typeName {
-		case "water":
+	sunWeather: func(num, den *int, t pokemonType) {
+		switch t {
+		case waterType:
 			*den = *den * 2
-		case "fire":
+		case fireType:
 			*num = *num * 3
 			*den = *den * 2
 		}
@@ -37,14 +37,14 @@ func (ws weatherState) affectsMon(mon *pokemon) bool {
 	}
 
 	switch ws {
-	case Sandstorm:
-		if !mon.hasType("rock") && !mon.hasType("steel") && !mon.hasType("ground") && mon.ability != "sand-veil" && mon.ability != "sand-rush" && mon.ability != "sand-force" {
+	case sandstormWeather:
+		if !mon.hasType(rockType) && !mon.hasType(steelType) && !mon.hasType(groundType) && mon.ability != "sand-veil" && mon.ability != "sand-rush" && mon.ability != "sand-force" {
 			return true
 		}
-	case Hail:
+	case hailWeather:
 		if mon.ability == "ice-body" {
 			return false
-		} else if !mon.hasType("ice") && mon.ability != "snow-cloak" {
+		} else if !mon.hasType(iceType) && mon.ability != "snow-cloak" {
 			return true
 		}
 	}
@@ -56,12 +56,12 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 	mon := slot.mon
 
 	switch ws {
-	case Hail:
+	case hailWeather:
 		if mon.ability == "ice-body" {
 			vlogf("%s healed due to ice body", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
 		}
-	case Rain:
+	case rainWeather:
 		switch mon.ability {
 		case "rain-dish":
 			vlogf("%s healed due to rain dish", mon.base.Name)
@@ -81,7 +81,7 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 				}
 			}
 		}
-	case Sun:
+	case sunWeather:
 		switch mon.ability {
 		case "dry-skin":
 			takeResidualDamage(bs, slot, "dry skin", 1, 8)
@@ -93,13 +93,13 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 
 func (ws weatherState) String() string {
 	switch ws {
-	case Rain:
+	case rainWeather:
 		return "rain"
-	case Sun:
+	case sunWeather:
 		return "sun"
-	case Hail:
+	case hailWeather:
 		return "hail"
-	case Sandstorm:
+	case sandstormWeather:
 		return "sandstorm"
 	default:
 		return ""
@@ -108,13 +108,13 @@ func (ws weatherState) String() string {
 
 func (ws weatherState) onset() {
 	switch ws {
-	case Rain:
+	case rainWeather:
 		vlogln("it started to rain")
-	case Sun:
+	case sunWeather:
 		vlogln("the sunlight turned harsh")
-	case Sandstorm:
+	case sandstormWeather:
 		vlogln("a sandstorm brewed")
-	case Hail:
+	case hailWeather:
 		vlogln("it started to hail")
 	}
 }

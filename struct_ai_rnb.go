@@ -21,7 +21,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			continue
 		}
 
-		if a.move.Class == Status {
+		if a.move.Class == statusClass {
 			damage[i] = -1
 			scores[i], _ = a.scoreActionMove(bs)
 			continue
@@ -55,8 +55,8 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			scores[i] = -20
 		}
 
-		if a.move.Ailment == Trap {
-			if _, ok := a.targetSlot.mon.ailments[Trap]; !ok {
+		if a.move.Ailment == trapAilment {
+			if _, ok := a.targetSlot.mon.ailments[trapAilment]; !ok {
 				scores[i] = 6 + 2*rollInt(1, 5)
 			}
 		}
@@ -110,7 +110,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		// add score if fast dead and the move has priority
 		if a.move.Priority > 0 && !a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
 			for _, move := range a.targetSlot.mon.moves {
-				if move.PP <= 0 || move.Class == Status {
+				if move.PP <= 0 || move.Class == statusClass {
 					continue
 				}
 				if a.targetSlot.mon.lockedMove != nil && a.targetSlot.mon.lockedMove != move {
@@ -161,7 +161,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		if c, ok := offenseControlMoves[a.move.Name]; ok {
-			if a.targetSlot.mon.hasMovePredicate(func(m *move) bool {
+			if a.targetSlot.mon.hasMovePredicate(func(m *Move) bool {
 				return m.Class == c
 			}) {
 				scores[i] = 6
@@ -172,7 +172,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 	}
 
-	// vlogln(scores)
+	vlogln(scores)
 
 	maxScore := scores[0]
 	for _, score := range scores {
@@ -252,7 +252,7 @@ func calculateMaxDamage(bs battleState, user, target *pokemon, checkChoice bool)
 	var maxDmg, dmg int
 	rolls := 1
 	for _, move := range user.moves {
-		if move.PP <= 0 || move.Class == Status {
+		if move.PP <= 0 || move.Class == statusClass {
 			continue
 		}
 		if checkChoice && user.lockedMove != nil && user.lockedMove != move {

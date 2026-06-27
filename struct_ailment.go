@@ -7,77 +7,77 @@ import (
 type ailmentState int
 
 const (
-	Paralysis ailmentState = iota
-	Poison
-	Toxic
-	Burn
-	Freeze
-	Sleep
-	Infatuation
-	Confusion
-	Trap
-	Bound
-	LeechSeed
-	Yawn
-	NoneAilment
+	paralysisAilment ailmentState = iota
+	poisonAilment
+	toxicAilment
+	burnAilment
+	freezeAilment
+	sleepAilment
+	infatuationAilment
+	confusionAilment
+	trapAilment
+	boundAilment
+	leechSeedAilment
+	yawnAilment
+	noneAilment
 )
 
 func stringToAilmentState(s string) ailmentState {
 	switch s {
 	case "paralysis":
-		return Paralysis
+		return paralysisAilment
 	case "poison":
-		return Poison
+		return poisonAilment
 	case "toxic":
-		return Toxic
+		return toxicAilment
 	case "burn":
-		return Burn
+		return burnAilment
 	case "freeze":
-		return Freeze
+		return freezeAilment
 	case "sleep":
-		return Sleep
+		return sleepAilment
 	case "infatuation":
-		return Infatuation
+		return infatuationAilment
 	case "confusion":
-		return Confusion
+		return confusionAilment
 	case "trap":
-		return Trap
+		return trapAilment
 	case "bound":
-		return Bound
+		return boundAilment
 	case "leech-seed":
-		return LeechSeed
+		return leechSeedAilment
 	case "yawn":
-		return Yawn
+		return yawnAilment
 	default:
-		return NoneAilment
+		return noneAilment
 	}
 }
 
 func (as ailmentState) String() string {
 	switch as {
-	case Paralysis:
+	case paralysisAilment:
 		return "paralysis"
-	case Poison:
+	case poisonAilment:
 		return "poison"
-	case Toxic:
+	case toxicAilment:
 		return "toxic"
-	case Burn:
+	case burnAilment:
 		return "burn"
-	case Freeze:
+	case freezeAilment:
 		return "freeze"
-	case Sleep:
+	case sleepAilment:
 		return "sleep"
-	case Infatuation:
+	case infatuationAilment:
 		return "infatuation"
-	case Confusion:
+	case confusionAilment:
 		return "confusion"
-	case Trap:
+	case trapAilment:
 		return "trap"
-	case Bound:
+	case boundAilment:
 		return "bound"
-	case LeechSeed:
+	case leechSeedAilment:
 		return "leech-seed"
-	case Yawn:
+	case yawnAilment:
 		return "yawn"
 	default:
 		return "invalid"
@@ -91,21 +91,21 @@ type ailment struct {
 }
 
 var nonVolatileStatuses = map[ailmentState]struct{}{
-	Paralysis: {},
-	Poison:    {},
-	Toxic:     {},
-	Burn:      {},
-	Freeze:    {},
-	Sleep:     {},
+	paralysisAilment: {},
+	poisonAilment:    {},
+	toxicAilment:     {},
+	burnAilment:      {},
+	freezeAilment:    {},
+	sleepAilment:     {},
 }
 
 var volatileStatuses = map[ailmentState]struct{}{
-	Infatuation: {},
-	Confusion:   {},
-	Trap:        {},
-	Bound:       {},
-	LeechSeed:   {},
-	Yawn:        {},
+	infatuationAilment: {},
+	confusionAilment:   {},
+	trapAilment:        {},
+	boundAilment:       {},
+	leechSeedAilment:   {},
+	yawnAilment:        {},
 }
 
 func generateAilment(as ailmentState, afflictedBy *slot) *ailment {
@@ -114,11 +114,11 @@ func generateAilment(as ailmentState, afflictedBy *slot) *ailment {
 		afflictedBy: afflictedBy,
 	}
 	switch as {
-	case Sleep:
+	case sleepAilment:
 		res.turns = rand.Intn(3) + 1
-	case Confusion:
+	case confusionAilment:
 		res.turns = rand.Intn(4) + 1
-	case Yawn:
+	case yawnAilment:
 		res.turns = 2
 	}
 	return &res
@@ -126,7 +126,7 @@ func generateAilment(as ailmentState, afflictedBy *slot) *ailment {
 
 func generateTrap(low, high int, mon *slot) *ailment {
 	return &ailment{
-		state:       Trap,
+		state:       trapAilment,
 		turns:       rand.Intn(high-low+1) + low,
 		afflictedBy: mon,
 	}

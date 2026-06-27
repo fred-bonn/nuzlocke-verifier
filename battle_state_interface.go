@@ -29,35 +29,35 @@ func resolveEndOfTurn(bs battleState) {
 		// resolve end of return effects from ailments and statuses
 		for _, ailment := range slot.mon.ailments {
 			switch ailment.state {
-			case Burn:
+			case burnAilment:
 				takeResidualDamage(bs, slot, ailment.state.String(), 1, 16)
-			case Poison:
+			case poisonAilment:
 				takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
-			case Toxic:
+			case toxicAilment:
 				ailment.turns++
 				takeResidualDamage(bs, slot, ailment.state.String(), ailment.turns, 16)
-			case Trap:
+			case trapAilment:
 				ailment.turns--
 				takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
 				if ailment.turns <= 0 {
 					vlogf("%s was freed", slot.mon.base.Name)
 					delete(slot.mon.ailments, ailment.state)
 				}
-			case LeechSeed:
+			case leechSeedAilment:
 				vlogf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
 				dmg := takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
 				ailment.afflictedBy.mon.changeHpBy(dmg)
-			case Yawn:
+			case yawnAilment:
 				ailment.turns--
 				if ailment.turns == 0 {
-					slot.mon.applyAilment(Sleep, nil, ailment.afflictedBy)
+					slot.mon.applyAilment(sleepAilment, nil, ailment.afflictedBy)
 					delete(slot.mon.ailments, ailment.state)
 				}
 			}
 		}
 
 		// resolve end of turn effects of weather
-		if w := bs.getWeather(); w != NoneWeather {
+		if w := bs.getWeather(); w != noneWeather {
 			if w.affectsMon(slot.mon) {
 				takeResidualDamage(bs, slot, w.String(), 1, 16)
 			}
@@ -76,7 +76,7 @@ func resolveEndOfTurn(bs battleState) {
 			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.ability == "speed-boost" && !slot.firstTurn {
-			slot.mon.changeStatStageBy(Speed, 1, false)
+			slot.mon.changeStatStageBy(speed, 1, false)
 		}
 
 		if slot.mon.item.name == "leftovers" {

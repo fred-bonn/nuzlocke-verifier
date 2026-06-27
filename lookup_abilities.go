@@ -61,7 +61,7 @@ func intimidate(s *slot, bs battleState, switchIn bool) {
 		if slot.mon.ability == "inner-focus" {
 			continue
 		}
-		slot.mon.changeStatStageBy(Attack, -1, true)
+		slot.mon.changeStatStageBy(attack, -1, true)
 	}
 }
 
@@ -88,7 +88,7 @@ func drizzle(s *slot, bs battleState, switchIn bool) {
 		return
 	}
 	vlogln("it started to rain")
-	bs.setWeather(Rain)
+	bs.setWeather(rainWeather)
 }
 
 func drought(s *slot, bs battleState, switchIn bool) {
@@ -96,7 +96,7 @@ func drought(s *slot, bs battleState, switchIn bool) {
 		return
 	}
 	vlogln("the sunlight turned harsh")
-	bs.setWeather(Sun)
+	bs.setWeather(sunWeather)
 }
 
 func snowWarning(s *slot, bs battleState, switchIn bool) {
@@ -104,7 +104,7 @@ func snowWarning(s *slot, bs battleState, switchIn bool) {
 		return
 	}
 	vlogln("it started to hail")
-	bs.setWeather(Hail)
+	bs.setWeather(hailWeather)
 }
 
 func sandStream(s *slot, bs battleState, switchIn bool) {
@@ -112,34 +112,34 @@ func sandStream(s *slot, bs battleState, switchIn bool) {
 		return
 	}
 	vlogln("a sandstorm brewed")
-	bs.setWeather(Sandstorm)
+	bs.setWeather(sandstormWeather)
 }
 
-var typeConvertingAbilities = map[string]func(t *string, p *int){
-	"aerilate":    typeConvertingAbilitiesMiddleware("flying"),
-	"pixilate":    typeConvertingAbilitiesMiddleware("fairy"),
-	"galvanize":   typeConvertingAbilitiesMiddleware("electric"),
-	"refrigerate": typeConvertingAbilitiesMiddleware("ice"),
+var typeConvertingAbilities = map[string]func(t *pokemonType, p *int){
+	"aerilate":    typeConvertingAbilitiesMiddleware(flyingType),
+	"pixilate":    typeConvertingAbilitiesMiddleware(fairyType),
+	"galvanize":   typeConvertingAbilitiesMiddleware(electricType),
+	"refrigerate": typeConvertingAbilitiesMiddleware(iceType),
 	"normalize":   normalize,
 }
 
-func normalize(t *string, p *int) {
-	if *t != "normal" {
-		*t = "normal"
+func normalize(t *pokemonType, p *int) {
+	if *t != normalType {
+		*t = normalType
 		*p = *p * 6 / 5
 	}
 }
 
-func typeConvertingAbilitiesMiddleware(t1 string) func(t *string, p *int) {
-	return func(t2 *string, p *int) {
-		if *t2 == "normal" {
+func typeConvertingAbilitiesMiddleware(t1 pokemonType) func(t *pokemonType, p *int) {
+	return func(t2 *pokemonType, p *int) {
+		if *t2 == normalType {
 			*t2 = t1
 			*p = *p * 6 / 5
 		}
 	}
 }
 
-var typeImmunityAbilities = map[string]func(u *pokemon, t string, s bool) bool{
+var typeImmunityAbilities = map[string]func(u *pokemon, t pokemonType, s bool) bool{
 	"flash-fire":    flashFire,
 	"dry-skin":      drySkin,
 	"water-absorb":  drySkin,
@@ -151,8 +151,8 @@ var typeImmunityAbilities = map[string]func(u *pokemon, t string, s bool) bool{
 	"levitate":      levitate,
 }
 
-func flashFire(p *pokemon, t string, s bool) bool {
-	if t != "fire" {
+func flashFire(p *pokemon, t pokemonType, s bool) bool {
+	if t != fireType {
 		return false
 	}
 	p.flashFire = true
@@ -160,8 +160,8 @@ func flashFire(p *pokemon, t string, s bool) bool {
 }
 
 // still need to implement sunlight penalty
-func drySkin(p *pokemon, t string, s bool) bool {
-	if t != "water" {
+func drySkin(p *pokemon, t pokemonType, s bool) bool {
+	if t != waterType {
 		return false
 	}
 	if s {
@@ -172,19 +172,19 @@ func drySkin(p *pokemon, t string, s bool) bool {
 	return true
 }
 
-func stormDrain(p *pokemon, t string, s bool) bool {
-	if t != "water" {
+func stormDrain(p *pokemon, t pokemonType, s bool) bool {
+	if t != waterType {
 		return false
 	}
 	if s {
 		return true
 	}
-	p.changeStatStageBy(SpecialAttack, 1, false)
+	p.changeStatStageBy(specialAttack, 1, false)
 	return true
 }
 
-func voltAbsorb(p *pokemon, t string, s bool) bool {
-	if t != "electric" {
+func voltAbsorb(p *pokemon, t pokemonType, s bool) bool {
+	if t != electricType {
 		return false
 	}
 	if s {
@@ -195,48 +195,48 @@ func voltAbsorb(p *pokemon, t string, s bool) bool {
 	return true
 }
 
-func lightningRod(p *pokemon, t string, s bool) bool {
-	if t != "electric" {
+func lightningRod(p *pokemon, t pokemonType, s bool) bool {
+	if t != electricType {
 		return false
 	}
 	if s {
 		return true
 	}
-	p.changeStatStageBy(SpecialAttack, 1, false)
+	p.changeStatStageBy(specialAttack, 1, false)
 	return true
 }
 
-func motorDrive(p *pokemon, t string, s bool) bool {
-	if t != "electric" {
+func motorDrive(p *pokemon, t pokemonType, s bool) bool {
+	if t != electricType {
 		return false
 	}
 	if s {
 		return true
 	}
-	p.changeStatStageBy(Speed, 1, false)
+	p.changeStatStageBy(speed, 1, false)
 	return true
 }
 
-func sapSipper(p *pokemon, t string, s bool) bool {
-	if t != "grass" {
+func sapSipper(p *pokemon, t pokemonType, s bool) bool {
+	if t != grassType {
 		return false
 	}
 	if s {
 		return true
 	}
-	p.changeStatStageBy(Attack, 1, false)
+	p.changeStatStageBy(attack, 1, false)
 	return true
 }
 
-func levitate(p *pokemon, t string, s bool) bool {
-	return t == "ground"
+func levitate(p *pokemon, t pokemonType, s bool) bool {
+	return t == groundType
 }
 
-var pinchAbilities = map[string]string{
-	"overgrow": "grass",
-	"blaze":    "fire",
-	"torrent":  "water",
-	"swarm":    "bug",
+var pinchAbilities = map[string]pokemonType{
+	"overgrow": grassType,
+	"blaze":    fireType,
+	"torrent":  waterType,
+	"swarm":    bugType,
 }
 
 var critBlockingAbilities = map[string]struct{}{
@@ -262,34 +262,34 @@ func roughSkin(u, t *slot) {
 
 func cuteCharm(u, t *slot) {
 	if roll(30, 100) {
-		u.mon.applyAilment(Infatuation, nil, t)
+		u.mon.applyAilment(infatuationAilment, nil, t)
 	}
 }
 
 func flameBody(u, t *slot) {
 	if roll(30, 100) {
-		u.mon.applyAilment(Burn, nil, t)
+		u.mon.applyAilment(burnAilment, nil, t)
 	}
 }
 
 func poisonPoint(u, t *slot) {
 	if roll(30, 100) {
-		u.mon.applyAilment(Poison, nil, t)
+		u.mon.applyAilment(poisonAilment, nil, t)
 	}
 }
 
 func effectSpore(u, t *slot) {
-	if u.mon.hasType("grass") || u.mon.ability == "overcoat" || u.mon.item.name == "safety-goggles" {
+	if u.mon.hasType(grassType) || u.mon.ability == "overcoat" || u.mon.item.name == "safety-goggles" {
 		return
 	}
 	if roll(30, 100) {
 		ailmentRoll := rand.Intn(30)
 		if ailmentRoll <= 8 {
-			u.mon.applyAilment(Poison, nil, t)
+			u.mon.applyAilment(poisonAilment, nil, t)
 		} else if ailmentRoll <= 18 {
-			u.mon.applyAilment(Paralysis, nil, t)
+			u.mon.applyAilment(paralysisAilment, nil, t)
 		} else {
-			u.mon.applyAilment(Sleep, nil, t)
+			u.mon.applyAilment(sleepAilment, nil, t)
 		}
 	}
 }
@@ -300,7 +300,7 @@ var contactOffensiveAbilities = map[string]func(u, t *slot){
 
 func poisonTouch(u, t *slot) {
 	if roll(30, 100) {
-		t.mon.applyAilment(Poison, nil, u)
+		t.mon.applyAilment(poisonAilment, nil, u)
 	}
 }
 

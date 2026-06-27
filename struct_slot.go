@@ -20,7 +20,7 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 	s.mon = new
 	for effect := range s.trainer.field {
 		if effect == "stealth-rock" {
-			num, dem := s.mon.applyMoveType(1, 8, "rock")
+			num, dem := s.mon.applyMoveType(1, 8, rockType)
 			takeResidualDamage(bs, s, "stealth rock", num, dem)
 			continue
 		}
@@ -31,15 +31,15 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 		case "spikes":
 			takeResidualDamage(bs, s, "spikes", 1, 8)
 		case "toxic-spikes":
-			s.mon.applyAilment(Poison, nil, nil)
+			s.mon.applyAilment(poisonAilment, nil, nil)
 		case "sticky-web":
-			s.mon.changeStatStageBy(Speed, -1, true)
+			s.mon.changeStatStageBy(speed, -1, true)
 		}
 	}
 }
 
 func (s *slot) isTrapped() bool {
-	return s.mon.hasAilment(Trap) != nil || s.mon.hasAilment(Bound) != nil
+	return s.mon.hasAilment(trapAilment) != nil || s.mon.hasAilment(boundAilment) != nil
 }
 
 func (s *slot) resolveProtect() {

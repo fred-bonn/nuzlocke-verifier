@@ -7,14 +7,14 @@ import (
 type moveAction struct {
 	userSlot   *slot
 	targetSlot *slot
-	move       *move
+	move       *Move
 	flinch     bool
 	pursuit    bool
 }
 
 func (ma *moveAction) prio(bs battleState) int {
 	bonus := 0
-	if ma.userSlot.mon.ability == "prankster" && ma.move.Class == Status {
+	if ma.userSlot.mon.ability == "prankster" && ma.move.Class == statusClass {
 		bonus++
 	}
 
@@ -40,10 +40,10 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	ma.userSlot.suckerPunch = ma.move.Name == "sucker-punch"
 
-	if _, ok := ma.userSlot.mon.ailments[Freeze]; ok {
+	if _, ok := ma.userSlot.mon.ailments[freezeAilment]; ok {
 		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
 			vlogf("%s thawed out", ma.userSlot.mon.base.Name)
-			delete(ma.userSlot.mon.ailments, Freeze)
+			delete(ma.userSlot.mon.ailments, freezeAilment)
 		} else {
 			ma.userSlot.invulnerableAction = nil
 			vlogMove(ma.prio(bs), ma.speed(bs), "%s is frozen", ma.userSlot.mon.base.Name)
@@ -51,10 +51,10 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if sleep := ma.userSlot.mon.hasAilment(Sleep); sleep != nil {
+	if sleep := ma.userSlot.mon.hasAilment(sleepAilment); sleep != nil {
 		if sleep.turns <= 0 {
 			vlogf("%s woke up", ma.userSlot.mon.base.Name)
-			delete(ma.userSlot.mon.ailments, Sleep)
+			delete(ma.userSlot.mon.ailments, sleepAilment)
 		} else {
 			if ma.userSlot.mon.ability == "early-bird" {
 				sleep.turns -= 2
@@ -67,7 +67,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if confusion := ma.userSlot.mon.hasAilment(Confusion); confusion != nil {
+	if confusion := ma.userSlot.mon.hasAilment(confusionAilment); confusion != nil {
 		if confusion.turns > 0 {
 			confusion.turns -= 1
 			vlogf("%s is confused", ma.userSlot.mon.base.Name)
@@ -82,12 +82,12 @@ func (ma *moveAction) invoke(bs battleState) {
 				return
 			}
 		} else {
-			delete(ma.userSlot.mon.ailments, Confusion)
+			delete(ma.userSlot.mon.ailments, confusionAilment)
 			vlogf("%s snapped out of confusion", ma.userSlot.mon.base.Name)
 		}
 	}
 
-	if paralysis := ma.userSlot.mon.hasAilment(Paralysis); paralysis != nil {
+	if paralysis := ma.userSlot.mon.hasAilment(paralysisAilment); paralysis != nil {
 		if roll(1, 4) {
 			ma.userSlot.invulnerableAction = nil
 			vlogf("%s is paralysed", ma.userSlot.mon.base.Name)
@@ -95,7 +95,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		}
 	}
 
-	if infatuation := ma.userSlot.mon.hasAilment(Infatuation); infatuation != nil {
+	if infatuation := ma.userSlot.mon.hasAilment(infatuationAilment); infatuation != nil {
 		if roll(1, 2) {
 			ma.userSlot.invulnerableAction = nil
 			vlogf("%s is infatuated with %s", ma.userSlot.mon.base.Name, infatuation.afflictedBy.mon.base.Name)
@@ -122,7 +122,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	if ma.userSlot.suckerPunch {
 		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
-		if targetMove == nil || targetMove.move.Class == Status {
+		if targetMove == nil || targetMove.move.Class == statusClass {
 			vlogMove(ma.prio(bs), ma.speed(bs), "%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
 			return
 		}
@@ -145,7 +145,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
-	if ma.move.Class == Status {
+	if ma.move.Class == statusClass {
 		if strings.HasPrefix(ma.move.Target, "user") {
 			ma.applyStatusMove(bs, ma.userSlot.mon, false)
 		} else {
@@ -164,8 +164,8 @@ func (ma *moveAction) invoke(bs battleState) {
 		move: ma.move,
 	})
 
-	if ma.move.Type == "fire" {
-		delete(ma.targetSlot.mon.ailments, Freeze)
+	if ma.move.Type == fireType {
+		delete(ma.targetSlot.mon.ailments, freezeAilment)
 	}
 }
 
@@ -182,8 +182,8 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 
 	switch ma.move.Name {
 	case "swagger":
-		target.changeStatStageBy(Attack, 2, false)
-		target.applyAilment(Confusion, ma.move, ma.userSlot)
+		target.changeStatStageBy(attack, 2, false)
+		target.applyAilment(confusionAilment, ma.move, ma.userSlot)
 		return
 	case "focus-energy":
 		target.focusEnergy = true
@@ -199,7 +199,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 
 		vlogf("%s took damage from belly drum", target.base.Name)
 		target.changeHpBy(-(target.maxHP() / 2))
-		target.changeStatStageBy(Attack, 6, false)
+		target.changeStatStageBy(attack, 6, false)
 	}
 
 	if ma.move.Heal > 0 {
@@ -208,7 +208,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 		vlogf("%s healed for %d", target.base.Name, change)
 	}
 
-	if ma.move.Ailment != NoneAilment {
+	if ma.move.Ailment != noneAilment {
 		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
@@ -252,7 +252,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	}
 
 	target.checkItemTrigger(true, resistBerryEvent{
-		typeName: ma.move.Type,
+		pokemonType: ma.move.Type,
 	})
 	target.checkItemTrigger(true, focusSashEvent{
 		damage: &damage,
@@ -261,7 +261,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		damage = min(damage, target.hp-1)
 	}
 	user.checkItemTrigger(true, gemEvent{
-		typeName: ma.move.Type,
+		pokemonType: ma.move.Type,
 	})
 
 	damage = min(damage, target.hp)
@@ -276,9 +276,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		target.item, _ = registerItem("", target)
 
 	} else if ma.move.Name == "wake-up-slap" {
-		if a := target.hasAilment(Sleep); a != nil {
+		if a := target.hasAilment(sleepAilment); a != nil {
 			vlogf("%s woke up", target.base.Name)
-			delete(target.ailments, Sleep)
+			delete(target.ailments, sleepAilment)
 		}
 	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != "sticky-hold" {
 		vlogf("%s had its %s knocked off", target.base.Name, target.item.name)
@@ -324,10 +324,10 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		}
 	} else if target.ability == "cotten-down" {
 		for _, slot := range bs.getOtherSlots(ma.targetSlot) {
-			slot.mon.changeStatStageBy(Speed, -1, true)
+			slot.mon.changeStatStageBy(speed, -1, true)
 		}
-	} else if target.ability == "water-compaction" && ma.move.Type == "water" {
-		target.changeStatStageBy(Defense, 2, false)
+	} else if target.ability == "water-compaction" && ma.move.Type == waterType {
+		target.changeStatStageBy(defense, 2, false)
 	}
 	if f, ok := contactOffensiveAbilities[user.ability]; ok && ma.move.Contact {
 		f(ma.userSlot, ma.targetSlot)

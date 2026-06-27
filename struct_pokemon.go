@@ -6,12 +6,12 @@ import (
 )
 
 type pokemon struct {
-	base        basePokemon
+	base        BasePokemon
 	level       int
 	ivs         []int
 	nature      []stats
-	moves       []*move
-	lockedMove  *move
+	moves       []*Move
+	lockedMove  *Move
 	stats       []int
 	stages      []int
 	hp          int
@@ -37,7 +37,7 @@ func getNature(nature string) ([]stats, error) {
 
 }
 
-func initPokemon(base basePokemon, level int, ivs map[string]int, nature string, moves []*move, hp int, status ailmentState) (pokemon, error) {
+func initPokemon(base BasePokemon, level int, ivs map[string]int, nature string, moves []*Move, hp int, status ailmentState) (pokemon, error) {
 	if level < 1 || level > 100 {
 		return pokemon{}, fmt.Errorf("invalid level: %d", level)
 	}
@@ -90,10 +90,10 @@ func calculateStats(pokemon *pokemon) {
 		pokemon.stats[stat] = ((val*2+pokemon.ivs[stat])*pokemon.level)/100 + 5
 	}
 	// Shedinja case: if HP is 1, it stays 1 regardless of level or IVs
-	if pokemon.stats[HitPoints] == 1 {
-		pokemon.stats[HitPoints] = 1
+	if pokemon.stats[hitPoints] == 1 {
+		pokemon.stats[hitPoints] = 1
 	} else {
-		pokemon.stats[HitPoints] += pokemon.level + 5
+		pokemon.stats[hitPoints] += pokemon.level + 5
 	}
 
 	// Apply nature modifiers
@@ -115,7 +115,7 @@ func (p *pokemon) switchReset() {
 		p.stages[stat] = 0
 	}
 
-	if toxic, ok := p.ailments[Toxic]; ok {
+	if toxic, ok := p.ailments[toxicAilment]; ok {
 		toxic.turns = 0
 	}
 
@@ -137,9 +137,9 @@ func (p *pokemon) effectiveStat(stat stats, crit bool) int {
 
 	if crit {
 		switch stat {
-		case Defense, SpecialDefense:
+		case defense, specialDefense:
 			stage = min(0, stage)
-		case Attack, SpecialAttack:
+		case attack, specialAttack:
 			stage = max(0, stage)
 		}
 	}
@@ -151,8 +151,8 @@ func (p *pokemon) effectiveStat(stat stats, crit bool) int {
 }
 
 func (p *pokemon) effectiveSpeed(bs battleState) int {
-	stage := p.stages[Speed]
-	base := p.stats[Speed]
+	stage := p.stages[speed]
+	base := p.stats[speed]
 	numerator := 1
 	denominator := 1
 
@@ -161,27 +161,25 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 	} else if p.unburden && p.ability == "unburden" {
 		numerator *= 2
 	}
-	if _, ok := p.ailments[Paralysis]; ok {
+	if _, ok := p.ailments[paralysisAilment]; ok {
 		denominator *= 4
 	}
-	if bs.getWeather() != NoneWeather {
-		switch bs.getWeather() {
-		case Rain:
-			if p.ability == "swift-swim" {
-				numerator *= 2
-			}
-		case Sun:
-			if p.ability == "chlorophyll" {
-				numerator *= 2
-			}
-		case Hail:
-			if p.ability == "slush-rush" {
-				numerator *= 2
-			}
-		case Sandstorm:
-			if p.ability == "sand-rush" {
-				numerator *= 2
-			}
+	switch bs.getWeather() {
+	case rainWeather:
+		if p.ability == "swift-swim" {
+			numerator *= 2
+		}
+	case sunWeather:
+		if p.ability == "chlorophyll" {
+			numerator *= 2
+		}
+	case hailWeather:
+		if p.ability == "slush-rush" {
+			numerator *= 2
+		}
+	case sandstormWeather:
+		if p.ability == "sand-rush" {
+			numerator *= 2
 		}
 	}
 
@@ -202,7 +200,7 @@ func (p *pokemon) evasionFraction(keenEye bool) (int, int) {
 		return 1, 1
 	}
 
-	stage := p.stages[Evasion]
+	stage := p.stages[evasion]
 	if stage == 0 {
 		return 3, 3
 	} else if stage > 0 {
@@ -212,7 +210,7 @@ func (p *pokemon) evasionFraction(keenEye bool) (int, int) {
 }
 
 func (p *pokemon) accuracyFraction() (int, int) {
-	stage := p.stages[Accuracy]
+	stage := p.stages[accuracy]
 	if stage == 0 {
 		return 3, 3
 	} else if stage > 0 {
@@ -221,7 +219,7 @@ func (p *pokemon) accuracyFraction() (int, int) {
 	return 3, 3 - stage
 }
 
-func (p *pokemon) hasType(typeName string) bool {
+func (p *pokemon) hasType(typeName pokemonType) bool {
 	for _, t := range p.base.Types {
 		if typeName == t {
 			return true
@@ -230,8 +228,8 @@ func (p *pokemon) hasType(typeName string) bool {
 	return false
 }
 
-func (p *pokemon) applyAilment(ailment ailmentState, move *move, afflictedBy *slot) {
-	if ailment == NoneAilment {
+func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *slot) {
+	if ailment == noneAilment {
 		elogf("%s applies an ailment but is none", ailment.String())
 		return
 	}
@@ -242,43 +240,43 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *move, afflictedBy *sl
 	if _, ok := nonVolatileStatuses[ailment]; ok && p.hasNonVolatileAilment() {
 		return
 	}
-	if ailment == Burn && (p.hasType("fire") || p.ability == "water-veil") {
+	if ailment == burnAilment && (p.hasType(fireType) || p.ability == "water-veil") {
 		return
 	}
-	if ailment == Paralysis && (p.hasType("electric") || p.ability == "limber") {
+	if ailment == paralysisAilment && (p.hasType(electricType) || p.ability == "limber") {
 		return
 	}
-	if ailment == Poison || ailment == Toxic {
+	if ailment == poisonAilment || ailment == toxicAilment {
 		if p.ability == "immunity" {
 			return
 		}
-		if (p.hasType("poison") || p.hasType("steel")) && (afflictedBy == nil || afflictedBy.mon.ability != "corrosion") {
+		if (p.hasType(poisonType) || p.hasType(steelType)) && (afflictedBy == nil || afflictedBy.mon.ability != "corrosion") {
 			return
 		}
 	}
-	if ailment == Freeze && p.hasType("ice") {
+	if ailment == freezeAilment && p.hasType(iceType) {
 		return
 	}
-	if ailment == Sleep {
+	if ailment == sleepAilment {
 		if _, ok := sleepBlockingAbilities[p.ability]; ok {
 			return
 		}
 	}
-	if ailment == Yawn {
+	if ailment == yawnAilment {
 		if _, ok := sleepBlockingAbilities[p.ability]; ok || p.hasNonVolatileAilment() {
 			return
 		}
 	}
 
 	switch ailment {
-	case Trap:
+	case trapAilment:
 		p.ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
-	case Poison:
+	case poisonAilment:
 		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
-			ailment = Toxic
+			ailment = toxicAilment
 		}
-	case Infatuation:
+	case infatuationAilment:
 		if afflictedBy.mon.ability == "oblivious" {
 			return
 		}
@@ -301,7 +299,7 @@ func (p *pokemon) hasAilment(ailment ailmentState) *ailment {
 
 func (p *pokemon) hasNonVolatileAilment() bool {
 	for ailment := range p.ailments {
-		if ailment <= Sleep {
+		if ailment <= sleepAilment {
 			return true
 		}
 	}
@@ -312,7 +310,7 @@ func (p *pokemon) isGrounded() bool {
 	if p.item.name == "iron-ball" {
 		return true
 	}
-	if p.hasType("flying") || p.ability == "levitate" {
+	if p.hasType(flyingType) || p.ability == "levitate" {
 		return false
 	}
 	return true
@@ -323,7 +321,7 @@ func (p *pokemon) changeHpBy(change int) {
 	p.checkItemTrigger(true, nil)
 }
 
-func (p *pokemon) hasMovePredicate(f func(*move) bool) bool {
+func (p *pokemon) hasMovePredicate(f func(*Move) bool) bool {
 	return slices.ContainsFunc(p.moves, f)
 }
 
@@ -332,7 +330,7 @@ func (p *pokemon) changeStatStageBy(stat stats, change int, offensive bool) {
 		vlogf("blocked by clear body")
 		return
 	}
-	if p.ability == "keen-eye" && stat == Accuracy && change < 0 {
+	if p.ability == "keen-eye" && stat == accuracy && change < 0 {
 		return
 	}
 
@@ -341,7 +339,7 @@ func (p *pokemon) changeStatStageBy(stat stats, change int, offensive bool) {
 }
 
 func (p *pokemon) maxHP() int {
-	return p.stats[HitPoints]
+	return p.stats[hitPoints]
 }
 
 func (p *pokemon) serenceGraceBonus() int {
@@ -351,9 +349,9 @@ func (p *pokemon) serenceGraceBonus() int {
 	return 1
 }
 
-func (p *pokemon) applyMoveType(num, dem int, moveType string) (int, int) {
+func (p *pokemon) applyMoveType(num, dem int, moveType pokemonType) (int, int) {
 	for _, t := range p.base.Types {
-		if t == "flying" && moveType == "ground" && p.isGrounded() {
+		if t == flyingType && moveType == groundType && p.isGrounded() {
 			continue
 		}
 		switch getEffectiveness(moveType, t) {

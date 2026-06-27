@@ -10,29 +10,29 @@ import (
 type moveClass int
 
 const (
-	Physical moveClass = iota
-	Special
-	Status
-	InvalidClass
+	physicalClass moveClass = iota
+	specialClass
+	statusClass
+	noneClass
 )
 
 func stringToMoveClass(s string) moveClass {
 	switch s {
 	case "physical":
-		return Physical
+		return physicalClass
 	case "special":
-		return Special
+		return specialClass
 	case "status":
-		return Status
+		return statusClass
 	default:
 		elogFatalf("%s is not a valid move class", s)
-		return InvalidClass
+		return noneClass
 	}
 }
 
-type move struct {
+type Move struct {
 	Name          string
-	Type          string
+	Type          pokemonType
 	Power         int
 	Accuracy      int
 	PP            int
@@ -58,7 +58,7 @@ type move struct {
 
 var contactMoves map[string]any
 
-func toMove(mj pokeapi.MoveJSON) move {
+func toMove(mj pokeapi.MoveJSON) Move {
 	isContact := false
 	statChanges := make(map[string]int)
 	for _, sc := range mj.StatChanges {
@@ -80,9 +80,9 @@ func toMove(mj pokeapi.MoveJSON) move {
 
 	_, isContact = contactMoves[mj.Name]
 
-	return move{
+	return Move{
 		Name:          mj.Name,
-		Type:          mj.Type.Name,
+		Type:          stringToPokemonType(mj.Type.Name),
 		Power:         mj.Power,
 		Accuracy:      mj.Accuracy,
 		PP:            mj.PP,

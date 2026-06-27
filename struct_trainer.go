@@ -33,7 +33,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 			if move.PP <= 0 {
 				continue
 			}
-			if slot.mon.item.name == "assault-vest" && move.Class != Status {
+			if slot.mon.item.name == "assault-vest" && move.Class != statusClass {
 				continue
 			}
 			for _, oppSlot := range opponentSlots {

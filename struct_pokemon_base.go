@@ -2,19 +2,19 @@ package main
 
 import "github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 
-type basePokemon struct {
+type BasePokemon struct {
 	Id     int
 	Name   string
 	Height int
 	Weight int
-	Types  []string
+	Types  []pokemonType
 	Stats  map[string]int
 }
 
-func toPokemon(pj pokeapi.PokemonJSON) basePokemon {
-	types := make([]string, len(pj.Types))
+func toPokemon(pj pokeapi.PokemonJSON) BasePokemon {
+	types := make([]pokemonType, len(pj.Types))
 	for i, t := range pj.Types {
-		types[i] = t.Type.Name
+		types[i] = stringToPokemonType(t.Type.Name)
 	}
 
 	stats := make(map[string]int, 6)
@@ -22,7 +22,7 @@ func toPokemon(pj pokeapi.PokemonJSON) basePokemon {
 		stats[s.Stat.Name] = s.BaseStat
 	}
 
-	return basePokemon{
+	return BasePokemon{
 		Id:     pj.Id,
 		Name:   pj.Name,
 		Height: pj.Height,

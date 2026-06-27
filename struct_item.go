@@ -39,69 +39,69 @@ var itemBuilders = map[string]ItemFactoryBuilder{
 	"rawst-berry":    makeRawstBerry,
 	"aspear-berry":   makeAspearBerry,
 	"persim-berry":   makePersimBerry,
-	"liechi-berry":   makeStatBoostBerryMiddleware("liechi-berry", Attack),
-	"ganlon-berry":   makeStatBoostBerryMiddleware("ganlon-berry", Defense),
-	"salac-berry":    makeStatBoostBerryMiddleware("salac-berry", Speed),
-	"petaya-berry":   makeStatBoostBerryMiddleware("petaya-berry", SpecialAttack),
-	"apicot-berry":   makeStatBoostBerryMiddleware("apicot-berry", SpecialDefense),
-	"babiri-berry":   makeResistBerryMiddleware("babiri-berry", "steel"),
-	"chilan-berry":   makeResistBerryMiddleware("chilan-berry", "normal"),
-	"charti-berry":   makeResistBerryMiddleware("charti-berry", "rock"),
-	"chople-berry":   makeResistBerryMiddleware("chople-berry", "fighting"),
-	"coba-berry":     makeResistBerryMiddleware("coba-berry", "coba"),
-	"colbur-berry":   makeResistBerryMiddleware("colbur-berry", "dark"),
-	"haban-berry":    makeResistBerryMiddleware("haban-berry", "dragon"),
-	"kasib-berry":    makeResistBerryMiddleware("kasib-berry", "ghost"),
-	"kebia-berry":    makeResistBerryMiddleware("kebia-berry", "poison"),
-	"occa-berry":     makeResistBerryMiddleware("occa-berry", "fire"),
-	"passho-berry":   makeResistBerryMiddleware("passho-berry", "water"),
-	"payapa-berry":   makeResistBerryMiddleware("payapa-berry", "psychic"),
-	"rindo-berry":    makeResistBerryMiddleware("rindo-berry", "grass"),
-	"roseli-berry":   makeResistBerryMiddleware("roseli-berry", "fairy"),
-	"shuca-berry":    makeResistBerryMiddleware("shuca-berry", "ground"),
-	"tanga-berry":    makeResistBerryMiddleware("tanga-berry", "bug"),
-	"wacan-berry":    makeResistBerryMiddleware("wacan-berry", "electric"),
-	"yache-berry":    makeResistBerryMiddleware("yache-berry", "ice"),
+	"liechi-berry":   makeStatBoostBerryMiddleware("liechi-berry", attack),
+	"ganlon-berry":   makeStatBoostBerryMiddleware("ganlon-berry", defense),
+	"salac-berry":    makeStatBoostBerryMiddleware("salac-berry", speed),
+	"petaya-berry":   makeStatBoostBerryMiddleware("petaya-berry", specialAttack),
+	"apicot-berry":   makeStatBoostBerryMiddleware("apicot-berry", specialDefense),
+	"babiri-berry":   makeResistBerryMiddleware("babiri-berry", steelType),
+	"chilan-berry":   makeResistBerryMiddleware("chilan-berry", normalType),
+	"charti-berry":   makeResistBerryMiddleware("charti-berry", rockType),
+	"chople-berry":   makeResistBerryMiddleware("chople-berry", fightingType),
+	"coba-berry":     makeResistBerryMiddleware("coba-berry", flyingType),
+	"colbur-berry":   makeResistBerryMiddleware("colbur-berry", darkType),
+	"haban-berry":    makeResistBerryMiddleware("haban-berry", dragonType),
+	"kasib-berry":    makeResistBerryMiddleware("kasib-berry", ghostType),
+	"kebia-berry":    makeResistBerryMiddleware("kebia-berry", poisonType),
+	"occa-berry":     makeResistBerryMiddleware("occa-berry", fireType),
+	"passho-berry":   makeResistBerryMiddleware("passho-berry", waterType),
+	"payapa-berry":   makeResistBerryMiddleware("payapa-berry", psychicType),
+	"rindo-berry":    makeResistBerryMiddleware("rindo-berry", grassType),
+	"roseli-berry":   makeResistBerryMiddleware("roseli-berry", fairyType),
+	"shuca-berry":    makeResistBerryMiddleware("shuca-berry", groundType),
+	"tanga-berry":    makeResistBerryMiddleware("tanga-berry", bugType),
+	"wacan-berry":    makeResistBerryMiddleware("wacan-berry", electricType),
+	"yache-berry":    makeResistBerryMiddleware("yache-berry", iceType),
 	"iron-ball":      makePassiveItemMiddleware("iron-ball"),
 	"scope-lens":     makePassiveItemMiddleware("scope-lens"),
 	"leftovers":      makePassiveItemMiddleware("leftovers"),
 	"safety-goggles": makePassiveItemMiddleware("safety-goggles"),
-	"mystic-water":   makeTypeBoostingItemMiddleware("mystic-water", "water"),
-	"dragon-fang":    makeTypeBoostingItemMiddleware("dragon-fang", "dragon"),
-	"silver-powder":  makeTypeBoostingItemMiddleware("silver-powder", "bug"),
-	"magnet":         makeTypeBoostingItemMiddleware("magnet", "electric"),
-	"black-belt":     makeTypeBoostingItemMiddleware("black-belt", "fighting"),
-	"charcoal":       makeTypeBoostingItemMiddleware("charcoal", "fire"),
-	"sharp-beak":     makeTypeBoostingItemMiddleware("sharp-beak", "flying"),
-	"spell-tag":      makeTypeBoostingItemMiddleware("spell-tag", "ghost"),
-	"miracle-seed":   makeTypeBoostingItemMiddleware("miracle-seed", "grass"),
-	"soft-sand":      makeTypeBoostingItemMiddleware("soft-sand", "ground"),
-	"never-melt-ice": makeTypeBoostingItemMiddleware("never-melt-ice", "ice"),
-	"silk-scarf":     makeTypeBoostingItemMiddleware("silk-scarf", "normal"),
-	"poison-barb":    makeTypeBoostingItemMiddleware("poison-barb", "poison"),
-	"twisted-spoon":  makeTypeBoostingItemMiddleware("twisted-spoon", "psychic"),
-	"hard-stone":     makeTypeBoostingItemMiddleware("hard-stone", "rock"),
-	"metal-coat":     makeTypeBoostingItemMiddleware("metal-coat", "steel"),
-	"pixie-plate":    makeTypeBoostingItemMiddleware("pixir-plate", "fairy"),
-	"dark-glasses":   makeTypeBoostingItemMiddleware("dark-glasses", "dark"),
-	"normal-gem":     makeGemMiddleware("normal"),
-	"fire-gem":       makeGemMiddleware("fire"),
-	"fighting-gem":   makeGemMiddleware("fighting"),
-	"water-gem":      makeGemMiddleware("water"),
-	"flying-gem":     makeGemMiddleware("flying"),
-	"grass-gem":      makeGemMiddleware("grass"),
-	"poison-gem":     makeGemMiddleware("poison"),
-	"electric-gem":   makeGemMiddleware("electric"),
-	"ground-gem":     makeGemMiddleware("ground"),
-	"psychic-gem":    makeGemMiddleware("psychic"),
-	"rock-gem":       makeGemMiddleware("rock"),
-	"ice-gem":        makeGemMiddleware("ice"),
-	"bug-gem":        makeGemMiddleware("bug"),
-	"dragon-gem":     makeGemMiddleware("dragon"),
-	"ghost-gem":      makeGemMiddleware("ghost"),
-	"dark-gem":       makeGemMiddleware("dark"),
-	"steel-gem":      makeGemMiddleware("steel"),
-	"fairy-gem":      makeGemMiddleware("fairy"),
+	"mystic-water":   makeTypeBoostingItemMiddleware("mystic-water", waterType),
+	"dragon-fang":    makeTypeBoostingItemMiddleware("dragon-fang", dragonType),
+	"silver-powder":  makeTypeBoostingItemMiddleware("silver-powder", bugType),
+	"magnet":         makeTypeBoostingItemMiddleware("magnet", electricType),
+	"black-belt":     makeTypeBoostingItemMiddleware("black-belt", fightingType),
+	"charcoal":       makeTypeBoostingItemMiddleware("charcoal", fireType),
+	"sharp-beak":     makeTypeBoostingItemMiddleware("sharp-beak", flyingType),
+	"spell-tag":      makeTypeBoostingItemMiddleware("spell-tag", ghostType),
+	"miracle-seed":   makeTypeBoostingItemMiddleware("miracle-seed", grassType),
+	"soft-sand":      makeTypeBoostingItemMiddleware("soft-sand", groundType),
+	"never-melt-ice": makeTypeBoostingItemMiddleware("never-melt-ice", iceType),
+	"silk-scarf":     makeTypeBoostingItemMiddleware("silk-scarf", normalType),
+	"poison-barb":    makeTypeBoostingItemMiddleware("poison-barb", poisonType),
+	"twisted-spoon":  makeTypeBoostingItemMiddleware("twisted-spoon", psychicType),
+	"hard-stone":     makeTypeBoostingItemMiddleware("hard-stone", rockType),
+	"metal-coat":     makeTypeBoostingItemMiddleware("metal-coat", steelType),
+	"pixie-plate":    makeTypeBoostingItemMiddleware("pixir-plate", fairyType),
+	"dark-glasses":   makeTypeBoostingItemMiddleware("dark-glasses", darkType),
+	"normal-gem":     makeGemMiddleware(normalType),
+	"fire-gem":       makeGemMiddleware(fireType),
+	"fighting-gem":   makeGemMiddleware(fightingType),
+	"water-gem":      makeGemMiddleware(waterType),
+	"flying-gem":     makeGemMiddleware(flyingType),
+	"grass-gem":      makeGemMiddleware(grassType),
+	"poison-gem":     makeGemMiddleware(poisonType),
+	"electric-gem":   makeGemMiddleware(electricType),
+	"ground-gem":     makeGemMiddleware(groundType),
+	"psychic-gem":    makeGemMiddleware(psychicType),
+	"rock-gem":       makeGemMiddleware(rockType),
+	"ice-gem":        makeGemMiddleware(iceType),
+	"bug-gem":        makeGemMiddleware(bugType),
+	"dragon-gem":     makeGemMiddleware(dragonType),
+	"ghost-gem":      makeGemMiddleware(ghostType),
+	"dark-gem":       makeGemMiddleware(darkType),
+	"steel-gem":      makeGemMiddleware(steelType),
+	"fairy-gem":      makeGemMiddleware(fairyType),
 	"choice-scarf":   makeChoiceScarf,
 	"assault-vest":   makeAssaultVest,
 	"choice-band":    makeChoiceBand,
@@ -148,7 +148,7 @@ func makePassiveItemMiddleware(itemName string) func(mon *pokemon) *item {
 	}
 }
 
-func makeTypeBoostingItemMiddleware(itemName, typeName string) func(mon *pokemon) *item {
+func makeTypeBoostingItemMiddleware(itemName string, pokemonType pokemonType) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		var p *int
 		return &item{
@@ -158,7 +158,7 @@ func makeTypeBoostingItemMiddleware(itemName, typeName string) func(mon *pokemon
 				if !ok {
 					return false
 				}
-				if typeName != event.typeName {
+				if pokemonType != event.pokemonType {
 					return false
 				}
 				p = event.power
@@ -218,11 +218,11 @@ func makeCheriBerry(mon *pokemon) *item {
 	return &item{
 		name: "cheri-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment(Paralysis) != nil
+			return !mon.unnerved && mon.hasAilment(paralysisAilment) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its cheri berry", mon.base.Name)
-			delete(mon.ailments, Paralysis)
+			delete(mon.ailments, paralysisAilment)
 			cheekPouch(mon)
 		},
 	}
@@ -232,11 +232,11 @@ func makeChestoBerry(mon *pokemon) *item {
 	return &item{
 		name: "chesto-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment(Sleep) != nil
+			return !mon.unnerved && mon.hasAilment(sleepAilment) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its chesto berry", mon.base.Name)
-			delete(mon.ailments, Sleep)
+			delete(mon.ailments, sleepAilment)
 			cheekPouch(mon)
 		},
 	}
@@ -246,12 +246,12 @@ func makePechaBerry(mon *pokemon) *item {
 	return &item{
 		name: "pecha-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && (mon.hasAilment(Poison) != nil || mon.hasAilment(Toxic) != nil)
+			return !mon.unnerved && (mon.hasAilment(poisonAilment) != nil || mon.hasAilment(toxicAilment) != nil)
 		},
 		activate: func() {
 			vlogItem("%s ate its pecha berry", mon.base.Name)
-			delete(mon.ailments, Poison)
-			delete(mon.ailments, Toxic)
+			delete(mon.ailments, poisonAilment)
+			delete(mon.ailments, toxicAilment)
 			cheekPouch(mon)
 		},
 	}
@@ -261,11 +261,11 @@ func makeRawstBerry(mon *pokemon) *item {
 	return &item{
 		name: "rawst-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment(Burn) != nil
+			return !mon.unnerved && mon.hasAilment(burnAilment) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its rawst berry", mon.base.Name)
-			delete(mon.ailments, Burn)
+			delete(mon.ailments, burnAilment)
 			cheekPouch(mon)
 		},
 	}
@@ -275,11 +275,11 @@ func makeAspearBerry(mon *pokemon) *item {
 	return &item{
 		name: "aspear-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment(Freeze) != nil
+			return !mon.unnerved && mon.hasAilment(freezeAilment) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its aspear berry", mon.base.Name)
-			delete(mon.ailments, Freeze)
+			delete(mon.ailments, freezeAilment)
 			cheekPouch(mon)
 		},
 	}
@@ -289,11 +289,11 @@ func makePersimBerry(mon *pokemon) *item {
 	return &item{
 		name: "persim-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hasAilment(Confusion) != nil
+			return !mon.unnerved && mon.hasAilment(confusionAilment) != nil
 		},
 		activate: func() {
 			vlogItem("%s ate its persim berry", mon.base.Name)
-			delete(mon.ailments, Confusion)
+			delete(mon.ailments, confusionAilment)
 			cheekPouch(mon)
 		},
 	}
@@ -303,7 +303,7 @@ func makeLumBerry(mon *pokemon) *item {
 	return &item{
 		name: "lum-berry",
 		trigger: func(any) bool {
-			return !mon.unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment(Confusion) != nil)
+			return !mon.unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment(confusionAilment) != nil)
 		},
 		activate: func() {
 			vlogItem("%s ate its lum berry", mon.base.Name)
@@ -313,8 +313,8 @@ func makeLumBerry(mon *pokemon) *item {
 					vlogItem("%s had its %s removed", mon.base.Name, ailment.String())
 				}
 			}
-			if mon.hasAilment(Confusion) != nil {
-				delete(mon.ailments, Confusion)
+			if mon.hasAilment(confusionAilment) != nil {
+				delete(mon.ailments, confusionAilment)
 				vlogItem("%s had its confusion removed", mon.base.Name)
 				cheekPouch(mon)
 			}
@@ -323,7 +323,7 @@ func makeLumBerry(mon *pokemon) *item {
 }
 
 func makeLeppaBerry(mon *pokemon) *item {
-	var m *move
+	var m *Move
 	return &item{
 		trigger: func(e any) bool {
 			event, ok := e.(leppaBerryEvent)
@@ -359,7 +359,7 @@ func makeStatBoostBerryMiddleware(name string, stat stats) func(mon *pokemon) *i
 	}
 }
 
-func makeResistBerryMiddleware(name, typeName string) func(mon *pokemon) *item {
+func makeResistBerryMiddleware(name string, pokemonType pokemonType) func(mon *pokemon) *item {
 	var d *int
 	return func(mon *pokemon) *item {
 		return &item{
@@ -370,7 +370,7 @@ func makeResistBerryMiddleware(name, typeName string) func(mon *pokemon) *item {
 					return false
 				}
 				d = event.damage
-				return event.typeName == typeName
+				return event.pokemonType == pokemonType
 			},
 			activate: func() {
 				if d == nil {
@@ -384,22 +384,22 @@ func makeResistBerryMiddleware(name, typeName string) func(mon *pokemon) *item {
 	}
 }
 
-func makeGemMiddleware(typeName string) func(mon *pokemon) *item {
+func makeGemMiddleware(pokemonType pokemonType) func(mon *pokemon) *item {
 	var p *int
 	return func(mon *pokemon) *item {
 		return &item{
-			name: fmt.Sprintf("%s-gem", typeName),
+			name: fmt.Sprintf("%s-gem", pokemonType.String()),
 			trigger: func(e any) bool {
 				event, ok := e.(gemEvent)
 				if !ok {
 					return false
 				}
 				p = event.power
-				return event.typeName == typeName
+				return event.pokemonType == pokemonType
 			},
 			activate: func() {
 				if p == nil {
-					vlogItem("%s consumed its %s gem and boosted the damage", mon.base.Name, typeName)
+					vlogItem("%s consumed its %s gem and boosted the damage", mon.base.Name, pokemonType.String())
 				} else {
 					*p = *p * 3 / 2
 				}
@@ -409,14 +409,14 @@ func makeGemMiddleware(typeName string) func(mon *pokemon) *item {
 }
 
 func makeChoiceScarf(mon *pokemon) *item {
-	mon.stats[Speed] = mon.stats[Speed] * 3 / 2
+	mon.stats[speed] = mon.stats[speed] * 3 / 2
 	return &item{
 		name: "choice-scarf",
 	}
 }
 
 func makeAssaultVest(mon *pokemon) *item {
-	mon.stats[SpecialDefense] = mon.stats[SpecialDefense] * 3 / 2
+	mon.stats[specialDefense] = mon.stats[specialDefense] * 3 / 2
 	return &item{
 		name: "assault-vest",
 	}
@@ -431,7 +431,7 @@ func makeChoiceBand(mon *pokemon) *item {
 			if !ok {
 				return false
 			}
-			if event.move.Class != Physical {
+			if event.move.Class != physicalClass {
 				return false
 			}
 			s = event.stat
@@ -452,7 +452,7 @@ func makeChoiceSpecs(mon *pokemon) *item {
 			if !ok {
 				return false
 			}
-			if event.move.Class != Special {
+			if event.move.Class != specialClass {
 				return false
 			}
 			s = event.stat
@@ -482,21 +482,21 @@ func makeFocusSash(mon *pokemon) *item {
 }
 
 type resistBerryEvent struct {
-	typeName string
-	damage   *int
+	pokemonType pokemonType
+	damage      *int
 }
 
 type gemEvent struct {
-	typeName string
-	power    *int
+	pokemonType pokemonType
+	power       *int
 }
 
 type leppaBerryEvent struct {
-	move *move
+	move *Move
 }
 
 type choiceItemEvent struct {
-	move *move
+	move *Move
 	stat *int
 }
 
@@ -505,6 +505,6 @@ type focusSashEvent struct {
 }
 
 type moveBoostingEvent struct {
-	power    *int
-	typeName string
+	power       *int
+	pokemonType pokemonType
 }

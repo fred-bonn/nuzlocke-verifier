@@ -1,83 +1,205 @@
 package main
 
-var typeChart = map[string]map[string]float64{
-	"normal": {
-		"rock": 0.5, "ghost": 0.0, "steel": 0.5,
+type pokemonType int
+
+const (
+	normalType pokemonType = iota
+	fireType
+	waterType
+	electricType
+	grassType
+	iceType
+	fightingType
+	poisonType
+	groundType
+	flyingType
+	psychicType
+	bugType
+	rockType
+	ghostType
+	dragonType
+	darkType
+	steelType
+	fairyType
+	noType
+)
+
+func stringToPokemonType(s string) pokemonType {
+	switch s {
+	case "normal":
+		return normalType
+	case "fire":
+		return fireType
+	case "water":
+		return waterType
+	case "electric":
+		return electricType
+	case "grass":
+		return grassType
+	case "ice":
+		return iceType
+	case "fighting":
+		return fightingType
+	case "poison":
+		return poisonType
+	case "ground":
+		return groundType
+	case "flying":
+		return flyingType
+	case "psychic":
+		return psychicType
+	case "bug":
+		return bugType
+	case "rock":
+		return rockType
+	case "ghost":
+		return ghostType
+	case "dragon":
+		return dragonType
+	case "dark":
+		return darkType
+	case "steel":
+		return steelType
+	case "fairy":
+		return fairyType
+	default:
+		elogFatalf("%s is not a valid type", s)
+		return noType
+	}
+}
+
+func (pt pokemonType) String() string {
+	switch pt {
+	case normalType:
+		return "normal"
+	case fireType:
+		return "fire"
+	case waterType:
+		return "water"
+	case electricType:
+		return "electric"
+	case grassType:
+		return "grass"
+	case iceType:
+		return "ice"
+	case fightingType:
+		return "fighting"
+	case poisonType:
+		return "poison"
+	case groundType:
+		return "ground"
+	case flyingType:
+		return "flying"
+	case psychicType:
+		return "psychic"
+	case bugType:
+		return "bug"
+	case rockType:
+		return "rock"
+	case ghostType:
+		return "ghost"
+	case dragonType:
+		return "dragon"
+	case darkType:
+		return "dark"
+	case steelType:
+		return "steel"
+	case fairyType:
+		return "fairy"
+	default:
+		return "no type"
+	}
+}
+
+type Effectiveness float64
+
+const (
+	Immune  Effectiveness = 0.0
+	NotVery Effectiveness = 0.5
+	Normal  Effectiveness = 1.0
+	Super   Effectiveness = 2.0
+)
+
+var typeChart = map[pokemonType]map[pokemonType]Effectiveness{
+	normalType: {
+		rockType: NotVery, ghostType: Immune, steelType: NotVery,
 	},
-	"fire": {
-		"fire": 0.5, "water": 0.5, "grass": 2.0, "ice": 2.0,
-		"bug": 2.0, "rock": 0.5, "dragon": 0.5, "steel": 2.0,
+	fireType: {
+		fireType: NotVery, waterType: NotVery, grassType: Super, iceType: Super,
+		bugType: Super, rockType: NotVery, dragonType: NotVery, steelType: Super,
 	},
-	"water": {
-		"fire": 2.0, "water": 0.5, "grass": 0.5, "ground": 2.0,
-		"rock": 2.0, "dragon": 0.5,
+	waterType: {
+		fireType: Super, waterType: NotVery, grassType: NotVery, groundType: Super,
+		rockType: Super, dragonType: NotVery,
 	},
-	"electric": {
-		"water": 2.0, "electric": 0.5, "grass": 0.5, "ground": 0.0,
-		"flying": 2.0, "dragon": 0.5,
+	electricType: {
+		waterType: Super, electricType: NotVery, grassType: NotVery, groundType: Immune,
+		flyingType: Super, dragonType: NotVery,
 	},
-	"grass": {
-		"fire": 0.5, "water": 2.0, "grass": 0.5, "poison": 0.5,
-		"ground": 2.0, "flying": 0.5, "bug": 0.5, "rock": 2.0,
-		"dragon": 0.5, "steel": 0.5,
+	grassType: {
+		fireType: NotVery, waterType: Super, grassType: NotVery, poisonType: NotVery,
+		groundType: Super, flyingType: NotVery, bugType: NotVery, rockType: Super,
+		dragonType: NotVery, steelType: NotVery,
 	},
-	"ice": {
-		"fire": 0.5, "water": 0.5, "grass": 2.0, "ground": 2.0,
-		"flying": 2.0, "dragon": 2.0, "steel": 0.5, "ice": 0.5,
+	iceType: {
+		fireType: NotVery, waterType: NotVery, grassType: Super, groundType: Super,
+		flyingType: Super, dragonType: Super, steelType: NotVery, iceType: NotVery,
 	},
-	"fighting": {
-		"normal": 2.0, "ice": 2.0, "rock": 2.0, "dark": 2.0,
-		"steel": 2.0, "poison": 0.5, "flying": 0.5, "psychic": 0.5,
-		"bug": 0.5, "fairy": 0.5, "ghost": 0.0,
+	fightingType: {
+		normalType: Super, iceType: Super, rockType: Super, darkType: Super,
+		steelType: Super, poisonType: NotVery, flyingType: NotVery, psychicType: NotVery,
+		bugType: NotVery, fairyType: NotVery, ghostType: Immune,
 	},
-	"poison": {
-		"grass": 2.0, "fairy": 2.0, "poison": 0.5, "ground": 0.5,
-		"rock": 0.5, "ghost": 0.5, "steel": 0.0,
+	poisonType: {
+		grassType: Super, fairyType: Super, poisonType: NotVery, groundType: NotVery,
+		rockType: NotVery, ghostType: NotVery, steelType: Immune,
 	},
-	"ground": {
-		"fire": 2.0, "electric": 2.0, "grass": 0.5, "poison": 2.0,
-		"flying": 0.0, "bug": 0.5, "rock": 2.0, "steel": 2.0,
+	groundType: {
+		fireType: Super, electricType: Super, grassType: NotVery, poisonType: Super,
+		flyingType: Immune, bugType: NotVery, rockType: Super, steelType: Super,
 	},
-	"flying": {
-		"electric": 0.5, "grass": 2.0, "fighting": 2.0,
-		"bug": 2.0, "rock": 0.5, "steel": 0.5,
+	flyingType: {
+		electricType: NotVery, grassType: Super, fightingType: Super,
+		bugType: Super, rockType: NotVery, steelType: NotVery,
 	},
-	"psychic": {
-		"fighting": 2.0, "poison": 2.0, "psychic": 0.5,
-		"steel": 0.5, "dark": 0.0,
+	psychicType: {
+		fightingType: Super, poisonType: Super, psychicType: NotVery,
+		steelType: NotVery, darkType: Immune,
 	},
-	"bug": {
-		"fire": 0.5, "grass": 2.0, "fighting": 0.5, "poison": 0.5,
-		"flying": 0.5, "psychic": 2.0, "ghost": 0.5,
-		"dark": 2.0, "steel": 0.5, "fairy": 0.5,
+	bugType: {
+		fireType: NotVery, grassType: Super, fightingType: NotVery, poisonType: NotVery,
+		flyingType: NotVery, psychicType: Super, ghostType: NotVery,
+		darkType: Super, steelType: NotVery, fairyType: NotVery,
 	},
-	"rock": {
-		"fire": 2.0, "ice": 2.0, "flying": 2.0, "bug": 2.0,
-		"fighting": 0.5, "ground": 0.5, "steel": 0.5,
+	rockType: {
+		fireType: Super, iceType: Super, flyingType: Super, bugType: Super,
+		fightingType: NotVery, groundType: NotVery, steelType: NotVery,
 	},
-	"ghost": {
-		"normal": 0.0, "psychic": 2.0, "ghost": 2.0, "dark": 0.5,
+	ghostType: {
+		normalType: Immune, psychicType: Super, ghostType: Super, darkType: NotVery,
 	},
-	"dragon": {
-		"dragon": 2.0, "steel": 0.5, "fairy": 0.0,
+	dragonType: {
+		dragonType: Super, steelType: NotVery, fairyType: Immune,
 	},
-	"dark": {
-		"fighting": 0.5, "psychic": 2.0, "ghost": 2.0,
-		"dark": 0.5, "fairy": 0.5,
+	darkType: {
+		fightingType: NotVery, psychicType: Super, ghostType: Super,
+		darkType: NotVery, fairyType: NotVery,
 	},
-	"steel": {
-		"fire": 0.5, "water": 0.5, "electric": 0.5, "ice": 2.0,
-		"rock": 2.0, "fairy": 2.0, "steel": 0.5,
+	steelType: {
+		fireType: NotVery, waterType: NotVery, electricType: NotVery, iceType: Super,
+		rockType: Super, fairyType: Super, steelType: NotVery,
 	},
-	"fairy": {
-		"fire": 0.5, "fighting": 2.0, "poison": 0.5,
-		"dragon": 2.0, "dark": 2.0, "steel": 0.5,
+	fairyType: {
+		fireType: NotVery, fightingType: Super, poisonType: NotVery,
+		dragonType: Super, darkType: Super, steelType: NotVery,
 	},
 }
 
-func getEffectiveness(attacking, defending string) float64 {
-	if effectiveness, ok := typeChart[attacking][defending]; ok {
-		return effectiveness
+func getEffectiveness(attacking, defending pokemonType) Effectiveness {
+	if row, ok := typeChart[attacking]; ok {
+		if eff, ok := row[defending]; ok {
+			return eff
+		}
 	}
-	return 1.0
+	return Normal
 }

@@ -3,33 +3,33 @@ package main
 type stats int
 
 const (
-	HitPoints stats = iota
-	Attack
-	Defense
-	SpecialAttack
-	SpecialDefense
-	Speed
-	Accuracy
-	Evasion
+	hitPoints stats = iota
+	attack
+	defense
+	specialAttack
+	specialDefense
+	speed
+	accuracy
+	evasion
 )
 
 func (s stats) String() string {
 	switch s {
-	case HitPoints:
+	case hitPoints:
 		return "hp"
-	case Attack:
+	case attack:
 		return "attack"
-	case Defense:
+	case defense:
 		return "defense"
-	case SpecialAttack:
+	case specialAttack:
 		return "special attack"
-	case SpecialDefense:
+	case specialDefense:
 		return "special defense"
-	case Speed:
+	case speed:
 		return "speed"
-	case Accuracy:
+	case accuracy:
 		return "accuracy"
-	case Evasion:
+	case evasion:
 		return "evasion"
 	default:
 		return ""
@@ -39,21 +39,21 @@ func (s stats) String() string {
 func stringToStat(stat string) stats {
 	switch stat {
 	case "hp":
-		return HitPoints
+		return hitPoints
 	case "attack":
-		return Attack
+		return attack
 	case "defense":
-		return Defense
+		return defense
 	case "special-attack":
-		return SpecialAttack
+		return specialAttack
 	case "special-defense":
-		return SpecialDefense
+		return specialDefense
 	case "speed":
-		return Speed
+		return speed
 	case "accuracy":
-		return Accuracy
+		return accuracy
 	case "evasion":
-		return Evasion
+		return evasion
 	default:
 		elogFatalf("%s is not a valid stat", stat)
 		return 0
@@ -61,29 +61,29 @@ func stringToStat(stat string) stats {
 }
 
 var natureChart = map[string][]stats{
-	"hardy":   {Attack, Attack},
-	"lonely":  {Attack, Defense},
-	"adamant": {Attack, SpecialAttack},
-	"naughty": {Attack, SpecialDefense},
-	"brave":   {Attack, Speed},
-	"bold":    {Defense, Attack},
-	"docile":  {Defense, Defense},
-	"impish":  {Defense, SpecialAttack},
-	"lax":     {Defense, SpecialDefense},
-	"relaxed": {Defense, Speed},
-	"modest":  {SpecialAttack, Attack},
-	"mild":    {SpecialAttack, Defense},
-	"bashful": {SpecialAttack, SpecialAttack},
-	"rash":    {SpecialAttack, SpecialDefense},
-	"quiet":   {SpecialAttack, Speed},
-	"calm":    {SpecialDefense, Attack},
-	"gentle":  {SpecialDefense, Defense},
-	"careful": {SpecialDefense, Speed},
-	"quirky":  {SpecialDefense, SpecialDefense},
-	"sassy":   {SpecialDefense, Speed},
-	"timid":   {Speed, Attack},
-	"hasty":   {Speed, Defense},
-	"jolly":   {Speed, SpecialAttack},
-	"naive":   {Speed, SpecialDefense},
-	"serious": {Speed, Speed},
+	"hardy":   {attack, attack},
+	"lonely":  {attack, defense},
+	"adamant": {attack, specialAttack},
+	"naughty": {attack, specialDefense},
+	"brave":   {attack, speed},
+	"bold":    {defense, attack},
+	"docile":  {defense, defense},
+	"impish":  {defense, specialAttack},
+	"lax":     {defense, specialDefense},
+	"relaxed": {defense, speed},
+	"modest":  {specialAttack, attack},
+	"mild":    {specialAttack, defense},
+	"bashful": {specialAttack, specialAttack},
+	"rash":    {specialAttack, specialDefense},
+	"quiet":   {specialAttack, speed},
+	"calm":    {specialDefense, attack},
+	"gentle":  {specialDefense, defense},
+	"careful": {specialDefense, speed},
+	"quirky":  {specialDefense, specialDefense},
+	"sassy":   {specialDefense, speed},
+	"timid":   {speed, attack},
+	"hasty":   {speed, defense},
+	"jolly":   {speed, specialAttack},
+	"naive":   {speed, specialDefense},
+	"serious": {speed, speed},
 }

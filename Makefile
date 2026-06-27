@@ -15,13 +15,13 @@ brief: build
 	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt
 
 rain: build
-	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 1
+	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 0
 
 sun: build
-	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 2
+	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 1
 
 sandstorm: build
-	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 3
+	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 2
 
 hail: build
-	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 4
+	$(OUT_PATH) data/player.txt data/rnb_trainer_1.txt -v -w 3
