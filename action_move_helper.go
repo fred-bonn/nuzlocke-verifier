@@ -29,7 +29,7 @@ var struggleMove = Move{
 }
 
 func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weatherState, maxRoll, forScoring, pursuit bool) int {
-	if f, ok := typeImmunityAbilities[target.ability]; ok && user.ability != "mold-breaker" && f(target, move.Type, forScoring) {
+	if f, ok := typeImmunityAbilities[target.ability]; ok && user.ability != moldBreakerAbility && f(target, move.Type, forScoring) {
 		return 0
 	}
 
@@ -59,11 +59,11 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		}
 		switch weather {
 		case sunWeather:
-			if user.ability == "solar-power" && move.Class == specialClass {
+			if user.ability == solarPowerAbility && move.Class == specialClass {
 				offensiveStat = offensiveStat * 3 / 2
 			}
 		case sandstormWeather:
-			if user.ability == "sand-force" && (moveType == rockType || moveType == groundType || moveType == steelType) {
+			if user.ability == sandForceAbility && (moveType == rockType || moveType == groundType || moveType == steelType) {
 				power = power * 13 / 10
 			}
 		}
@@ -125,15 +125,15 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		power *= 2
 	}
 
-	if user.ability == "technician" && move.Power <= 60 {
+	if user.ability == technicianAbility && move.Power <= 60 {
 		power = power * 3 / 2
 	} else if t, ok := pinchAbilities[user.ability]; ok && t == moveType && user.hp*3 <= user.maxHP() {
 		offensiveStat = offensiveStat * 3 / 2
 	} else if user.flashFire && moveType == fireType {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.ability == "hustle" && move.Class == physicalClass {
+	} else if user.ability == hustleAbility && move.Class == physicalClass {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.ability == "merciless" {
+	} else if user.ability == mercilessAbility {
 		if a := target.hasAilment(poisonAilment); a != nil {
 			*crit = true
 		} else if a := target.hasAilment(toxicAilment); a != nil {
@@ -141,7 +141,7 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		}
 	}
 
-	if _, ok := critBlockingAbilities[target.ability]; ok && (forScoring || user.ability != "mold-breaker") {
+	if _, ok := critBlockingAbilities[target.ability]; ok && (forScoring || user.ability != moldBreakerAbility) {
 		*crit = false
 	}
 
@@ -150,12 +150,12 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		denominator *= 2
 	}
 
-	if target.ability == "dry-skin" && moveType == fireType {
+	if target.ability == drySkinAbility && moveType == fireType {
 		power = power * 5 / 4
 	}
 
 	if *crit {
-		if user.ability == "sniper" {
+		if user.ability == sniperAbility {
 			numerator *= 3
 			denominator *= 2
 		}
@@ -212,7 +212,7 @@ func rollInt(numerator int, denominator int) int {
 }
 
 func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *Move) bool {
-	if user.ability == "no-guard" || target.ability == "no-guard" {
+	if user.ability == noGuardAbility || target.ability == noGuardAbility {
 		return true
 	} else if move.Name == "toxic" && user.hasType(poisonType) {
 		return true
@@ -221,15 +221,15 @@ func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *Move) bo
 	}
 
 	moveAccuracy := move.Accuracy
-	if user.ability == "hustle" && move.Class == physicalClass {
+	if user.ability == hustleAbility && move.Class == physicalClass {
 		moveAccuracy = moveAccuracy * 80 / 100
 	}
 
 	accNum, accDen := user.accuracyFraction()
-	evNum, evDen := target.evasionFraction(user.ability == "keen-eye")
+	evNum, evDen := target.evasionFraction(user.ability == keenEyeAbility)
 	numerator := moveAccuracy * accNum * evNum
 	denominator := 100 * accDen * evDen
-	if user.ability == "compound-eyes" {
+	if user.ability == compoundEyesAbility {
 		numerator *= 13
 		denominator *= 10
 	}
@@ -237,12 +237,12 @@ func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *Move) bo
 	if bs.getWeather() != noneWeather {
 		switch bs.getWeather() {
 		case hailWeather:
-			if target.ability == "snow-cloak" {
+			if target.ability == snowCloakAbility {
 				numerator *= 4
 				denominator *= 5
 			}
 		case sandstormWeather:
-			if target.ability == "sand-veil" {
+			if target.ability == sandVeilAbility {
 				numerator *= 4
 				denominator *= 5
 			}
@@ -283,7 +283,7 @@ func determineCritRate(user *pokemon, move *Move) int {
 	if user.item.name == "scope-lens" {
 		rate++
 	}
-	if user.ability == "super-luck" {
+	if user.ability == superLuckAbility {
 		rate++
 	}
 	if user.focusEnergy {

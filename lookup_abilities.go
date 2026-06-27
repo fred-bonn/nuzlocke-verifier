@@ -4,22 +4,469 @@ import (
 	"math/rand"
 )
 
-var sleepBlockingAbilities = map[string]struct{}{
-	"insomnia":     {},
-	"vital-spirit": {},
-	"sweet-veil":   {},
+type ability int
+
+const (
+	insomniaAbility ability = iota
+	vitalSpiritAbility
+	sweetVeilAbility
+	gluttonyAbility
+	innerFocusAbility
+	shieldDustAbility
+	overcoatAbility
+	cheekPouchAbility
+	sturdyAbility
+	harvestAbility
+	speedBoostAbility
+	traceAbility
+	unnerveAbility
+	intimidateAbility
+	regeneratorAbility
+	naturalCureAbility
+	drizzleAbility
+	droughtAbility
+	snowWarningAbility
+	sandStreamAbility
+	pranksterAbility
+	earlyBirdAbility
+	stickyHoldAbility
+	liquidOozeAbility
+	cottenDownAbility
+	waterCompactionAbility
+	roughSkinAbility
+	ironBarbsAbility
+	cuteCharmAbility
+	flameBodyAbility
+	poisonPointAbility
+	effectSporeAbility
+	poisonTouchAbility
+	magicGuardAbility
+	sandVeilAbility
+	sandRushAbility
+	sandForceAbility
+	iceBodyAbility
+	snowCloakAbility
+	raindDishAbility
+	drySkinAbility
+	hydrationAbility
+	solarPowerAbility
+	serenceGraceAbility
+	keenEyeAbility
+	clearSmokeAbility
+	clearBodyAbility
+	levitateAbility
+	synchronizeAbility
+	obliviousAbility
+	immunityAbility
+	corrosionAbility
+	limberAbility
+	waterVeilAbility
+	slushRushAbility
+	chlorophyllAbility
+	swiftSwimAbility
+	unburdenAbility
+	battleArmorAbility
+	shellArmorAbility
+	magmaArmorAbility
+	moldBreakerAbility
+	mercilessAbility
+	superLuckAbility
+	sniperAbility
+	compoundEyesAbility
+	hustleAbility
+	noGuardAbility
+	technicianAbility
+	overgrowAbility
+	blazeAbility
+	torrentAbility
+	swarmAbility
+	flashFireAbility
+	waterAbsorbAbility
+	stormDrainAbility
+	voltAbsorbAbility
+	lightningRodAbility
+	motorDriveAbility
+	sapSipperAbility
+	aerilateAbility
+	pixilateAbility
+	galvanizeAbility
+	refrigerateAbility
+	normalizeAbility
+	noneAbility
+)
+
+func (a ability) String() string {
+	switch a {
+	case insomniaAbility:
+		return "insomnia"
+	case vitalSpiritAbility:
+		return "vital-spirit"
+	case sweetVeilAbility:
+		return "sweet-veil"
+	case gluttonyAbility:
+		return "gluttony"
+	case innerFocusAbility:
+		return "inner-focus"
+	case shieldDustAbility:
+		return "shield-dust"
+	case overcoatAbility:
+		return "overcoat"
+	case cheekPouchAbility:
+		return "cheek-pouch"
+	case sturdyAbility:
+		return "sturdy"
+	case harvestAbility:
+		return "harvest"
+	case speedBoostAbility:
+		return "speed-boost"
+	case traceAbility:
+		return "trace"
+	case unnerveAbility:
+		return "unnerve"
+	case intimidateAbility:
+		return "intimidate"
+	case regeneratorAbility:
+		return "regenerator"
+	case naturalCureAbility:
+		return "natural-cure"
+	case drizzleAbility:
+		return "drizzle"
+	case droughtAbility:
+		return "drought"
+	case snowWarningAbility:
+		return "snow-warning"
+	case sandStreamAbility:
+		return "sand-stream"
+	case pranksterAbility:
+		return "prankster"
+	case earlyBirdAbility:
+		return "early-bird"
+	case stickyHoldAbility:
+		return "sticky-hold"
+	case liquidOozeAbility:
+		return "liquid-ooze"
+	case cottenDownAbility:
+		return "cotten-down"
+	case waterCompactionAbility:
+		return "water-compaction"
+	case roughSkinAbility:
+		return "rought-skin"
+	case ironBarbsAbility:
+		return "iron-barbs"
+	case cuteCharmAbility:
+		return "cute-charm"
+	case flameBodyAbility:
+		return "flame-body"
+	case poisonPointAbility:
+		return "poison-point"
+	case effectSporeAbility:
+		return "effect-spore"
+	case poisonTouchAbility:
+		return "poison-touch"
+	case magicGuardAbility:
+		return "magic-guard"
+	case sandVeilAbility:
+		return "sand-veil"
+	case sandRushAbility:
+		return "sand-rush"
+	case sandForceAbility:
+		return "sand-force"
+	case iceBodyAbility:
+		return "ice-body"
+	case snowCloakAbility:
+		return "snow-cloak"
+	case raindDishAbility:
+		return "raid-dish"
+	case drySkinAbility:
+		return "dry-skin"
+	case hydrationAbility:
+		return "hydration"
+	case solarPowerAbility:
+		return "solar-power"
+	case serenceGraceAbility:
+		return "serence-grace"
+	case keenEyeAbility:
+		return "keen-eye"
+	case clearSmokeAbility:
+		return "clear-smoke"
+	case clearBodyAbility:
+		return "clear-body"
+	case levitateAbility:
+		return "levitate"
+	case synchronizeAbility:
+		return "synchronize"
+	case obliviousAbility:
+		return "oblivious"
+	case immunityAbility:
+		return "immunity"
+	case corrosionAbility:
+		return "corrosion"
+	case limberAbility:
+		return "limber"
+	case waterVeilAbility:
+		return "water-veil"
+	case slushRushAbility:
+		return "slush-rush"
+	case chlorophyllAbility:
+		return "chlorophyll"
+	case swiftSwimAbility:
+		return "swift-swim"
+	case unburdenAbility:
+		return "unburden"
+	case battleArmorAbility:
+		return "battle-armor"
+	case shellArmorAbility:
+		return "shell-armor"
+	case magmaArmorAbility:
+		return "magma-armor"
+	case moldBreakerAbility:
+		return "mold-breaker"
+	case mercilessAbility:
+		return "merciless"
+	case superLuckAbility:
+		return "super-kuck"
+	case sniperAbility:
+		return "sniper"
+	case compoundEyesAbility:
+		return "compound-eyes"
+	case hustleAbility:
+		return "hustle"
+	case noGuardAbility:
+		return "no-guard"
+	case technicianAbility:
+		return "technician"
+	case overgrowAbility:
+		return "overgrow"
+	case blazeAbility:
+		return "blaze"
+	case torrentAbility:
+		return "torrent"
+	case swarmAbility:
+		return "swarm"
+	case flashFireAbility:
+		return "flash-fire"
+	case waterAbsorbAbility:
+		return "water-absorb"
+	case stormDrainAbility:
+		return "storm-drain"
+	case voltAbsorbAbility:
+		return "volt-absorb"
+	case lightningRodAbility:
+		return "lightning-rod"
+	case motorDriveAbility:
+		return "motor-drive"
+	case sapSipperAbility:
+		return "sap-sipper"
+	case aerilateAbility:
+		return "aerilate"
+	case pixilateAbility:
+		return "pixilate"
+	case galvanizeAbility:
+		return "galvanize"
+	case refrigerateAbility:
+		return "refrigerate"
+	case normalizeAbility:
+		return "normalize"
+	default:
+		elogf("ability.String(): something went wrong")
+		return ""
+	}
 }
 
-var onSwitchAbilities = map[string]func(s *slot, bs battleState, switchIn bool){
-	"trace":        trace,
-	"unnerve":      unnerve,
-	"intimidate":   intimidate,
-	"regenerator":  regenerator,
-	"natural-cure": naturalCure,
-	"drizzle":      drizzle,
-	"drought":      drought,
-	"snow-warning": snowWarning,
-	"sand-stream":  sandStream,
+func stringToAbility(s string) ability {
+	switch s {
+	case "insomnia":
+		return insomniaAbility
+	case "vital-spirit":
+		return vitalSpiritAbility
+	case "sweet-veil":
+		return sweetVeilAbility
+	case "gluttony":
+		return gluttonyAbility
+	case "inner-focus":
+		return innerFocusAbility
+	case "shield-dust":
+		return shieldDustAbility
+	case "overcoat":
+		return overcoatAbility
+	case "cheek-pouch":
+		return cheekPouchAbility
+	case "sturdy":
+		return sturdyAbility
+	case "harvest":
+		return harvestAbility
+	case "speed-boost":
+		return speedBoostAbility
+	case "trace":
+		return traceAbility
+	case "unnerve":
+		return unnerveAbility
+	case "intimidate":
+		return intimidateAbility
+	case "regenerator":
+		return regeneratorAbility
+	case "natural-cure":
+		return naturalCureAbility
+	case "drizzle":
+		return drizzleAbility
+	case "drought":
+		return droughtAbility
+	case "snow-warning":
+		return snowWarningAbility
+	case "sand-stream":
+		return sandStreamAbility
+	case "prankster":
+		return pranksterAbility
+	case "early-bird":
+		return earlyBirdAbility
+	case "sticky-hold":
+		return stickyHoldAbility
+	case "liquid-ooze":
+		return liquidOozeAbility
+	case "cotten-down":
+		return cottenDownAbility
+	case "water-compaction":
+		return waterCompactionAbility
+	case "rough-skin":
+		return roughSkinAbility
+	case "iron-barbs":
+		return ironBarbsAbility
+	case "cute-charm":
+		return cuteCharmAbility
+	case "flame-body":
+		return flameBodyAbility
+	case "poison-point":
+		return poisonPointAbility
+	case "effect-spore":
+		return effectSporeAbility
+	case "poison-touch":
+		return poisonTouchAbility
+	case "magic-guard":
+		return magicGuardAbility
+	case "sand-veil":
+		return sandVeilAbility
+	case "sand-rush":
+		return sandRushAbility
+	case "sand-force":
+		return sandForceAbility
+	case "ice-body":
+		return iceBodyAbility
+	case "snow-cloak":
+		return snowCloakAbility
+	case "rain-dish":
+		return raindDishAbility
+	case "dry-skin":
+		return drySkinAbility
+	case "hydration":
+		return hydrationAbility
+	case "solar-power":
+		return solarPowerAbility
+	case "serene-grace":
+		return serenceGraceAbility
+	case "keen-eye":
+		return keenEyeAbility
+	case "clear-smoke":
+		return clearSmokeAbility
+	case "clear-body":
+		return clearBodyAbility
+	case "levitate":
+		return levitateAbility
+	case "synchronize":
+		return synchronizeAbility
+	case "oblivious":
+		return obliviousAbility
+	case "immunity":
+		return immunityAbility
+	case "corrosion":
+		return corrosionAbility
+	case "limber":
+		return limberAbility
+	case "water-veil":
+		return waterVeilAbility
+	case "slush-rush":
+		return slushRushAbility
+	case "chlorophyll":
+		return chlorophyllAbility
+	case "swift-swim":
+		return swiftSwimAbility
+	case "unburden":
+		return unburdenAbility
+	case "battle-armor":
+		return battleArmorAbility
+	case "shell-armor":
+		return shellArmorAbility
+	case "magma-armor":
+		return magmaArmorAbility
+	case "mold-breaker":
+		return moldBreakerAbility
+	case "merciless":
+		return mercilessAbility
+	case "super-luck":
+		return superLuckAbility
+	case "sniper":
+		return sniperAbility
+	case "compound-eyes":
+		return compoundEyesAbility
+	case "hustle":
+		return hustleAbility
+	case "no-guard":
+		return noGuardAbility
+	case "technician":
+		return technicianAbility
+	case "overgrow":
+		return overgrowAbility
+	case "blaze":
+		return blazeAbility
+	case "torrent":
+		return torrentAbility
+	case "swarm":
+		return swarmAbility
+	case "flash-fire":
+		return flashFireAbility
+	case "water-absorb":
+		return waterAbsorbAbility
+	case "storm-drain":
+		return stormDrainAbility
+	case "volt-absorb":
+		return voltAbsorbAbility
+	case "lightning-rod":
+		return lightningRodAbility
+	case "motor-drive":
+		return motorDriveAbility
+	case "sap-sipper":
+		return sapSipperAbility
+	case "aerilate":
+		return aerilateAbility
+	case "pixilate":
+		return pixilateAbility
+	case "galvanizeAbility":
+		return galvanizeAbility
+	case "refrigerate":
+		return refrigerateAbility
+	case "normalize":
+		return normalizeAbility
+	default:
+		elogFatalf("%s is not a valid ability", s)
+		return noneAbility
+	}
+}
+
+var sleepBlockingAbilities = map[ability]struct{}{
+	insomniaAbility:    {},
+	vitalSpiritAbility: {},
+	sweetVeilAbility:   {},
+}
+
+var onSwitchAbilities = map[ability]func(s *slot, bs battleState, switchIn bool){
+	traceAbility:       trace,
+	unnerveAbility:     unnerve,
+	intimidateAbility:  intimidate,
+	regeneratorAbility: regenerator,
+	naturalCureAbility: naturalCure,
+	drizzleAbility:     drizzle,
+	droughtAbility:     drought,
+	snowWarningAbility: snowWarning,
+	sandStreamAbility:  sandStream,
 }
 
 func trace(s *slot, bs battleState, switchIn bool) {
@@ -58,7 +505,7 @@ func intimidate(s *slot, bs battleState, switchIn bool) {
 		if slot.trainer == s.trainer {
 			continue
 		}
-		if slot.mon.ability == "inner-focus" {
+		if slot.mon.ability == innerFocusAbility {
 			continue
 		}
 		slot.mon.changeStatStageBy(attack, -1, true)
@@ -115,12 +562,12 @@ func sandStream(s *slot, bs battleState, switchIn bool) {
 	bs.setWeather(sandstormWeather)
 }
 
-var typeConvertingAbilities = map[string]func(t *pokemonType, p *int){
-	"aerilate":    typeConvertingAbilitiesMiddleware(flyingType),
-	"pixilate":    typeConvertingAbilitiesMiddleware(fairyType),
-	"galvanize":   typeConvertingAbilitiesMiddleware(electricType),
-	"refrigerate": typeConvertingAbilitiesMiddleware(iceType),
-	"normalize":   normalize,
+var typeConvertingAbilities = map[ability]func(t *pokemonType, p *int){
+	aerilateAbility:    typeConvertingAbilitiesMiddleware(flyingType),
+	pixilateAbility:    typeConvertingAbilitiesMiddleware(fairyType),
+	galvanizeAbility:   typeConvertingAbilitiesMiddleware(electricType),
+	refrigerateAbility: typeConvertingAbilitiesMiddleware(iceType),
+	normalizeAbility:   normalize,
 }
 
 func normalize(t *pokemonType, p *int) {
@@ -139,16 +586,16 @@ func typeConvertingAbilitiesMiddleware(t1 pokemonType) func(t *pokemonType, p *i
 	}
 }
 
-var typeImmunityAbilities = map[string]func(u *pokemon, t pokemonType, s bool) bool{
-	"flash-fire":    flashFire,
-	"dry-skin":      drySkin,
-	"water-absorb":  drySkin,
-	"storm-drain":   stormDrain,
-	"volt-absorb":   voltAbsorb,
-	"lightning-rod": lightningRod,
-	"motor-drive":   motorDrive,
-	"sap-sipper":    sapSipper,
-	"levitate":      levitate,
+var typeImmunityAbilities = map[ability]func(u *pokemon, t pokemonType, s bool) bool{
+	flashFireAbility:    flashFire,
+	drySkinAbility:      drySkin,
+	waterAbsorbAbility:  drySkin,
+	stormDrainAbility:   stormDrain,
+	voltAbsorbAbility:   voltAbsorb,
+	lightningRodAbility: lightningRod,
+	motorDriveAbility:   motorDrive,
+	sapSipperAbility:    sapSipper,
+	levitateAbility:     levitate,
 }
 
 func flashFire(p *pokemon, t pokemonType, s bool) bool {
@@ -232,26 +679,26 @@ func levitate(p *pokemon, t pokemonType, s bool) bool {
 	return t == groundType
 }
 
-var pinchAbilities = map[string]pokemonType{
-	"overgrow": grassType,
-	"blaze":    fireType,
-	"torrent":  waterType,
-	"swarm":    bugType,
+var pinchAbilities = map[ability]pokemonType{
+	overgrowAbility: grassType,
+	blazeAbility:    fireType,
+	torrentAbility:  waterType,
+	swarmAbility:    bugType,
 }
 
-var critBlockingAbilities = map[string]struct{}{
-	"battle-armor": {},
-	"shell-armor":  {},
-	"magma'armor":  {},
+var critBlockingAbilities = map[ability]struct{}{
+	battleArmorAbility: {},
+	shellArmorAbility:  {},
+	magmaArmorAbility:  {},
 }
 
-var contactDefensiveAbilities = map[string]func(u, t *slot){
-	"rough-skin":   roughSkin,
-	"iron-barbs":   roughSkin,
-	"cute-charm":   cuteCharm,
-	"flame-body":   flameBody,
-	"poison-point": poisonPoint,
-	"effect-spore": effectSpore,
+var contactDefensiveAbilities = map[ability]func(u, t *slot){
+	roughSkinAbility:   roughSkin,
+	ironBarbsAbility:   roughSkin,
+	cuteCharmAbility:   cuteCharm,
+	flameBodyAbility:   flameBody,
+	poisonPointAbility: poisonPoint,
+	effectSporeAbility: effectSpore,
 }
 
 func roughSkin(u, t *slot) {
@@ -279,7 +726,7 @@ func poisonPoint(u, t *slot) {
 }
 
 func effectSpore(u, t *slot) {
-	if u.mon.hasType(grassType) || u.mon.ability == "overcoat" || u.mon.item.name == "safety-goggles" {
+	if u.mon.hasType(grassType) || u.mon.ability == overcoatAbility || u.mon.item.name == "safety-goggles" {
 		return
 	}
 	if roll(30, 100) {
@@ -294,8 +741,8 @@ func effectSpore(u, t *slot) {
 	}
 }
 
-var contactOffensiveAbilities = map[string]func(u, t *slot){
-	"poison-touch": poisonTouch,
+var contactOffensiveAbilities = map[ability]func(u, t *slot){
+	poisonTouchAbility: poisonTouch,
 }
 
 func poisonTouch(u, t *slot) {
@@ -305,7 +752,7 @@ func poisonTouch(u, t *slot) {
 }
 
 func cheekPouch(mon *pokemon) {
-	if mon.ability == "cheek-pouch" {
+	if mon.ability == cheekPouchAbility {
 		restore := mon.maxHP() / 3
 		mon.changeHpBy(restore)
 		vlogf("%s ate its cheek pouch and restored %d hp", mon.base.Name, restore)

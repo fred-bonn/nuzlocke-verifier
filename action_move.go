@@ -14,7 +14,7 @@ type moveAction struct {
 
 func (ma *moveAction) prio(bs battleState) int {
 	bonus := 0
-	if ma.userSlot.mon.ability == "prankster" && ma.move.Class == statusClass {
+	if ma.userSlot.mon.ability == pranksterAbility && ma.move.Class == statusClass {
 		bonus++
 	}
 
@@ -56,7 +56,7 @@ func (ma *moveAction) invoke(bs battleState) {
 			vlogf("%s woke up", ma.userSlot.mon.base.Name)
 			delete(ma.userSlot.mon.ailments, sleepAilment)
 		} else {
-			if ma.userSlot.mon.ability == "early-bird" {
+			if ma.userSlot.mon.ability == earlyBirdAbility {
 				sleep.turns -= 2
 			} else {
 				sleep.turns--
@@ -257,7 +257,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	target.checkItemTrigger(true, focusSashEvent{
 		damage: &damage,
 	})
-	if target.ability == "sturdy" && target.hp == target.maxHP() {
+	if target.ability == sturdyAbility && target.hp == target.maxHP() {
 		damage = min(damage, target.hp-1)
 	}
 	user.checkItemTrigger(true, gemEvent{
@@ -280,7 +280,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 			vlogf("%s woke up", target.base.Name)
 			delete(target.ailments, sleepAilment)
 		}
-	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != "sticky-hold" {
+	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != stickyHoldAbility {
 		vlogf("%s had its %s knocked off", target.base.Name, target.item.name)
 		target.item = &item{
 			consumed: true,
@@ -300,7 +300,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 				change = -1
 			}
 		}
-		if target.ability == "liquid-ooze" {
+		if target.ability == liquidOozeAbility {
 			if change > 0 {
 				change = -change
 			}
@@ -322,11 +322,11 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		if user.hp <= 0 {
 			monFainted(bs, ma.userSlot, false)
 		}
-	} else if target.ability == "cotten-down" {
+	} else if target.ability == cottenDownAbility {
 		for _, slot := range bs.getOtherSlots(ma.targetSlot) {
 			slot.mon.changeStatStageBy(speed, -1, true)
 		}
-	} else if target.ability == "water-compaction" && ma.move.Type == waterType {
+	} else if target.ability == waterCompactionAbility && ma.move.Type == waterType {
 		target.changeStatStageBy(defense, 2, false)
 	}
 	if f, ok := contactOffensiveAbilities[user.ability]; ok && ma.move.Contact {
@@ -351,7 +351,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		return false
 	}
 
-	if target.ability == "shield-dust" {
+	if target.ability == shieldDustAbility {
 		return true
 	}
 
@@ -359,7 +359,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		target.applyAilment(ma.move.Ailment, ma.move, ma.userSlot)
 	}
 
-	if ma.move.FlinchChance > 0 && !target.fainted && target.ability != "inner-focus" && roll(ma.move.FlinchChance*sg, 100) {
+	if ma.move.FlinchChance > 0 && !target.fainted && target.ability != innerFocusAbility && roll(ma.move.FlinchChance*sg, 100) {
 		if targetMove := bs.getActions().getMoveActionBy(target); targetMove != nil {
 			targetMove.flinch = true
 		}

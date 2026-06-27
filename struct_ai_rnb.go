@@ -36,7 +36,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			scores[i] = 7
 			continue
 		} else if a.move.Name == "fake-out" {
-			if !a.userSlot.firstTurn || a.targetSlot.mon.ability == "inner-focus" || a.targetSlot.mon.ability == "shield-dust" {
+			if !a.userSlot.firstTurn || a.targetSlot.mon.ability == innerFocusAbility || a.targetSlot.mon.ability == shieldDustAbility {
 				damage[i] = -1
 				scores[i] = -64
 				continue
@@ -273,7 +273,7 @@ func calculateMaxDamage(bs battleState, user, target *pokemon, checkChoice bool)
 		target.checkItemTrigger(false, focusSashEvent{
 			damage: &dmg,
 		})
-		if target.ability == "sturdy" && target.hp == target.maxHP() {
+		if target.ability == sturdyAbility && target.hp == target.maxHP() {
 			dmg = min(dmg, target.hp-1)
 		}
 

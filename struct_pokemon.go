@@ -18,7 +18,7 @@ type pokemon struct {
 	fainted     bool
 	ailments    map[ailmentState]*ailment
 	item        *item
-	ability     string
+	ability     ability
 	unnerved    bool
 	flashFire   bool
 	unburden    bool
@@ -121,7 +121,7 @@ func (p *pokemon) switchReset() {
 
 	if p.trace {
 		p.trace = false
-		p.ability = "trace"
+		p.ability = traceAbility
 	}
 
 	p.lockedMove = nil
@@ -158,7 +158,7 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 
 	if p.item.name == "iron-ball" {
 		denominator *= 2
-	} else if p.unburden && p.ability == "unburden" {
+	} else if p.unburden && p.ability == unburdenAbility {
 		numerator *= 2
 	}
 	if _, ok := p.ailments[paralysisAilment]; ok {
@@ -166,19 +166,19 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 	}
 	switch bs.getWeather() {
 	case rainWeather:
-		if p.ability == "swift-swim" {
+		if p.ability == swiftSwimAbility {
 			numerator *= 2
 		}
 	case sunWeather:
-		if p.ability == "chlorophyll" {
+		if p.ability == chlorophyllAbility {
 			numerator *= 2
 		}
 	case hailWeather:
-		if p.ability == "slush-rush" {
+		if p.ability == slushRushAbility {
 			numerator *= 2
 		}
 	case sandstormWeather:
-		if p.ability == "sand-rush" {
+		if p.ability == sandRushAbility {
 			numerator *= 2
 		}
 	}
@@ -240,17 +240,17 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 	if _, ok := nonVolatileStatuses[ailment]; ok && p.hasNonVolatileAilment() {
 		return
 	}
-	if ailment == burnAilment && (p.hasType(fireType) || p.ability == "water-veil") {
+	if ailment == burnAilment && (p.hasType(fireType) || p.ability == waterVeilAbility) {
 		return
 	}
-	if ailment == paralysisAilment && (p.hasType(electricType) || p.ability == "limber") {
+	if ailment == paralysisAilment && (p.hasType(electricType) || p.ability == limberAbility) {
 		return
 	}
 	if ailment == poisonAilment || ailment == toxicAilment {
-		if p.ability == "immunity" {
+		if p.ability == immunityAbility {
 			return
 		}
-		if (p.hasType(poisonType) || p.hasType(steelType)) && (afflictedBy == nil || afflictedBy.mon.ability != "corrosion") {
+		if (p.hasType(poisonType) || p.hasType(steelType)) && (afflictedBy == nil || afflictedBy.mon.ability != corrosionAbility) {
 			return
 		}
 	}
@@ -277,14 +277,14 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 			ailment = toxicAilment
 		}
 	case infatuationAilment:
-		if afflictedBy.mon.ability == "oblivious" {
+		if afflictedBy.mon.ability == obliviousAbility {
 			return
 		}
 	}
 
 	p.ailments[ailment] = generateAilment(ailment, afflictedBy)
 	vlogf("%s became afflicted with %s", p.base.Name, ailment.String())
-	if _, ok := nonVolatileStatuses[ailment]; ok && p.ability == "synchronize" {
+	if _, ok := nonVolatileStatuses[ailment]; ok && p.ability == synchronizeAbility {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
 	p.checkItemTrigger(true, nil)
@@ -310,7 +310,7 @@ func (p *pokemon) isGrounded() bool {
 	if p.item.name == "iron-ball" {
 		return true
 	}
-	if p.hasType(flyingType) || p.ability == "levitate" {
+	if p.hasType(flyingType) || p.ability == levitateAbility {
 		return false
 	}
 	return true
@@ -326,11 +326,11 @@ func (p *pokemon) hasMovePredicate(f func(*Move) bool) bool {
 }
 
 func (p *pokemon) changeStatStageBy(stat stats, change int, offensive bool) {
-	if offensive && (p.ability == "clear-smoke" || p.ability == "clear-body") {
+	if offensive && (p.ability == clearBodyAbility || p.ability == clearSmokeAbility) {
 		vlogf("blocked by clear body")
 		return
 	}
-	if p.ability == "keen-eye" && stat == accuracy && change < 0 {
+	if p.ability == keenEyeAbility && stat == accuracy && change < 0 {
 		return
 	}
 
@@ -343,7 +343,7 @@ func (p *pokemon) maxHP() int {
 }
 
 func (p *pokemon) serenceGraceBonus() int {
-	if p.ability == "serence-grace" {
+	if p.ability == serenceGraceAbility {
 		return 2
 	}
 	return 1

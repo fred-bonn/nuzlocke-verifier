@@ -70,7 +70,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 		}
 		finalPokemon.item = item
 
-		finalPokemon.ability = cleanName(mon.Ability)
+		finalPokemon.ability = stringToAbility(cleanName(mon.Ability))
 
 		res = append(res, &finalPokemon)
 	}

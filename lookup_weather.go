@@ -32,19 +32,19 @@ var weatherFuncs = map[weatherState]func(*int, *int, pokemonType){
 }
 
 func (ws weatherState) affectsMon(mon *pokemon) bool {
-	if mon.ability == "overcoat" || mon.ability == "magic-guard" || mon.item.name == "safety-goggles" {
+	if mon.ability == overcoatAbility || mon.ability == magicGuardAbility || mon.item.name == "safety-goggles" {
 		return false
 	}
 
 	switch ws {
 	case sandstormWeather:
-		if !mon.hasType(rockType) && !mon.hasType(steelType) && !mon.hasType(groundType) && mon.ability != "sand-veil" && mon.ability != "sand-rush" && mon.ability != "sand-force" {
+		if !mon.hasType(rockType) && !mon.hasType(steelType) && !mon.hasType(groundType) && mon.ability < sandVeilAbility && mon.ability > sandForceAbility {
 			return true
 		}
 	case hailWeather:
-		if mon.ability == "ice-body" {
+		if mon.ability == iceBodyAbility {
 			return false
-		} else if !mon.hasType(iceType) && mon.ability != "snow-cloak" {
+		} else if !mon.hasType(iceType) && mon.ability != snowCloakAbility {
 			return true
 		}
 	}
@@ -57,20 +57,20 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 
 	switch ws {
 	case hailWeather:
-		if mon.ability == "ice-body" {
+		if mon.ability == iceBodyAbility {
 			vlogf("%s healed due to ice body", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
 		}
 	case rainWeather:
 		switch mon.ability {
-		case "rain-dish":
+		case raindDishAbility:
 			vlogf("%s healed due to rain dish", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
-		case "dry-skin":
+		case drySkinAbility:
 			takeResidualDamage(bs, slot, "dry skin", 1, 8)
 			vlogf("%s healed due to dry skin", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 8)
-		case "hydration":
+		case hydrationAbility:
 			if mon.hasNonVolatileAilment() {
 				for ailment := range nonVolatileStatuses {
 					if mon.hasAilment(ailment) != nil {
@@ -83,9 +83,9 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 		}
 	case sunWeather:
 		switch mon.ability {
-		case "dry-skin":
+		case drySkinAbility:
 			takeResidualDamage(bs, slot, "dry skin", 1, 8)
-		case "solar-power":
+		case solarPowerAbility:
 			takeResidualDamage(bs, slot, "solar power", 1, 8)
 		}
 	}
@@ -102,7 +102,7 @@ func (ws weatherState) String() string {
 	case sandstormWeather:
 		return "sandstorm"
 	default:
-		return ""
+		return "no weather"
 	}
 }
 

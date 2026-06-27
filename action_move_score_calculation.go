@@ -20,7 +20,7 @@ func (ma *moveAction) scoreActionMove(bs battleState) (int, bool) {
 	ma.targetSlot.mon.checkItemTrigger(false, focusSashEvent{
 		damage: &damageRoll,
 	})
-	if ma.targetSlot.mon.ability == "sturdy" && ma.targetSlot.mon.hp == ma.targetSlot.mon.maxHP() {
+	if ma.targetSlot.mon.ability == sturdyAbility && ma.targetSlot.mon.hp == ma.targetSlot.mon.maxHP() {
 		damageRoll = min(damageRoll, ma.targetSlot.mon.hp-1)
 	}
 
@@ -38,7 +38,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return 5
 	}
 
-	if _, ok := powderMoves[ma.move.Name]; ok && (ma.targetSlot.mon.hasType(grassType) || ma.targetSlot.mon.ability == "overcoat") {
+	if _, ok := powderMoves[ma.move.Name]; ok && (ma.targetSlot.mon.hasType(grassType) || ma.targetSlot.mon.ability == overcoatAbility) {
 		return -64
 	}
 	if _, ok := paralysisMoves[ma.move.Name]; ok {
@@ -69,7 +69,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		}
 		return 6 + rollInt(3, 4)
 	case "attract":
-		if ma.targetSlot.mon.hasAilment(infatuationAilment) != nil || ma.targetSlot.mon.ability == "oblivious" {
+		if ma.targetSlot.mon.hasAilment(infatuationAilment) != nil || ma.targetSlot.mon.ability == obliviousAbility {
 			return -64
 		}
 	case "leech-seed":
@@ -122,7 +122,7 @@ func (ma *moveAction) scoreParalysisMove(bs battleState) int {
 	target := ma.targetSlot.mon
 	user := ma.userSlot.mon
 
-	if target.hasNonVolatileAilment() || target.hasType(electricType) || target.ability == "limber" {
+	if target.hasNonVolatileAilment() || target.hasType(electricType) || target.ability == limberAbility {
 		return -64
 	}
 
@@ -192,10 +192,10 @@ func (ma *moveAction) scoreToxic(bs battleState) int {
 	if target.hasNonVolatileAilment() {
 		return -64
 	}
-	if target.ability == "immunity" {
+	if target.ability == immunityAbility {
 		return -64
 	}
-	if (target.hasType(poisonType) || target.hasType(steelType)) && ma.userSlot.mon.ability != "corrosion" {
+	if (target.hasType(poisonType) || target.hasType(steelType)) && ma.userSlot.mon.ability != corrosionAbility {
 		return -64
 	}
 
@@ -210,7 +210,7 @@ func (ma *moveAction) scoreToxic(bs battleState) int {
 
 		if user.hasMovePredicate(func(m *Move) bool {
 			return m.Name == "hex" || m.Name == "venoshock"
-		}) || user.ability == "merciless" {
+		}) || user.ability == mercilessAbility {
 			score += 2
 		} else {
 			score += 1
@@ -248,7 +248,7 @@ func (ma *moveAction) scoreProtectMove(bs battleState) int {
 }
 
 func deadToSecondaryDamage(mon *pokemon, bs battleState) bool {
-	if mon.ability == "magic-guard" {
+	if mon.ability == magicGuardAbility {
 		return false
 	}
 
@@ -272,7 +272,7 @@ func deadToSecondaryDamage(mon *pokemon, bs battleState) bool {
 
 func (ma *moveAction) scoreCritStatus() int {
 	user := ma.userSlot.mon
-	if _, ok := critBlockingAbilities[ma.targetSlot.mon.ability]; ok && user.ability != "mold-breaker" {
+	if _, ok := critBlockingAbilities[ma.targetSlot.mon.ability]; ok && user.ability != moldBreakerAbility {
 		return -64
 	}
 	if ma.move.Name == "focus-energy" && user.focusEnergy {
@@ -285,7 +285,7 @@ func (ma *moveAction) scoreCritStatus() int {
 		return 7
 	} else if user.item.name == "scope-lens" {
 		return 7
-	} else if user.ability == "super-luck" || user.ability == "sniper" {
+	} else if user.ability == superLuckAbility || user.ability == sniperAbility {
 		return 7
 	}
 

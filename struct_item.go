@@ -345,7 +345,7 @@ func makeStatBoostBerryMiddleware(name string, stat stats) func(mon *pokemon) *i
 		return &item{
 			name: name,
 			trigger: func(any) bool {
-				if mon.ability == "gluttony" {
+				if mon.ability == gluttonyAbility {
 					return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
 				}
 				return !mon.unnerved && mon.hp > 0 && mon.hp*4 <= mon.maxHP()

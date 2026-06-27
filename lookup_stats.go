@@ -32,12 +32,13 @@ func (s stats) String() string {
 	case evasion:
 		return "evasion"
 	default:
+		elogf("stats.String(): something went wrong")
 		return ""
 	}
 }
 
-func stringToStat(stat string) stats {
-	switch stat {
+func stringToStat(s string) stats {
+	switch s {
 	case "hp":
 		return hitPoints
 	case "attack":
@@ -55,7 +56,7 @@ func stringToStat(stat string) stats {
 	case "evasion":
 		return evasion
 	default:
-		elogFatalf("%s is not a valid stat", stat)
+		elogFatalf("%s is not a valid stat", s)
 		return 0
 	}
 }

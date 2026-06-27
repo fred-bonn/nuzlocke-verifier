@@ -71,11 +71,11 @@ func resolveEndOfTurn(bs battleState) {
 			slot.protected = false
 		}
 
-		if slot.mon.ability == "harvest" && roll(1, 2) && strings.HasSuffix(slot.mon.item.name, "berry") {
+		if slot.mon.ability == harvestAbility && roll(1, 2) && strings.HasSuffix(slot.mon.item.name, "berry") {
 			vlogf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.name)
 			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
-		} else if slot.mon.ability == "speed-boost" && !slot.firstTurn {
+		} else if slot.mon.ability == speedBoostAbility && !slot.firstTurn {
 			slot.mon.changeStatStageBy(speed, 1, false)
 		}
 
