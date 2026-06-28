@@ -146,7 +146,7 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 	target := ma.targetSlot.mon
 	user := ma.userSlot.mon
 
-	if _, ok := sleepBlockingAbilities[target.ability]; ok {
+	if target.ability.blocksSleep() {
 		return -64
 	}
 	if a := target.hasAilment(yawnAilment); a != nil {
@@ -272,7 +272,7 @@ func deadToSecondaryDamage(mon *pokemon, bs battleState) bool {
 
 func (ma *moveAction) scoreCritStatus() int {
 	user := ma.userSlot.mon
-	if _, ok := critBlockingAbilities[ma.targetSlot.mon.ability]; ok && user.ability != moldBreakerAbility {
+	if ma.targetSlot.mon.ability.blocksCrits() && user.ability != moldBreakerAbility {
 		return -64
 	}
 	if ma.move.Name == "focus-energy" && user.focusEnergy {

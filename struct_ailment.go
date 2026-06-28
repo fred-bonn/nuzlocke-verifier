@@ -22,6 +22,26 @@ const (
 	noneAilment
 )
 
+func (as ailmentState) isNonVolatileStatus() bool {
+	return as >= paralysisAilment && as <= sleepAilment
+}
+
+func nonVolatileStatuses(yield func(ailmentState) bool) {
+	for s := paralysisAilment; s <= sleepAilment; s++ {
+		if !yield(s) {
+			return
+		}
+	}
+}
+
+func volatileStatuses(yield func(ailmentState) bool) {
+	for s := infatuationAilment; s < noneAilment; s++ {
+		if !yield(s) {
+			return
+		}
+	}
+}
+
 func stringToAilmentState(s string) ailmentState {
 	switch s {
 	case "paralysis":
@@ -88,24 +108,6 @@ type ailment struct {
 	state       ailmentState
 	turns       int
 	afflictedBy *slot
-}
-
-var nonVolatileStatuses = map[ailmentState]struct{}{
-	paralysisAilment: {},
-	poisonAilment:    {},
-	toxicAilment:     {},
-	burnAilment:      {},
-	freezeAilment:    {},
-	sleepAilment:     {},
-}
-
-var volatileStatuses = map[ailmentState]struct{}{
-	infatuationAilment: {},
-	confusionAilment:   {},
-	trapAilment:        {},
-	boundAilment:       {},
-	leechSeedAilment:   {},
-	yawnAilment:        {},
 }
 
 func generateAilment(as ailmentState, afflictedBy *slot) *ailment {

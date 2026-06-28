@@ -70,7 +70,7 @@ func initPokemon(base BasePokemon, level int, ivs map[string]int, nature string,
 
 	res.hp = max(1, min(res.maxHP(), hp))
 
-	if _, ok := nonVolatileStatuses[status]; ok {
+	if status.isNonVolatileStatus() {
 		res.ailments[status] = generateAilment(status, nil)
 	}
 
@@ -237,54 +237,52 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 	if _, ok := p.ailments[ailment]; ok {
 		return
 	}
-	if _, ok := nonVolatileStatuses[ailment]; ok && p.hasNonVolatileAilment() {
+	if ailment.isNonVolatileStatus() && p.hasNonVolatileAilment() {
 		return
 	}
-	if ailment == burnAilment && (p.hasType(fireType) || p.ability == waterVeilAbility) {
-		return
-	}
-	if ailment == paralysisAilment && (p.hasType(electricType) || p.ability == limberAbility) {
-		return
-	}
-	if ailment == poisonAilment || ailment == toxicAilment {
+
+	switch ailment {
+	case burnAilment:
+		if p.hasType(fireType) || p.ability == waterVeilAbility {
+			return
+		}
+	case paralysisAilment:
+		if p.hasType(electricType) || p.ability == limberAbility {
+			return
+		}
+	case poisonAilment, toxicAilment:
 		if p.ability == immunityAbility {
 			return
 		}
 		if (p.hasType(poisonType) || p.hasType(steelType)) && (afflictedBy == nil || afflictedBy.mon.ability != corrosionAbility) {
 			return
 		}
-	}
-	if ailment == freezeAilment && p.hasType(iceType) {
-		return
-	}
-	if ailment == sleepAilment {
-		if _, ok := sleepBlockingAbilities[p.ability]; ok {
+	case freezeAilment:
+		if p.hasType(iceType) || p.ability == magmaArmorAbility {
 			return
 		}
-	}
-	if ailment == yawnAilment {
-		if _, ok := sleepBlockingAbilities[p.ability]; ok || p.hasNonVolatileAilment() {
+	case sleepAilment, yawnAilment:
+		if p.ability.blocksSleep() || p.hasNonVolatileAilment() {
 			return
 		}
-	}
-
-	switch ailment {
 	case trapAilment:
 		p.ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
 		return
-	case poisonAilment:
-		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
-			ailment = toxicAilment
-		}
 	case infatuationAilment:
 		if afflictedBy.mon.ability == obliviousAbility {
 			return
 		}
 	}
 
+	if ailment == poisonAilment {
+		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
+			ailment = toxicAilment
+		}
+	}
+
 	p.ailments[ailment] = generateAilment(ailment, afflictedBy)
 	vlogf("%s became afflicted with %s", p.base.Name, ailment.String())
-	if _, ok := nonVolatileStatuses[ailment]; ok && p.ability == synchronizeAbility {
+	if ailment.isNonVolatileStatus() && p.ability == synchronizeAbility {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
 	p.checkItemTrigger(true, nil)

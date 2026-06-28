@@ -141,7 +141,7 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		}
 	}
 
-	if _, ok := critBlockingAbilities[target.ability]; ok && (forScoring || user.ability != moldBreakerAbility) {
+	if target.ability.blocksCrits() && (forScoring || user.ability != moldBreakerAbility) {
 		*crit = false
 	}
 

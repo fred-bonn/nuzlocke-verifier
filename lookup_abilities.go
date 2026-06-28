@@ -451,10 +451,12 @@ func stringToAbility(s string) ability {
 	}
 }
 
-var sleepBlockingAbilities = map[ability]struct{}{
-	insomniaAbility:    {},
-	vitalSpiritAbility: {},
-	sweetVeilAbility:   {},
+func (a ability) blocksCrits() bool {
+	return a >= battleArmorAbility && a <= magmaArmorAbility
+}
+
+func (a ability) blocksSleep() bool {
+	return a >= insomniaAbility && a <= sweetVeilAbility
 }
 
 var onSwitchAbilities = map[ability]func(s *slot, bs battleState, switchIn bool){
@@ -684,12 +686,6 @@ var pinchAbilities = map[ability]pokemonType{
 	blazeAbility:    fireType,
 	torrentAbility:  waterType,
 	swarmAbility:    bugType,
-}
-
-var critBlockingAbilities = map[ability]struct{}{
-	battleArmorAbility: {},
-	shellArmorAbility:  {},
-	magmaArmorAbility:  {},
 }
 
 var contactDefensiveAbilities = map[ability]func(u, t *slot){
