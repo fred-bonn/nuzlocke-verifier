@@ -1,9 +1,5 @@
 package main
 
-import (
-	"strings"
-)
-
 type battleState interface {
 	execute()
 	gatherActions()
@@ -71,15 +67,15 @@ func resolveEndOfTurn(bs battleState) {
 			slot.protected = false
 		}
 
-		if slot.mon.ability == harvestAbility && roll(1, 2) && strings.HasSuffix(slot.mon.item.name, "berry") {
-			vlogf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.name)
+		if slot.mon.ability == harvestAbility && roll(1, 2) && slot.mon.item.state.isBerry() {
+			vlogf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.String())
 			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.ability == speedBoostAbility && !slot.firstTurn {
 			slot.mon.changeStatStageBy(speed, 1, false)
 		}
 
-		if slot.mon.item.name == "leftovers" {
+		if slot.mon.item.state == leftovers {
 			change := slot.mon.maxHP() / 16
 			vlogItem("%s restored %d health from leftovers", slot.mon.base.Name, change)
 			slot.mon.changeHpBy(change)

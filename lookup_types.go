@@ -63,7 +63,7 @@ func stringToPokemonType(s string) pokemonType {
 	case "fairy":
 		return fairyType
 	default:
-		elogFatalf("%s is not a valid type", s)
+		elogFatalf("error: %s is not a valid type", s)
 		return noType
 	}
 }

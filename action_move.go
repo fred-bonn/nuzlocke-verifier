@@ -269,11 +269,11 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if *crit {
 		vlogf("it was a critical hit!")
 	}
-	if ma.move.Name == "bug-bite" && strings.HasSuffix(target.item.name, "berry") && !target.item.consumed {
-		vlogf("%s's %s was consumed by bug bite", target.base.Name, target.item.name)
-		item, _ := registerItem(target.item.name, user)
+	if ma.move.Name == "bug-bite" && target.item.state.isBerry() && !target.item.consumed {
+		vlogf("%s's %s was consumed by bug bite", target.base.Name, target.item.String())
+		item, _ := registerItem(target.item.state, user)
 		item.activate()
-		target.item, _ = registerItem("", target)
+		target.item, _ = registerItem(noneItem, target)
 
 	} else if ma.move.Name == "wake-up-slap" {
 		if a := target.hasAilment(sleepAilment); a != nil {
@@ -281,7 +281,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 			delete(target.ailments, sleepAilment)
 		}
 	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != stickyHoldAbility {
-		vlogf("%s had its %s knocked off", target.base.Name, target.item.name)
+		vlogf("%s had its %s knocked off", target.base.Name, target.item.String())
 		target.item = &item{
 			consumed: true,
 		}

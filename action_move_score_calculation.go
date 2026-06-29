@@ -283,7 +283,7 @@ func (ma *moveAction) scoreCritStatus() int {
 		return m.CritRate > 0
 	}) {
 		return 7
-	} else if user.item.name == "scope-lens" {
+	} else if user.item.state == scopeLens {
 		return 7
 	} else if user.ability == superLuckAbility || user.ability == sniperAbility {
 		return 7
@@ -310,7 +310,7 @@ func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 
 	dmg := calculateMaxDamage(bs, target, user, true)
 	threshhold := user.maxHP() / 2
-	if user.item.name == "sitrus-berry" {
+	if user.item.state == sitrusBerry && !user.item.consumed {
 		threshhold += user.maxHP() / 4
 	}
 	if dmg < threshhold {

@@ -3,11 +3,11 @@ package main
 type weatherState int
 
 const (
-	rainWeather weatherState = iota
+	noneWeather weatherState = iota
+	rainWeather
 	sunWeather
 	sandstormWeather
 	hailWeather
-	noneWeather
 )
 
 var weatherFuncs = map[weatherState]func(*int, *int, pokemonType){
@@ -32,7 +32,7 @@ var weatherFuncs = map[weatherState]func(*int, *int, pokemonType){
 }
 
 func (ws weatherState) affectsMon(mon *pokemon) bool {
-	if mon.ability == overcoatAbility || mon.ability == magicGuardAbility || mon.item.name == "safety-goggles" {
+	if mon.ability == overcoatAbility || mon.ability == magicGuardAbility || mon.item.state == safetyGoggles {
 		return false
 	}
 

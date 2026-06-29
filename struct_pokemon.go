@@ -156,7 +156,7 @@ func (p *pokemon) effectiveSpeed(bs battleState) int {
 	numerator := 1
 	denominator := 1
 
-	if p.item.name == "iron-ball" {
+	if p.item.state == ironBall {
 		denominator *= 2
 	} else if p.unburden && p.ability == unburdenAbility {
 		numerator *= 2
@@ -230,7 +230,7 @@ func (p *pokemon) hasType(typeName pokemonType) bool {
 
 func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *slot) {
 	if ailment == noneAilment {
-		elogf("%s applies an ailment but is none", ailment.String())
+		elogf("warning: %s applies an ailment but is none", ailment.String())
 		return
 	}
 
@@ -305,7 +305,7 @@ func (p *pokemon) hasNonVolatileAilment() bool {
 }
 
 func (p *pokemon) isGrounded() bool {
-	if p.item.name == "iron-ball" {
+	if p.item.state == ironBall {
 		return true
 	}
 	if p.hasType(flyingType) || p.ability == levitateAbility {

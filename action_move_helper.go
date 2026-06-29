@@ -96,7 +96,7 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		return max(1, target.hp/2)
 	}
 
-	if move.Name == "acrobatics" && (user.item.consumed || user.item.name == "flying-gem") {
+	if move.Name == "acrobatics" && (user.item.consumed || user.item.state == flyingGem) {
 		power *= 2
 	} else if move.Name == "wake-up-slap" && target.hasAilment(sleepAilment) != nil {
 		power *= 2
@@ -280,7 +280,7 @@ func determineCritRate(user *pokemon, move *Move) int {
 	}
 
 	rate := move.CritRate
-	if user.item.name == "scope-lens" {
+	if user.item.state == scopeLens {
 		rate++
 	}
 	if user.ability == superLuckAbility {

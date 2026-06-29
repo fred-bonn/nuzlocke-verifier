@@ -32,7 +32,7 @@ func (s stats) String() string {
 	case evasion:
 		return "evasion"
 	default:
-		elogf("stats.String(): something went wrong")
+		elogf("warning: stats.String(): something went wrong with stat %d", s)
 		return ""
 	}
 }
@@ -56,7 +56,7 @@ func stringToStat(s string) stats {
 	case "evasion":
 		return evasion
 	default:
-		elogFatalf("%s is not a valid stat", s)
+		elogFatalf("error: %s is not a valid stat", s)
 		return 0
 	}
 }

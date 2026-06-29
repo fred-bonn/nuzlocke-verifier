@@ -64,7 +64,7 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 			return nil, err
 		}
 
-		item, err := registerItem(cleanName(mon.Item), &finalPokemon)
+		item, err := registerItem(stringToItemState(cleanName(mon.Item)), &finalPokemon)
 		if err != nil {
 			return nil, err
 		}

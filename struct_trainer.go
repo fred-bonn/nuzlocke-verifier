@@ -1,9 +1,5 @@
 package main
 
-import (
-	"strings"
-)
-
 type trainer struct {
 	pokemonParty []*pokemon
 	player       bool
@@ -33,7 +29,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 			if move.PP <= 0 {
 				continue
 			}
-			if slot.mon.item.name == "assault-vest" && move.Class != statusClass {
+			if slot.mon.item.state == assaultVest && move.Class != statusClass {
 				continue
 			}
 			for _, oppSlot := range opponentSlots {
@@ -60,7 +56,7 @@ func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	}
 
 	action, score := t.ai.evaluateActions(bs, possibleActions)
-	if strings.HasPrefix(slot.mon.item.name, "choice") {
+	if slot.mon.item.state.isChoice() {
 		slot.mon.lockedMove = action.move
 	}
 	if score > 0 {

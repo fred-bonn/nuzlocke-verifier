@@ -25,7 +25,7 @@ func stringToMoveClass(s string) moveClass {
 	case "status":
 		return statusClass
 	default:
-		elogFatalf("%s is not a valid move class", s)
+		elogFatalf("error: %s is not a valid move class", s)
 		return noneClass
 	}
 }

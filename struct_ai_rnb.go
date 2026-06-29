@@ -2,7 +2,6 @@ package main
 
 import (
 	"math/rand"
-	"strings"
 )
 
 type rnbAi struct{}
@@ -47,7 +46,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i] = -64
 			continue
-		} else if a.move.Name == "belch" && (!strings.HasSuffix(a.userSlot.mon.item.name, "berry") || !a.userSlot.mon.item.consumed) {
+		} else if a.move.Name == "belch" && (!a.userSlot.mon.item.state.isBerry() || !a.userSlot.mon.item.consumed) {
 			damage[i] = -1
 			scores[i] = -64
 			continue

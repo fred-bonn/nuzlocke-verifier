@@ -8,10 +8,10 @@ import (
 var verbose = pflag.BoolP("verbose", "v", false, "verbose logging")
 
 func main() {
-	weather := pflag.IntP("weather", "w", int(noneWeather), "weather\n 0: Rain\n 1: Sun\n 2: Sandstorm\n 3: Hail\n 4: None")
+	weather := pflag.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
 	pflag.Parse()
 	if *weather < 0 || *weather > 4 {
-		elogFatalf("error: weather (-w) must be tween 0 and 4")
+		elogFatalf("error: weather (-w) must be between 0 and 4")
 	}
 
 	args := pflag.Args()

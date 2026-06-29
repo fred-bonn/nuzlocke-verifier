@@ -1,14 +1,363 @@
 package main
 
-import (
-	"fmt"
+type itemState int
+
+const (
+	noneItem itemState = iota
+	berryJuice
+	oranBerry
+	sitrusBerry
+	lumBerry
+	leppaBerry
+	cheriBerry
+	chestoBerry
+	pechaBerry
+	rawstBerry
+	aspearBerry
+	persimBerry
+	liechiBerry
+	ganlonBerry
+	salacBerry
+	petayaBerry
+	apicotBerry
+	babiriBerry
+	chilanBerry
+	chartiBerry
+	chopleBerry
+	cobaBerry
+	colburBerry
+	habanBerry
+	kasibBerry
+	kebiaBerry
+	occaBerry
+	passhoBerry
+	payapaBerry
+	rindoBerry
+	roseliBerry
+	shucaBerry
+	tangaBerry
+	wacanBerry
+	yacheBerry
+	ironBall
+	scopeLens
+	leftovers
+	safetyGoggles
+	mysticWater
+	dragonFang
+	silverPowder
+	magnet
+	blackBelt
+	charcoal
+	sharpBeak
+	spellTag
+	miracleSeed
+	softSand
+	neverMeltIce
+	silkScarf
+	poisonBarb
+	twistedSpoon
+	hardStone
+	metalCoat
+	pixiePlate
+	blackGlasses
+	normalGem
+	fireGem
+	fightingGem
+	waterGem
+	flyingGem
+	grassGem
+	poisonGem
+	electricGem
+	groundGem
+	psychicGem
+	rockGem
+	iceGem
+	bugGem
+	dragonGem
+	ghostGem
+	darkGem
+	steelGem
+	fairyGem
+	assaultVest
+	choiceScarf
+	choiceBand
+	choiceSpecs
+	focusSash
 )
 
+var itemStateMap = map[string]itemState{
+	"berry-juice":    berryJuice,
+	"oran-berry":     oranBerry,
+	"sitrus-berry":   sitrusBerry,
+	"lum-berry":      lumBerry,
+	"leppa-berry":    leppaBerry,
+	"cheri-berry":    cheriBerry,
+	"chesto-berry":   chestoBerry,
+	"pecha-berry":    pechaBerry,
+	"rawst-berry":    rawstBerry,
+	"aspear-berry":   aspearBerry,
+	"persim-berry":   persimBerry,
+	"liechi-berry":   liechiBerry,
+	"ganlon-berry":   ganlonBerry,
+	"salac-berry":    salacBerry,
+	"petaya-berry":   petayaBerry,
+	"apicot-berry":   apicotBerry,
+	"babiri-berry":   babiriBerry,
+	"chilan-berry":   chilanBerry,
+	"charti-berry":   chartiBerry,
+	"chople-berry":   chopleBerry,
+	"coba-berry":     cobaBerry,
+	"colbur-berry":   colburBerry,
+	"haban-berry":    habanBerry,
+	"kasib-berry":    kasibBerry,
+	"kebia-berry":    kebiaBerry,
+	"occa-berry":     occaBerry,
+	"passho-berry":   passhoBerry,
+	"payapa-berry":   payapaBerry,
+	"rindo-berry":    rindoBerry,
+	"roseli-berry":   roseliBerry,
+	"shuca-berry":    shucaBerry,
+	"tanga-berry":    tangaBerry,
+	"wacan-berry":    wacanBerry,
+	"yache-berry":    yacheBerry,
+	"iron-ball":      ironBall,
+	"scope-lens":     scopeLens,
+	"leftovers":      leftovers,
+	"safety-goggles": safetyGoggles,
+	"mystic-water":   mysticWater,
+	"dragon-fang":    dragonFang,
+	"silver-powder":  silverPowder,
+	"magnet":         magnet,
+	"black-belt":     blackBelt,
+	"charcoal":       charcoal,
+	"sharp-beak":     sharpBeak,
+	"spell-tag":      spellTag,
+	"miracle-seed":   miracleSeed,
+	"soft-sand":      softSand,
+	"never-melt-ice": neverMeltIce,
+	"silk-scarf":     silkScarf,
+	"poison-barb":    poisonBarb,
+	"twisted-spoon":  twistedSpoon,
+	"hard-stone":     hardStone,
+	"metal-coat":     metalCoat,
+	"pixie-plate":    pixiePlate,
+	"black-glasses":  blackGlasses,
+	"normal-gem":     normalGem,
+	"fire-gem":       fireGem,
+	"fighting-gem":   fightingGem,
+	"water-gem":      waterGem,
+	"flying-gem":     flyingGem,
+	"grass-gem":      grassGem,
+	"poison-gem":     poisonGem,
+	"electric-gem":   electricGem,
+	"ground-gem":     groundGem,
+	"psychic-gem":    psychicGem,
+	"rock-gem":       rockGem,
+	"ice-gem":        iceGem,
+	"bug-gem":        bugGem,
+	"dragon-gem":     dragonGem,
+	"ghost-gem":      ghostGem,
+	"dark-gem":       darkGem,
+	"steel-gem":      steelGem,
+	"fairy-gem":      fairyGem,
+	"assault-vest":   assaultVest,
+	"choice-scarf":   choiceScarf,
+	"choice-band":    choiceBand,
+	"choice-specs":   choiceSpecs,
+	"focus-sash":     focusSash,
+}
+
+func stringToItemState(s string) itemState {
+	if state, ok := itemStateMap[s]; ok {
+		return state
+	}
+	elogf("warning: %s is not a valid item and was made into noneItem", s)
+	return noneItem
+}
+
+func (i itemState) String() string {
+	switch i {
+	case berryJuice:
+		return "berry juice"
+	case oranBerry:
+		return "oran berry"
+	case sitrusBerry:
+		return "sitrus berry"
+	case lumBerry:
+		return "lum berry"
+	case leppaBerry:
+		return "leppa berry"
+	case cheriBerry:
+		return "cheri berry"
+	case chestoBerry:
+		return "chesto berry"
+	case pechaBerry:
+		return "pecha berry"
+	case rawstBerry:
+		return "rawst berry"
+	case aspearBerry:
+		return "aspear berry"
+	case persimBerry:
+		return "persim berry"
+	case liechiBerry:
+		return "liechi berry"
+	case ganlonBerry:
+		return "ganlon berry"
+	case salacBerry:
+		return "salac berry"
+	case petayaBerry:
+		return "petaya berry"
+	case apicotBerry:
+		return "apicot berry"
+	case babiriBerry:
+		return "babiri berry"
+	case chilanBerry:
+		return "chilan berry"
+	case chartiBerry:
+		return "charti berry"
+	case chopleBerry:
+		return "chople berry"
+	case cobaBerry:
+		return "coba berry"
+	case colburBerry:
+		return "colbur berry"
+	case habanBerry:
+		return "haban berry"
+	case kasibBerry:
+		return "kasib berry"
+	case kebiaBerry:
+		return "kebia berry"
+	case occaBerry:
+		return "occa berry"
+	case passhoBerry:
+		return "passho berry"
+	case payapaBerry:
+		return "payapa berry"
+	case rindoBerry:
+		return "rindo berry"
+	case roseliBerry:
+		return "roseli berry"
+	case shucaBerry:
+		return "shuca berry"
+	case tangaBerry:
+		return "tanga berry"
+	case wacanBerry:
+		return "wacan berry"
+	case yacheBerry:
+		return "yache berry"
+	case ironBall:
+		return "iron ball"
+	case scopeLens:
+		return "scope lens"
+	case leftovers:
+		return "leftovers"
+	case safetyGoggles:
+		return "safety goggles"
+	case mysticWater:
+		return "mystic water"
+	case dragonFang:
+		return "dragon fang"
+	case silverPowder:
+		return "silver powder"
+	case magnet:
+		return "magnet"
+	case blackBelt:
+		return "black belt"
+	case charcoal:
+		return "charcoal"
+	case sharpBeak:
+		return "sharp beak"
+	case spellTag:
+		return "spell tag"
+	case miracleSeed:
+		return "miracle seed"
+	case softSand:
+		return "soft sand"
+	case neverMeltIce:
+		return "never-melt ice"
+	case silkScarf:
+		return "silk scarf"
+	case poisonBarb:
+		return "poison barb"
+	case twistedSpoon:
+		return "twisted spoon"
+	case hardStone:
+		return "hard stone"
+	case metalCoat:
+		return "metal coat"
+	case pixiePlate:
+		return "pixie plate"
+	case blackGlasses:
+		return "black glasses"
+	case normalGem:
+		return "normal gem"
+	case fireGem:
+		return "fire gem"
+	case fightingGem:
+		return "fighting gem"
+	case waterGem:
+		return "water gem"
+	case flyingGem:
+		return "flying gem"
+	case grassGem:
+		return "grass gem"
+	case poisonGem:
+		return "poison gem"
+	case electricGem:
+		return "electric gem"
+	case groundGem:
+		return "ground gem"
+	case psychicGem:
+		return "psychic gem"
+	case rockGem:
+		return "rock gem"
+	case iceGem:
+		return "ice gem"
+	case bugGem:
+		return "bug gem"
+	case dragonGem:
+		return "dragon gem"
+	case ghostGem:
+		return "ghost gem"
+	case darkGem:
+		return "dark gem"
+	case steelGem:
+		return "steel gem"
+	case fairyGem:
+		return "fairy gem"
+	case assaultVest:
+		return "assault vest"
+	case choiceScarf:
+		return "choice scarf"
+	case choiceBand:
+		return "choice band"
+	case choiceSpecs:
+		return "choice specs"
+	case focusSash:
+		return "focus sash"
+	default:
+		elogf("warning: itemState.String(%d): something went wrong", i)
+		return ""
+	}
+}
+
+func (is itemState) isBerry() bool {
+	return is >= oranBerry && is <= yacheBerry
+}
+
+func (is itemState) isChoice() bool {
+	return is >= choiceScarf && is <= choiceSpecs
+}
+
 type item struct {
-	name     string
+	state    itemState
 	trigger  func(any) bool
 	activate func()
 	consumed bool
+}
+
+func (i item) String() string {
+	return i.state.String()
 }
 
 func (p *pokemon) checkItemTrigger(consume bool, event any) {
@@ -27,86 +376,86 @@ func (p *pokemon) checkItemTrigger(consume bool, event any) {
 
 type ItemFactoryBuilder func(*pokemon) *item
 
-var itemBuilders = map[string]ItemFactoryBuilder{
-	"berry-juice":    makeBerryJuice,
-	"oran-berry":     makeOranBerry,
-	"sitrus-berry":   makeSitrusBerry,
-	"lum-berry":      makeLumBerry,
-	"leppa-berry":    makeLeppaBerry,
-	"cheri-berry":    makeCheriBerry,
-	"chesto-berry":   makeChestoBerry,
-	"pecha-berry":    makePechaBerry,
-	"rawst-berry":    makeRawstBerry,
-	"aspear-berry":   makeAspearBerry,
-	"persim-berry":   makePersimBerry,
-	"liechi-berry":   makeStatBoostBerryMiddleware("liechi-berry", attack),
-	"ganlon-berry":   makeStatBoostBerryMiddleware("ganlon-berry", defense),
-	"salac-berry":    makeStatBoostBerryMiddleware("salac-berry", speed),
-	"petaya-berry":   makeStatBoostBerryMiddleware("petaya-berry", specialAttack),
-	"apicot-berry":   makeStatBoostBerryMiddleware("apicot-berry", specialDefense),
-	"babiri-berry":   makeResistBerryMiddleware("babiri-berry", steelType),
-	"chilan-berry":   makeResistBerryMiddleware("chilan-berry", normalType),
-	"charti-berry":   makeResistBerryMiddleware("charti-berry", rockType),
-	"chople-berry":   makeResistBerryMiddleware("chople-berry", fightingType),
-	"coba-berry":     makeResistBerryMiddleware("coba-berry", flyingType),
-	"colbur-berry":   makeResistBerryMiddleware("colbur-berry", darkType),
-	"haban-berry":    makeResistBerryMiddleware("haban-berry", dragonType),
-	"kasib-berry":    makeResistBerryMiddleware("kasib-berry", ghostType),
-	"kebia-berry":    makeResistBerryMiddleware("kebia-berry", poisonType),
-	"occa-berry":     makeResistBerryMiddleware("occa-berry", fireType),
-	"passho-berry":   makeResistBerryMiddleware("passho-berry", waterType),
-	"payapa-berry":   makeResistBerryMiddleware("payapa-berry", psychicType),
-	"rindo-berry":    makeResistBerryMiddleware("rindo-berry", grassType),
-	"roseli-berry":   makeResistBerryMiddleware("roseli-berry", fairyType),
-	"shuca-berry":    makeResistBerryMiddleware("shuca-berry", groundType),
-	"tanga-berry":    makeResistBerryMiddleware("tanga-berry", bugType),
-	"wacan-berry":    makeResistBerryMiddleware("wacan-berry", electricType),
-	"yache-berry":    makeResistBerryMiddleware("yache-berry", iceType),
-	"iron-ball":      makePassiveItemMiddleware("iron-ball"),
-	"scope-lens":     makePassiveItemMiddleware("scope-lens"),
-	"leftovers":      makePassiveItemMiddleware("leftovers"),
-	"safety-goggles": makePassiveItemMiddleware("safety-goggles"),
-	"mystic-water":   makeTypeBoostingItemMiddleware("mystic-water", waterType),
-	"dragon-fang":    makeTypeBoostingItemMiddleware("dragon-fang", dragonType),
-	"silver-powder":  makeTypeBoostingItemMiddleware("silver-powder", bugType),
-	"magnet":         makeTypeBoostingItemMiddleware("magnet", electricType),
-	"black-belt":     makeTypeBoostingItemMiddleware("black-belt", fightingType),
-	"charcoal":       makeTypeBoostingItemMiddleware("charcoal", fireType),
-	"sharp-beak":     makeTypeBoostingItemMiddleware("sharp-beak", flyingType),
-	"spell-tag":      makeTypeBoostingItemMiddleware("spell-tag", ghostType),
-	"miracle-seed":   makeTypeBoostingItemMiddleware("miracle-seed", grassType),
-	"soft-sand":      makeTypeBoostingItemMiddleware("soft-sand", groundType),
-	"never-melt-ice": makeTypeBoostingItemMiddleware("never-melt-ice", iceType),
-	"silk-scarf":     makeTypeBoostingItemMiddleware("silk-scarf", normalType),
-	"poison-barb":    makeTypeBoostingItemMiddleware("poison-barb", poisonType),
-	"twisted-spoon":  makeTypeBoostingItemMiddleware("twisted-spoon", psychicType),
-	"hard-stone":     makeTypeBoostingItemMiddleware("hard-stone", rockType),
-	"metal-coat":     makeTypeBoostingItemMiddleware("metal-coat", steelType),
-	"pixie-plate":    makeTypeBoostingItemMiddleware("pixir-plate", fairyType),
-	"dark-glasses":   makeTypeBoostingItemMiddleware("dark-glasses", darkType),
-	"normal-gem":     makeGemMiddleware(normalType),
-	"fire-gem":       makeGemMiddleware(fireType),
-	"fighting-gem":   makeGemMiddleware(fightingType),
-	"water-gem":      makeGemMiddleware(waterType),
-	"flying-gem":     makeGemMiddleware(flyingType),
-	"grass-gem":      makeGemMiddleware(grassType),
-	"poison-gem":     makeGemMiddleware(poisonType),
-	"electric-gem":   makeGemMiddleware(electricType),
-	"ground-gem":     makeGemMiddleware(groundType),
-	"psychic-gem":    makeGemMiddleware(psychicType),
-	"rock-gem":       makeGemMiddleware(rockType),
-	"ice-gem":        makeGemMiddleware(iceType),
-	"bug-gem":        makeGemMiddleware(bugType),
-	"dragon-gem":     makeGemMiddleware(dragonType),
-	"ghost-gem":      makeGemMiddleware(ghostType),
-	"dark-gem":       makeGemMiddleware(darkType),
-	"steel-gem":      makeGemMiddleware(steelType),
-	"fairy-gem":      makeGemMiddleware(fairyType),
-	"choice-scarf":   makeChoiceScarf,
-	"assault-vest":   makeAssaultVest,
-	"choice-band":    makeChoiceBand,
-	"choice-specs":   makeChoiceSpecs,
-	"focus-sash":     makeFocusSash,
+var itemBuilders = map[itemState]ItemFactoryBuilder{
+	berryJuice:    makeBerryJuice,
+	oranBerry:     makeOranBerry,
+	sitrusBerry:   makeSitrusBerry,
+	lumBerry:      makeLumBerry,
+	leppaBerry:    makeLeppaBerry,
+	cheriBerry:    makeCheriBerry,
+	chestoBerry:   makeChestoBerry,
+	pechaBerry:    makePechaBerry,
+	rawstBerry:    makeRawstBerry,
+	aspearBerry:   makeAspearBerry,
+	persimBerry:   makePersimBerry,
+	liechiBerry:   makeStatBoostBerryMiddleware(liechiBerry, attack),
+	ganlonBerry:   makeStatBoostBerryMiddleware(ganlonBerry, defense),
+	salacBerry:    makeStatBoostBerryMiddleware(salacBerry, speed),
+	petayaBerry:   makeStatBoostBerryMiddleware(petayaBerry, specialAttack),
+	apicotBerry:   makeStatBoostBerryMiddleware(apicotBerry, specialDefense),
+	babiriBerry:   makeResistBerryMiddleware(babiriBerry, steelType),
+	chilanBerry:   makeResistBerryMiddleware(chilanBerry, normalType),
+	chartiBerry:   makeResistBerryMiddleware(chartiBerry, rockType),
+	chopleBerry:   makeResistBerryMiddleware(chopleBerry, fightingType),
+	cobaBerry:     makeResistBerryMiddleware(cobaBerry, flyingType),
+	colburBerry:   makeResistBerryMiddleware(colburBerry, darkType),
+	habanBerry:    makeResistBerryMiddleware(habanBerry, dragonType),
+	kasibBerry:    makeResistBerryMiddleware(kasibBerry, ghostType),
+	kebiaBerry:    makeResistBerryMiddleware(kebiaBerry, poisonType),
+	occaBerry:     makeResistBerryMiddleware(occaBerry, fireType),
+	passhoBerry:   makeResistBerryMiddleware(passhoBerry, waterType),
+	payapaBerry:   makeResistBerryMiddleware(payapaBerry, psychicType),
+	rindoBerry:    makeResistBerryMiddleware(rindoBerry, grassType),
+	roseliBerry:   makeResistBerryMiddleware(roseliBerry, fairyType),
+	shucaBerry:    makeResistBerryMiddleware(shucaBerry, groundType),
+	tangaBerry:    makeResistBerryMiddleware(tangaBerry, bugType),
+	wacanBerry:    makeResistBerryMiddleware(wacanBerry, electricType),
+	yacheBerry:    makeResistBerryMiddleware(yacheBerry, iceType),
+	ironBall:      makePassiveItemMiddleware(ironBall),
+	scopeLens:     makePassiveItemMiddleware(scopeLens),
+	leftovers:     makePassiveItemMiddleware(leftovers),
+	safetyGoggles: makePassiveItemMiddleware(safetyGoggles),
+	mysticWater:   makeTypeBoostingItemMiddleware(mysticWater, waterType),
+	dragonFang:    makeTypeBoostingItemMiddleware(dragonFang, dragonType),
+	silverPowder:  makeTypeBoostingItemMiddleware(silverPowder, bugType),
+	magnet:        makeTypeBoostingItemMiddleware(magnet, electricType),
+	blackBelt:     makeTypeBoostingItemMiddleware(blackBelt, fightingType),
+	charcoal:      makeTypeBoostingItemMiddleware(charcoal, fireType),
+	sharpBeak:     makeTypeBoostingItemMiddleware(sharpBeak, flyingType),
+	spellTag:      makeTypeBoostingItemMiddleware(spellTag, ghostType),
+	miracleSeed:   makeTypeBoostingItemMiddleware(miracleSeed, grassType),
+	softSand:      makeTypeBoostingItemMiddleware(softSand, groundType),
+	neverMeltIce:  makeTypeBoostingItemMiddleware(neverMeltIce, iceType),
+	silkScarf:     makeTypeBoostingItemMiddleware(silkScarf, normalType),
+	poisonBarb:    makeTypeBoostingItemMiddleware(poisonBarb, poisonType),
+	twistedSpoon:  makeTypeBoostingItemMiddleware(twistedSpoon, psychicType),
+	hardStone:     makeTypeBoostingItemMiddleware(hardStone, rockType),
+	metalCoat:     makeTypeBoostingItemMiddleware(metalCoat, steelType),
+	pixiePlate:    makeTypeBoostingItemMiddleware(pixiePlate, fairyType),
+	blackGlasses:  makeTypeBoostingItemMiddleware(blackGlasses, darkType),
+	normalGem:     makeGemMiddleware(normalGem, normalType),
+	fireGem:       makeGemMiddleware(fireGem, fireType),
+	fightingGem:   makeGemMiddleware(fightingGem, fightingType),
+	waterGem:      makeGemMiddleware(waterGem, waterType),
+	flyingGem:     makeGemMiddleware(flyingGem, flyingType),
+	grassGem:      makeGemMiddleware(grassGem, grassType),
+	poisonGem:     makeGemMiddleware(poisonGem, poisonType),
+	electricGem:   makeGemMiddleware(electricGem, electricType),
+	groundGem:     makeGemMiddleware(groundGem, groundType),
+	psychicGem:    makeGemMiddleware(psychicGem, psychicType),
+	rockGem:       makeGemMiddleware(rockGem, rockType),
+	iceGem:        makeGemMiddleware(iceGem, iceType),
+	bugGem:        makeGemMiddleware(bugGem, bugType),
+	dragonGem:     makeGemMiddleware(dragonGem, dragonType),
+	ghostGem:      makeGemMiddleware(ghostGem, ghostType),
+	darkGem:       makeGemMiddleware(darkGem, darkType),
+	steelGem:      makeGemMiddleware(steelGem, steelType),
+	fairyGem:      makeGemMiddleware(fairyGem, fairyType),
+	assaultVest:   makeAssaultVest,
+	choiceScarf:   makeChoiceScarf,
+	choiceBand:    makeChoiceBand,
+	choiceSpecs:   makeChoiceSpecs,
+	focusSash:     makeFocusSash,
 }
 
 func createItemFactory(builder ItemFactoryBuilder, mon *pokemon) func() *item {
@@ -115,19 +464,16 @@ func createItemFactory(builder ItemFactoryBuilder, mon *pokemon) func() *item {
 	}
 }
 
-func registerItem(itemName string, mon *pokemon) (*item, error) {
-	if itemName == "" {
+func registerItem(is itemState, mon *pokemon) (*item, error) {
+	if is == noneItem {
 		return &item{
 			consumed: true,
 		}, nil
 	}
 
-	builder, ok := itemBuilders[itemName]
-	if !ok {
-		return nil, fmt.Errorf("invalid item: %s", itemName)
-	}
-
+	builder := itemBuilders[is]
 	factory := createItemFactory(builder, mon)
+
 	return factory(), nil
 }
 
@@ -137,10 +483,10 @@ func checkItemTriggers(bs battleState, e any) {
 	}
 }
 
-func makePassiveItemMiddleware(itemName string) func(mon *pokemon) *item {
+func makePassiveItemMiddleware(is itemState) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		return &item{
-			name: itemName,
+			state: is,
 			trigger: func(e any) bool {
 				return false
 			},
@@ -148,11 +494,11 @@ func makePassiveItemMiddleware(itemName string) func(mon *pokemon) *item {
 	}
 }
 
-func makeTypeBoostingItemMiddleware(itemName string, pokemonType pokemonType) func(mon *pokemon) *item {
+func makeTypeBoostingItemMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		var p *int
 		return &item{
-			name: itemName,
+			state: is,
 			trigger: func(e any) bool {
 				event, ok := e.(moveBoostingEvent)
 				if !ok {
@@ -173,7 +519,7 @@ func makeTypeBoostingItemMiddleware(itemName string, pokemonType pokemonType) fu
 
 func makeBerryJuice(mon *pokemon) *item {
 	return &item{
-		name: "berry-juice",
+		state: berryJuice,
 		trigger: func(any) bool {
 			return mon.hp > 0 && mon.hp*2 <= mon.maxHP()
 		},
@@ -187,7 +533,7 @@ func makeBerryJuice(mon *pokemon) *item {
 
 func makeOranBerry(mon *pokemon) *item {
 	return &item{
-		name: "oran-berry",
+		state: oranBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
 		},
@@ -201,7 +547,7 @@ func makeOranBerry(mon *pokemon) *item {
 
 func makeSitrusBerry(mon *pokemon) *item {
 	return &item{
-		name: "sitrus-berry",
+		state: sitrusBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
 		},
@@ -216,7 +562,7 @@ func makeSitrusBerry(mon *pokemon) *item {
 
 func makeCheriBerry(mon *pokemon) *item {
 	return &item{
-		name: "cheri-berry",
+		state: cheriBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hasAilment(paralysisAilment) != nil
 		},
@@ -230,7 +576,7 @@ func makeCheriBerry(mon *pokemon) *item {
 
 func makeChestoBerry(mon *pokemon) *item {
 	return &item{
-		name: "chesto-berry",
+		state: chestoBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hasAilment(sleepAilment) != nil
 		},
@@ -244,7 +590,7 @@ func makeChestoBerry(mon *pokemon) *item {
 
 func makePechaBerry(mon *pokemon) *item {
 	return &item{
-		name: "pecha-berry",
+		state: pechaBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && (mon.hasAilment(poisonAilment) != nil || mon.hasAilment(toxicAilment) != nil)
 		},
@@ -259,7 +605,7 @@ func makePechaBerry(mon *pokemon) *item {
 
 func makeRawstBerry(mon *pokemon) *item {
 	return &item{
-		name: "rawst-berry",
+		state: rawstBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hasAilment(burnAilment) != nil
 		},
@@ -273,7 +619,7 @@ func makeRawstBerry(mon *pokemon) *item {
 
 func makeAspearBerry(mon *pokemon) *item {
 	return &item{
-		name: "aspear-berry",
+		state: aspearBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hasAilment(freezeAilment) != nil
 		},
@@ -287,7 +633,7 @@ func makeAspearBerry(mon *pokemon) *item {
 
 func makePersimBerry(mon *pokemon) *item {
 	return &item{
-		name: "persim-berry",
+		state: persimBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && mon.hasAilment(confusionAilment) != nil
 		},
@@ -301,7 +647,7 @@ func makePersimBerry(mon *pokemon) *item {
 
 func makeLumBerry(mon *pokemon) *item {
 	return &item{
-		name: "lum-berry",
+		state: lumBerry,
 		trigger: func(any) bool {
 			return !mon.unnerved && (mon.hasNonVolatileAilment() || mon.hasAilment(confusionAilment) != nil)
 		},
@@ -340,10 +686,10 @@ func makeLeppaBerry(mon *pokemon) *item {
 	}
 }
 
-func makeStatBoostBerryMiddleware(name string, stat stats) func(mon *pokemon) *item {
+func makeStatBoostBerryMiddleware(is itemState, stat stats) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		return &item{
-			name: name,
+			state: is,
 			trigger: func(any) bool {
 				if mon.ability == gluttonyAbility {
 					return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
@@ -351,7 +697,7 @@ func makeStatBoostBerryMiddleware(name string, stat stats) func(mon *pokemon) *i
 				return !mon.unnerved && mon.hp > 0 && mon.hp*4 <= mon.maxHP()
 			},
 			activate: func() {
-				vlogItem("%s ate its %s", mon.base.Name, name)
+				vlogItem("%s ate its %s", mon.base.Name, is)
 				mon.changeStatStageBy(stat, 1, false)
 				cheekPouch(mon)
 			},
@@ -359,11 +705,11 @@ func makeStatBoostBerryMiddleware(name string, stat stats) func(mon *pokemon) *i
 	}
 }
 
-func makeResistBerryMiddleware(name string, pokemonType pokemonType) func(mon *pokemon) *item {
+func makeResistBerryMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon) *item {
 	var d *int
 	return func(mon *pokemon) *item {
 		return &item{
-			name: name,
+			state: is,
 			trigger: func(e any) bool {
 				event, ok := e.(resistBerryEvent)
 				if !ok || mon.unnerved {
@@ -374,7 +720,7 @@ func makeResistBerryMiddleware(name string, pokemonType pokemonType) func(mon *p
 			},
 			activate: func() {
 				if d == nil {
-					vlogItem("%s ate its %s and reduced the damage", mon.base.Name, name)
+					vlogItem("%s ate its %s and reduced the damage", mon.base.Name, is)
 					cheekPouch(mon)
 				} else {
 					*d /= 2
@@ -384,11 +730,11 @@ func makeResistBerryMiddleware(name string, pokemonType pokemonType) func(mon *p
 	}
 }
 
-func makeGemMiddleware(pokemonType pokemonType) func(mon *pokemon) *item {
+func makeGemMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon) *item {
 	var p *int
 	return func(mon *pokemon) *item {
 		return &item{
-			name: fmt.Sprintf("%s-gem", pokemonType.String()),
+			state: is,
 			trigger: func(e any) bool {
 				event, ok := e.(gemEvent)
 				if !ok {
@@ -411,21 +757,21 @@ func makeGemMiddleware(pokemonType pokemonType) func(mon *pokemon) *item {
 func makeChoiceScarf(mon *pokemon) *item {
 	mon.stats[speed] = mon.stats[speed] * 3 / 2
 	return &item{
-		name: "choice-scarf",
+		state: choiceScarf,
 	}
 }
 
 func makeAssaultVest(mon *pokemon) *item {
 	mon.stats[specialDefense] = mon.stats[specialDefense] * 3 / 2
 	return &item{
-		name: "assault-vest",
+		state: assaultVest,
 	}
 }
 
 func makeChoiceBand(mon *pokemon) *item {
 	var s *int
 	return &item{
-		name: "choice-band",
+		state: choiceBand,
 		trigger: func(e any) bool {
 			event, ok := e.(choiceItemEvent)
 			if !ok {
@@ -446,7 +792,7 @@ func makeChoiceBand(mon *pokemon) *item {
 func makeChoiceSpecs(mon *pokemon) *item {
 	var s *int
 	return &item{
-		name: "choice-specs",
+		state: choiceSpecs,
 		trigger: func(e any) bool {
 			event, ok := e.(choiceItemEvent)
 			if !ok {

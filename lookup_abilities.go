@@ -268,7 +268,7 @@ func (a ability) String() string {
 	case normalizeAbility:
 		return "normalize"
 	default:
-		elogf("ability.String(): something went wrong")
+		elogf("warning: ability.String(): something went wrong with ability %d", a)
 		return ""
 	}
 }
@@ -446,7 +446,7 @@ func stringToAbility(s string) ability {
 	case "normalize":
 		return normalizeAbility
 	default:
-		elogFatalf("%s is not a valid ability", s)
+		elogFatalf("error: %s is not a valid ability", s)
 		return noneAbility
 	}
 }
@@ -722,7 +722,7 @@ func poisonPoint(u, t *slot) {
 }
 
 func effectSpore(u, t *slot) {
-	if u.mon.hasType(grassType) || u.mon.ability == overcoatAbility || u.mon.item.name == "safety-goggles" {
+	if u.mon.hasType(grassType) || u.mon.ability == overcoatAbility || u.mon.item.state == safetyGoggles {
 		return
 	}
 	if roll(30, 100) {

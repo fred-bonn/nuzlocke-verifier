@@ -69,6 +69,7 @@ func stringToAilmentState(s string) ailmentState {
 	case "yawn":
 		return yawnAilment
 	default:
+		elogf("warning: %s is not a valid ailment and was made into noneAilment", s)
 		return noneAilment
 	}
 }
@@ -100,7 +101,8 @@ func (as ailmentState) String() string {
 	case yawnAilment:
 		return "yawn"
 	default:
-		return "invalid"
+		elogf("warning: ailmenState.String(): something went wrong with ailmentState %d", as)
+		return ""
 	}
 }
 
