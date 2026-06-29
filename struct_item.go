@@ -171,7 +171,9 @@ func stringToItemState(s string) itemState {
 	if state, ok := itemStateMap[s]; ok {
 		return state
 	}
-	elogf("warning: %s is not a valid item and was made into noneItem", s)
+	if s != "" {
+		elogf("warning: %s is not a valid item and was made into noneItem", s)
+	}
 	return noneItem
 }
 
@@ -336,7 +338,7 @@ func (i itemState) String() string {
 	case focusSash:
 		return "focus sash"
 	default:
-		elogf("warning: itemState.String(%d): something went wrong", i)
+		elogf("warning: itemState.String(): something went wrong with itemState %d", i)
 		return ""
 	}
 }
@@ -686,7 +688,7 @@ func makeLeppaBerry(mon *pokemon) *item {
 	}
 }
 
-func makeStatBoostBerryMiddleware(is itemState, stat stats) func(mon *pokemon) *item {
+func makeStatBoostBerryMiddleware(is itemState, stat stat) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		return &item{
 			state: is,

@@ -9,7 +9,7 @@ type pokemon struct {
 	base        BasePokemon
 	level       int
 	ivs         []int
-	nature      []stats
+	nature      []stat
 	moves       []*Move
 	lockedMove  *Move
 	stats       []int
@@ -27,7 +27,7 @@ type pokemon struct {
 	laserFocus  bool
 }
 
-func getNature(nature string) ([]stats, error) {
+func getNature(nature string) ([]stat, error) {
 	res, ok := natureChart[nature]
 	if !ok {
 		return nil, fmt.Errorf("invalid nature: %s", nature)
@@ -131,7 +131,7 @@ func (p *pokemon) switchReset() {
 	p.laserFocus = false
 }
 
-func (p *pokemon) effectiveStat(stat stats, crit bool) int {
+func (p *pokemon) effectiveStat(stat stat, crit bool) int {
 	stage := p.stages[stat]
 	base := p.stats[stat]
 
@@ -323,7 +323,7 @@ func (p *pokemon) hasMovePredicate(f func(*Move) bool) bool {
 	return slices.ContainsFunc(p.moves, f)
 }
 
-func (p *pokemon) changeStatStageBy(stat stats, change int, offensive bool) {
+func (p *pokemon) changeStatStageBy(stat stat, change int, offensive bool) {
 	if offensive && (p.ability == clearBodyAbility || p.ability == clearSmokeAbility) {
 		vlogf("blocked by clear body")
 		return

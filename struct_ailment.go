@@ -68,6 +68,8 @@ func stringToAilmentState(s string) ailmentState {
 		return leechSeedAilment
 	case "yawn":
 		return yawnAilment
+	case "":
+		return noneAilment
 	default:
 		elogf("warning: %s is not a valid ailment and was made into noneAilment", s)
 		return noneAilment

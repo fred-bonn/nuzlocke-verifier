@@ -1,9 +1,9 @@
 package main
 
-type stats int
+type stat int
 
 const (
-	hitPoints stats = iota
+	hitPoints stat = iota
 	attack
 	defense
 	specialAttack
@@ -13,7 +13,7 @@ const (
 	evasion
 )
 
-func (s stats) String() string {
+func (s stat) String() string {
 	switch s {
 	case hitPoints:
 		return "hp"
@@ -37,7 +37,7 @@ func (s stats) String() string {
 	}
 }
 
-func stringToStat(s string) stats {
+func stringToStat(s string) stat {
 	switch s {
 	case "hp":
 		return hitPoints
@@ -61,7 +61,7 @@ func stringToStat(s string) stats {
 	}
 }
 
-var natureChart = map[string][]stats{
+var natureChart = map[string][]stat{
 	"hardy":   {attack, attack},
 	"lonely":  {attack, defense},
 	"adamant": {attack, specialAttack},

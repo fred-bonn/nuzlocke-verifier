@@ -309,7 +309,7 @@ func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 	}
 
 	dmg := calculateMaxDamage(bs, target, user, true)
-	threshhold := user.maxHP() / 2
+	threshhold := user.hp - (user.maxHP() / 2)
 	if user.item.state == sitrusBerry && !user.item.consumed {
 		threshhold += user.maxHP() / 4
 	}
