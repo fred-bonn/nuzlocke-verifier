@@ -64,11 +64,11 @@ func stringToAilmentState(s string) ailmentState {
 		return trapAilment
 	case "bound":
 		return boundAilment
-	case "leech-seed":
+	case "leech seed":
 		return leechSeedAilment
 	case "yawn":
 		return yawnAilment
-	case "":
+	case "none", "":
 		return noneAilment
 	default:
 		elogf("warning: %s is not a valid ailment and was made into noneAilment", s)
@@ -99,7 +99,7 @@ func (as ailmentState) String() string {
 	case boundAilment:
 		return "bound"
 	case leechSeedAilment:
-		return "leech-seed"
+		return "leech seed"
 	case yawnAilment:
 		return "yawn"
 	default:

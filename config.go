@@ -43,18 +43,18 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 	for _, mon := range mons {
 		var moves []*Move
 
-		cleanedMonName := cleanName(mon.Name)
-		basePokemon, err := cfg.loadPokemon(cleanedMonName)
+		basePokemon, err := cfg.loadPokemon(apiName(mon.Name))
 		if err != nil {
 			return nil, err
 		}
+		basePokemon.Name = cleanName(mon.Name, false)
 
 		for _, moveName := range mon.Moves {
-			cleanedMoveName := cleanName(moveName)
-			baseMove, err := cfg.loadMove(cleanedMoveName)
+			baseMove, err := cfg.loadMove(apiName(moveName))
 			if err != nil {
 				return nil, err
 			}
+			baseMove.Name = cleanName(moveName, true)
 
 			moves = append(moves, &baseMove)
 		}
@@ -64,13 +64,13 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 			return nil, err
 		}
 
-		item, err := registerItem(stringToItemState(cleanName(mon.Item)), &finalPokemon)
+		item, err := registerItem(stringToItemState(strings.ToLower(mon.Item)), &finalPokemon)
 		if err != nil {
 			return nil, err
 		}
 		finalPokemon.item = item
 
-		finalPokemon.ability = stringToAbility(cleanName(mon.Ability))
+		finalPokemon.ability = stringToAbility(strings.ToLower(mon.Ability))
 
 		res = append(res, &finalPokemon)
 	}
@@ -165,7 +165,7 @@ func generateHiddenPower(name string) (Move, error) {
 	}
 
 	move := Move{
-		Name:     "hidden-power",
+		Name:     "hidden power",
 		Type:     stringToPokemonType(parts[2]),
 		Power:    60,
 		Accuracy: 100,
@@ -184,10 +184,58 @@ func writeToFile(filename string, data []byte) error {
 	return os.WriteFile(filename, data, 0644)
 }
 
-func cleanName(name string) string {
+func apiName(name string) string {
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, " ", "-")
 	name = strings.ReplaceAll(name, ".", "")
 	name = strings.ReplaceAll(name, "’", "")
 	return name
+}
+
+func cleanName(name string, move bool) string {
+	name = strings.ToLower(name)
+	if !hasHyphen(name) && !isRegionalPokemon(name) {
+		name = strings.ReplaceAll(name, "-", " ")
+	}
+
+	return name
+}
+
+func hasHyphen(name string) bool {
+	var pokemonWithHyphen = map[string]struct{}{
+		"ho-oh":     {},
+		"porygon-z": {},
+		"jangmo-o":  {},
+		"hakamo-o":  {},
+		"kommo-o":   {},
+		"ting-lu":   {},
+		"chien-pao": {},
+		"wo-chien":  {},
+		"chi-yu":    {},
+	}
+
+	if _, ok := pokemonWithHyphen[name]; ok {
+		return true
+	}
+
+	return false
+}
+
+func isRegionalPokemon(name string) bool {
+	regions := []string{
+		"-alola",
+		"-galar",
+		"-hisui",
+		"-paldea",
+	}
+
+	name = strings.ToLower(name)
+
+	for _, region := range regions {
+		if strings.HasSuffix(name, region) {
+			return true
+		}
+	}
+
+	return false
 }

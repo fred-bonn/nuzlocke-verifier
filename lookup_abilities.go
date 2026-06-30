@@ -100,25 +100,25 @@ func (a ability) String() string {
 	case insomniaAbility:
 		return "insomnia"
 	case vitalSpiritAbility:
-		return "vital-spirit"
+		return "vital spirit"
 	case sweetVeilAbility:
-		return "sweet-veil"
+		return "sweet veil"
 	case gluttonyAbility:
 		return "gluttony"
 	case innerFocusAbility:
-		return "inner-focus"
+		return "inner focus"
 	case shieldDustAbility:
-		return "shield-dust"
+		return "shield dust"
 	case overcoatAbility:
 		return "overcoat"
 	case cheekPouchAbility:
-		return "cheek-pouch"
+		return "cheek pouch"
 	case sturdyAbility:
 		return "sturdy"
 	case harvestAbility:
 		return "harvest"
 	case speedBoostAbility:
-		return "speed-boost"
+		return "speed boost"
 	case traceAbility:
 		return "trace"
 	case unnerveAbility:
@@ -134,63 +134,63 @@ func (a ability) String() string {
 	case droughtAbility:
 		return "drought"
 	case snowWarningAbility:
-		return "snow-warning"
+		return "snow warning"
 	case sandStreamAbility:
-		return "sand-stream"
+		return "sand stream"
 	case pranksterAbility:
 		return "prankster"
 	case earlyBirdAbility:
-		return "early-bird"
+		return "early bird"
 	case stickyHoldAbility:
-		return "sticky-hold"
+		return "sticky hold"
 	case liquidOozeAbility:
-		return "liquid-ooze"
+		return "liquid ooze"
 	case cottenDownAbility:
-		return "cotten-down"
+		return "cotten down"
 	case waterCompactionAbility:
-		return "water-compaction"
+		return "water compaction"
 	case roughSkinAbility:
-		return "rought-skin"
+		return "rought skin"
 	case ironBarbsAbility:
-		return "iron-barbs"
+		return "iron barbs"
 	case cuteCharmAbility:
-		return "cute-charm"
+		return "cute charm"
 	case flameBodyAbility:
-		return "flame-body"
+		return "flame body"
 	case poisonPointAbility:
-		return "poison-point"
+		return "poison point"
 	case effectSporeAbility:
-		return "effect-spore"
+		return "effect spore"
 	case poisonTouchAbility:
-		return "poison-touch"
+		return "poison touch"
 	case magicGuardAbility:
-		return "magic-guard"
+		return "magic guard"
 	case sandVeilAbility:
-		return "sand-veil"
+		return "sand veil"
 	case sandRushAbility:
-		return "sand-rush"
+		return "sand rush"
 	case sandForceAbility:
-		return "sand-force"
+		return "sand force"
 	case iceBodyAbility:
-		return "ice-body"
+		return "ice body"
 	case snowCloakAbility:
-		return "snow-cloak"
+		return "snow cloak"
 	case raindDishAbility:
-		return "raid-dish"
+		return "raid dish"
 	case drySkinAbility:
-		return "dry-skin"
+		return "dry skin"
 	case hydrationAbility:
 		return "hydration"
 	case solarPowerAbility:
-		return "solar-power"
+		return "solar power"
 	case serenceGraceAbility:
-		return "serence-grace"
+		return "serence grace"
 	case keenEyeAbility:
-		return "keen-eye"
+		return "keen eye"
 	case clearSmokeAbility:
-		return "clear-smoke"
+		return "clear smoke"
 	case clearBodyAbility:
-		return "clear-body"
+		return "clear body"
 	case levitateAbility:
 		return "levitate"
 	case synchronizeAbility:
@@ -204,35 +204,35 @@ func (a ability) String() string {
 	case limberAbility:
 		return "limber"
 	case waterVeilAbility:
-		return "water-veil"
+		return "water veil"
 	case slushRushAbility:
-		return "slush-rush"
+		return "slush rush"
 	case chlorophyllAbility:
 		return "chlorophyll"
 	case swiftSwimAbility:
-		return "swift-swim"
+		return "swift swim"
 	case unburdenAbility:
 		return "unburden"
 	case battleArmorAbility:
-		return "battle-armor"
+		return "battle armor"
 	case shellArmorAbility:
-		return "shell-armor"
+		return "shell armor"
 	case magmaArmorAbility:
-		return "magma-armor"
+		return "magma armor"
 	case moldBreakerAbility:
-		return "mold-breaker"
+		return "mold breaker"
 	case mercilessAbility:
 		return "merciless"
 	case superLuckAbility:
-		return "super-kuck"
+		return "super kuck"
 	case sniperAbility:
 		return "sniper"
 	case compoundEyesAbility:
-		return "compound-eyes"
+		return "compound eyes"
 	case hustleAbility:
 		return "hustle"
 	case noGuardAbility:
-		return "no-guard"
+		return "no guard"
 	case technicianAbility:
 		return "technician"
 	case overgrowAbility:
@@ -244,19 +244,19 @@ func (a ability) String() string {
 	case swarmAbility:
 		return "swarm"
 	case flashFireAbility:
-		return "flash-fire"
+		return "flash fire"
 	case waterAbsorbAbility:
-		return "water-absorb"
+		return "water absorb"
 	case stormDrainAbility:
-		return "storm-drain"
+		return "storm drain"
 	case voltAbsorbAbility:
-		return "volt-absorb"
+		return "volt absorb"
 	case lightningRodAbility:
-		return "lightning-rod"
+		return "lightning rod"
 	case motorDriveAbility:
-		return "motor-drive"
+		return "motor drive"
 	case sapSipperAbility:
-		return "sap-sipper"
+		return "sap sipper"
 	case aerilateAbility:
 		return "aerilate"
 	case pixilateAbility:
@@ -277,25 +277,25 @@ func stringToAbility(s string) ability {
 	switch s {
 	case "insomnia":
 		return insomniaAbility
-	case "vital-spirit":
+	case "vital spirit":
 		return vitalSpiritAbility
-	case "sweet-veil":
+	case "sweet veil":
 		return sweetVeilAbility
 	case "gluttony":
 		return gluttonyAbility
-	case "inner-focus":
+	case "inner focus":
 		return innerFocusAbility
-	case "shield-dust":
+	case "shield dust":
 		return shieldDustAbility
 	case "overcoat":
 		return overcoatAbility
-	case "cheek-pouch":
+	case "cheek pouch":
 		return cheekPouchAbility
 	case "sturdy":
 		return sturdyAbility
 	case "harvest":
 		return harvestAbility
-	case "speed-boost":
+	case "speed boost":
 		return speedBoostAbility
 	case "trace":
 		return traceAbility
@@ -305,69 +305,69 @@ func stringToAbility(s string) ability {
 		return intimidateAbility
 	case "regenerator":
 		return regeneratorAbility
-	case "natural-cure":
+	case "natural cure":
 		return naturalCureAbility
 	case "drizzle":
 		return drizzleAbility
 	case "drought":
 		return droughtAbility
-	case "snow-warning":
+	case "snow warning":
 		return snowWarningAbility
-	case "sand-stream":
+	case "sand stream":
 		return sandStreamAbility
 	case "prankster":
 		return pranksterAbility
-	case "early-bird":
+	case "early bird":
 		return earlyBirdAbility
-	case "sticky-hold":
+	case "sticky hold":
 		return stickyHoldAbility
-	case "liquid-ooze":
+	case "liquid ooze":
 		return liquidOozeAbility
-	case "cotten-down":
+	case "cotten down":
 		return cottenDownAbility
-	case "water-compaction":
+	case "water compaction":
 		return waterCompactionAbility
-	case "rough-skin":
+	case "rough skin":
 		return roughSkinAbility
-	case "iron-barbs":
+	case "iron barbs":
 		return ironBarbsAbility
-	case "cute-charm":
+	case "cute charm":
 		return cuteCharmAbility
-	case "flame-body":
+	case "flame body":
 		return flameBodyAbility
-	case "poison-point":
+	case "poison point":
 		return poisonPointAbility
-	case "effect-spore":
+	case "effect spore":
 		return effectSporeAbility
-	case "poison-touch":
+	case "poison touch":
 		return poisonTouchAbility
-	case "magic-guard":
+	case "magic guard":
 		return magicGuardAbility
-	case "sand-veil":
+	case "sand veil":
 		return sandVeilAbility
-	case "sand-rush":
+	case "sand rush":
 		return sandRushAbility
-	case "sand-force":
+	case "sand force":
 		return sandForceAbility
-	case "ice-body":
+	case "ice body":
 		return iceBodyAbility
-	case "snow-cloak":
+	case "snow cloak":
 		return snowCloakAbility
-	case "rain-dish":
+	case "rain dish":
 		return raindDishAbility
-	case "dry-skin":
+	case "dry skin":
 		return drySkinAbility
 	case "hydration":
 		return hydrationAbility
-	case "solar-power":
+	case "solar power":
 		return solarPowerAbility
-	case "serene-grace":
+	case "serene grace":
 		return serenceGraceAbility
-	case "keen-eye":
+	case "keen eye":
 		return keenEyeAbility
-	case "clear-smoke":
+	case "clear smoke":
 		return clearSmokeAbility
-	case "clear-body":
+	case "clear body":
 		return clearBodyAbility
 	case "levitate":
 		return levitateAbility
@@ -381,35 +381,35 @@ func stringToAbility(s string) ability {
 		return corrosionAbility
 	case "limber":
 		return limberAbility
-	case "water-veil":
+	case "water veil":
 		return waterVeilAbility
-	case "slush-rush":
+	case "slush rush":
 		return slushRushAbility
 	case "chlorophyll":
 		return chlorophyllAbility
-	case "swift-swim":
+	case "swift swim":
 		return swiftSwimAbility
 	case "unburden":
 		return unburdenAbility
-	case "battle-armor":
+	case "battle armor":
 		return battleArmorAbility
-	case "shell-armor":
+	case "shell armor":
 		return shellArmorAbility
-	case "magma-armor":
+	case "magma armor":
 		return magmaArmorAbility
-	case "mold-breaker":
+	case "mold breaker":
 		return moldBreakerAbility
 	case "merciless":
 		return mercilessAbility
-	case "super-luck":
+	case "super luck":
 		return superLuckAbility
 	case "sniper":
 		return sniperAbility
-	case "compound-eyes":
+	case "compound eyes":
 		return compoundEyesAbility
 	case "hustle":
 		return hustleAbility
-	case "no-guard":
+	case "no guard":
 		return noGuardAbility
 	case "technician":
 		return technicianAbility
@@ -421,25 +421,25 @@ func stringToAbility(s string) ability {
 		return torrentAbility
 	case "swarm":
 		return swarmAbility
-	case "flash-fire":
+	case "flash fire":
 		return flashFireAbility
-	case "water-absorb":
+	case "water absorb":
 		return waterAbsorbAbility
-	case "storm-drain":
+	case "storm drain":
 		return stormDrainAbility
-	case "volt-absorb":
+	case "volt absorb":
 		return voltAbsorbAbility
-	case "lightning-rod":
+	case "lightning rod":
 		return lightningRodAbility
-	case "motor-drive":
+	case "motor drive":
 		return motorDriveAbility
-	case "sap-sipper":
+	case "sap sipper":
 		return sapSipperAbility
 	case "aerilate":
 		return aerilateAbility
 	case "pixilate":
 		return pixilateAbility
-	case "galvanizeAbility":
+	case "galvanize":
 		return galvanizeAbility
 	case "refrigerate":
 		return refrigerateAbility

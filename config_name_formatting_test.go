@@ -1,0 +1,86 @@
+package main
+
+import "testing"
+
+func TestCleanPokemonNames(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		want  string
+	}{
+		"lowercases": {"pIkAcHu", "pikachu"},
+		"dot":        {"Mr. Mime", "mr. mime"},
+		"Farfetch’d": {"Farfetch’d", "farfetch’d"},
+		"empty":      {"", ""},
+		"numerals":   {"Porygon2", "porygon2"},
+		"hypohen":    {"Ho-Oh", "ho-oh"},
+		"regional":   {"Arcanine-Hisui", "arcanine-hisui"},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := cleanName(tc.input, false); got != tc.want {
+				t.Errorf("%s: cleanPokemonName(%q) = %q, want %q", name, tc.input, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestHasHyphen(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		want  bool
+	}{
+		"empty": {"", false},
+		"mon":   {"ho-oh", true},
+		"mon2":  {"pikachu", false},
+		"mon3":  {"arcanine-hisui", false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := hasHyphen(tc.input); got != tc.want {
+				t.Errorf("%s: hasHyphen(%q) = %t, want %t", name, tc.input, got, tc.want)
+			}
+		})
+	}
+}
+
+func IsRegionalPokemon(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		want  bool
+	}{
+		"empty": {"", false},
+		"mon":   {"ho-oh", false},
+		"mon2":  {"pikachu", false},
+		"mon3":  {"arcanine-hisui", true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := hasHyphen(name); got != tc.want {
+				t.Errorf("%s: isRegionalPokemon(%q) = %t, want %t", name, tc.input, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestCleanMoveNames(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		want  string
+	}{
+		"lowercases": {"ThUndEr SHoCk", "thunder shock"},
+		"empty":      {"", ""},
+		"dash":       {"Tri-Attack", "tri attack"},
+		"numerals":   {"conversion 2", "conversion 2"},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := cleanName(tc.input, true); got != tc.want {
+				t.Errorf("%s: cleanMoveName(%q) = %q, want %q", name, tc.input, got, tc.want)
+			}
+		})
+	}
+}
