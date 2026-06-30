@@ -20,7 +20,7 @@ func TestStringToAilmentState(t *testing.T) {
 		{name: "bound", input: "bound", want: boundAilment},
 		{name: "leech seed", input: "leech seed", want: leechSeedAilment},
 		{name: "yawn", input: "yawn", want: yawnAilment},
-		{name: "unknown", input: "none", want: noneAilment},
+		{name: "unknown", input: "", want: noneAilment},
 	}
 
 	for _, tt := range tests {
