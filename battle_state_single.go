@@ -10,12 +10,12 @@ type singleBattleState struct {
 }
 
 func (sbs *singleBattleState) execute() {
-	vlogln("\nStarting battle...")
+	vprintln("\nStarting battle...")
 
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
-		vlogln("=====")
-		vlogf("Turn %d:", k+1)
-		vlogf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.base.Name, sbs.activePlayerSlot.mon.hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.base.Name, sbs.activeOpponentSlot.mon.hp, sbs.activeOpponentSlot.mon.maxHP())
+		vprintln("=====")
+		vprintf("Turn %d:", k+1)
+		vprintf("%s %d/%d - %s %d/%d", sbs.activePlayerSlot.mon.base.Name, sbs.activePlayerSlot.mon.hp, sbs.activePlayerSlot.mon.maxHP(), sbs.activeOpponentSlot.mon.base.Name, sbs.activeOpponentSlot.mon.hp, sbs.activeOpponentSlot.mon.maxHP())
 
 		sbs.gatherActions()
 		sbs.actions.sort(sbs)
@@ -30,8 +30,8 @@ func (sbs *singleBattleState) execute() {
 			action.invoke(sbs)
 		}
 	}
-	vlogln("=====")
-	vlogln("Ending battle...")
+	vprintln("=====")
+	vprintln("Ending battle...")
 }
 
 func (sbs *singleBattleState) gatherActions() {

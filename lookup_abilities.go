@@ -486,7 +486,7 @@ func trace(s *slot, bs battleState, switchIn bool) {
 
 	s.mon.ability = opponentMons[rand.Int()%len(opponentMons)].ability
 	s.mon.trace = true
-	vlogf("%s traced %s", s.mon.base.Name, s.mon.ability)
+	vprintf("%s traced %s", s.mon.base.Name, s.mon.ability)
 }
 
 func unnerve(s *slot, bs battleState, switchIn bool) {
@@ -536,7 +536,7 @@ func drizzle(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	vlogln("it started to rain")
+	vprintln("it started to rain")
 	bs.setWeather(rainWeather)
 }
 
@@ -544,7 +544,7 @@ func drought(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	vlogln("the sunlight turned harsh")
+	vprintln("the sunlight turned harsh")
 	bs.setWeather(sunWeather)
 }
 
@@ -552,7 +552,7 @@ func snowWarning(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	vlogln("it started to hail")
+	vprintln("it started to hail")
 	bs.setWeather(hailWeather)
 }
 
@@ -560,7 +560,7 @@ func sandStream(s *slot, bs battleState, switchIn bool) {
 	if !switchIn {
 		return
 	}
-	vlogln("a sandstorm brewed")
+	vprintln("a sandstorm brewed")
 	bs.setWeather(sandstormWeather)
 }
 
@@ -616,7 +616,7 @@ func drySkin(p *pokemon, t pokemonType, s bool) bool {
 	if s {
 		return true
 	}
-	vlogf("%s restored health with %s", p.base.Name, p.ability)
+	vprintf("%s restored health with %s", p.base.Name, p.ability)
 	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
@@ -639,7 +639,7 @@ func voltAbsorb(p *pokemon, t pokemonType, s bool) bool {
 	if s {
 		return true
 	}
-	vlogf("%s restored health with %s", p.base.Name, p.ability)
+	vprintf("%s restored health with %s", p.base.Name, p.ability)
 	p.changeHpBy(p.maxHP() / 4)
 	return true
 }
@@ -700,7 +700,7 @@ var contactDefensiveAbilities = map[ability]func(u, t *slot){
 func roughSkin(u, t *slot) {
 	change := u.mon.maxHP() * 1 / 8
 	u.mon.changeHpBy(-change)
-	vlogf("%s was hurt by %s", u.mon.base.Name, t.mon.ability)
+	vprintf("%s was hurt by %s", u.mon.base.Name, t.mon.ability)
 }
 
 func cuteCharm(u, t *slot) {
@@ -751,6 +751,6 @@ func cheekPouch(mon *pokemon) {
 	if mon.ability == cheekPouchAbility {
 		restore := mon.maxHP() / 3
 		mon.changeHpBy(restore)
-		vlogf("%s ate its cheek pouch and restored %d hp", mon.base.Name, restore)
+		vprintf("%s ate its cheek pouch and restored %d hp", mon.base.Name, restore)
 	}
 }

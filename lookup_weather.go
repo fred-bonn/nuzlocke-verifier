@@ -38,13 +38,11 @@ func (ws weatherState) affectsMon(mon *pokemon) bool {
 
 	switch ws {
 	case sandstormWeather:
-		if !mon.hasType(rockType) && !mon.hasType(steelType) && !mon.hasType(groundType) && mon.ability < sandVeilAbility && mon.ability > sandForceAbility {
+		if !mon.hasType(rockType) && !mon.hasType(steelType) && !mon.hasType(groundType) && (mon.ability < sandVeilAbility || mon.ability > sandForceAbility) {
 			return true
 		}
 	case hailWeather:
-		if mon.ability == iceBodyAbility {
-			return false
-		} else if !mon.hasType(iceType) && mon.ability != snowCloakAbility {
+		if !mon.hasType(iceType) && (mon.ability < iceBodyAbility || mon.ability > snowCloakAbility) {
 			return true
 		}
 	}
@@ -58,24 +56,24 @@ func (ws weatherState) activateMonAbility(bs battleState, slot *slot) {
 	switch ws {
 	case hailWeather:
 		if mon.ability == iceBodyAbility {
-			vlogf("%s healed due to ice body", mon.base.Name)
+			vprintf("%s healed due to ice body", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
 		}
 	case rainWeather:
 		switch mon.ability {
 		case raindDishAbility:
-			vlogf("%s healed due to rain dish", mon.base.Name)
+			vprintf("%s healed due to rain dish", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 16)
 		case drySkinAbility:
 			takeResidualDamage(bs, slot, "dry skin", 1, 8)
-			vlogf("%s healed due to dry skin", mon.base.Name)
+			vprintf("%s healed due to dry skin", mon.base.Name)
 			mon.changeHpBy(mon.maxHP() / 8)
 		case hydrationAbility:
 			if mon.hasNonVolatileAilment() {
 				for ailment := range nonVolatileStatuses {
 					if mon.hasAilment(ailment) != nil {
 						delete(mon.ailments, ailment)
-						vlogf("%s had its %s removed", mon.base.Name, ailment.String())
+						vprintf("%s had its %s removed", mon.base.Name, ailment.String())
 						return
 					}
 				}
@@ -109,12 +107,12 @@ func (ws weatherState) String() string {
 func (ws weatherState) onset() {
 	switch ws {
 	case rainWeather:
-		vlogln("it started to rain")
+		vprintln("it started to rain")
 	case sunWeather:
-		vlogln("the sunlight turned harsh")
+		vprintln("the sunlight turned harsh")
 	case sandstormWeather:
-		vlogln("a sandstorm brewed")
+		vprintln("a sandstorm brewed")
 	case hailWeather:
-		vlogln("it started to hail")
+		vprintln("it started to hail")
 	}
 }

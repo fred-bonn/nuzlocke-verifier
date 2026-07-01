@@ -281,7 +281,7 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 	}
 
 	p.ailments[ailment] = generateAilment(ailment, afflictedBy)
-	vlogf("%s became afflicted with %s", p.base.Name, ailment.String())
+	vprintf("%s became afflicted with %s", p.base.Name, ailment.String())
 	if ailment.isNonVolatileStatus() && p.ability == synchronizeAbility {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
@@ -325,7 +325,7 @@ func (p *pokemon) hasMovePredicate(f func(*Move) bool) bool {
 
 func (p *pokemon) changeStatStageBy(stat stat, change int, offensive bool) {
 	if offensive && (p.ability == clearBodyAbility || p.ability == clearSmokeAbility) {
-		vlogf("blocked by clear body")
+		vprintf("blocked by clear body")
 		return
 	}
 	if p.ability == keenEyeAbility && stat == accuracy && change < 0 {
@@ -333,7 +333,7 @@ func (p *pokemon) changeStatStageBy(stat stat, change int, offensive bool) {
 	}
 
 	p.stages[stat] = max(-6, min(6, p.stages[stat]+change))
-	vlogf("%s's %s changed by %d stages (%d)", p.base.Name, stat, change, p.stages[stat])
+	vprintf("%s's %s changed by %d stages (%d)", p.base.Name, stat, change, p.stages[stat])
 }
 
 func (p *pokemon) maxHP() int {

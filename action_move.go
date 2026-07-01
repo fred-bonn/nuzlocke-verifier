@@ -31,8 +31,8 @@ func (ma *moveAction) invoke(bs battleState) {
 	}
 
 	if (ma.move.Name == "fake-out" || ma.move.Name == "first-impression") && !ma.userSlot.firstTurn {
-		vlogMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
-		vlogf("but it failed")
+		vprintMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
+		vprintf("but it failed")
 		return
 	}
 
@@ -42,18 +42,18 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	if _, ok := ma.userSlot.mon.ailments[freezeAilment]; ok {
 		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
-			vlogf("%s thawed out", ma.userSlot.mon.base.Name)
+			vprintf("%s thawed out", ma.userSlot.mon.base.Name)
 			delete(ma.userSlot.mon.ailments, freezeAilment)
 		} else {
 			ma.userSlot.invulnerableAction = nil
-			vlogMove(ma.prio(bs), ma.speed(bs), "%s is frozen", ma.userSlot.mon.base.Name)
+			vprintMove(ma.prio(bs), ma.speed(bs), "%s is frozen", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
 
 	if sleep := ma.userSlot.mon.hasAilment(sleepAilment); sleep != nil {
 		if sleep.turns <= 0 {
-			vlogf("%s woke up", ma.userSlot.mon.base.Name)
+			vprintf("%s woke up", ma.userSlot.mon.base.Name)
 			delete(ma.userSlot.mon.ailments, sleepAilment)
 		} else {
 			if ma.userSlot.mon.ability == earlyBirdAbility {
@@ -62,7 +62,7 @@ func (ma *moveAction) invoke(bs battleState) {
 				sleep.turns--
 			}
 			ma.userSlot.invulnerableAction = nil
-			vlogMove(ma.prio(bs), ma.speed(bs), "%s is asleep", ma.userSlot.mon.base.Name)
+			vprintMove(ma.prio(bs), ma.speed(bs), "%s is asleep", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
@@ -70,11 +70,11 @@ func (ma *moveAction) invoke(bs battleState) {
 	if confusion := ma.userSlot.mon.hasAilment(confusionAilment); confusion != nil {
 		if confusion.turns > 0 {
 			confusion.turns -= 1
-			vlogf("%s is confused", ma.userSlot.mon.base.Name)
+			vprintf("%s is confused", ma.userSlot.mon.base.Name)
 			if roll(1, 3) {
 				damage := calculateDamage(ma.userSlot.mon, ma.userSlot.mon, &confusionMove, new(false), bs.getWeather(), false, false, false)
 				ma.userSlot.invulnerableAction = nil
-				vlogMove(ma.prio(bs), ma.speed(bs), "%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
+				vprintMove(ma.prio(bs), ma.speed(bs), "%s hit itself in confusion for %d damage", ma.userSlot.mon.base.Name, damage)
 				ma.userSlot.mon.hp -= int(damage)
 				if ma.userSlot.mon.hp <= 0 {
 					monFainted(bs, ma.userSlot, false)
@@ -83,14 +83,14 @@ func (ma *moveAction) invoke(bs battleState) {
 			}
 		} else {
 			delete(ma.userSlot.mon.ailments, confusionAilment)
-			vlogf("%s snapped out of confusion", ma.userSlot.mon.base.Name)
+			vprintf("%s snapped out of confusion", ma.userSlot.mon.base.Name)
 		}
 	}
 
 	if paralysis := ma.userSlot.mon.hasAilment(paralysisAilment); paralysis != nil {
 		if roll(1, 4) {
 			ma.userSlot.invulnerableAction = nil
-			vlogf("%s is paralysed", ma.userSlot.mon.base.Name)
+			vprintf("%s is paralysed", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
@@ -98,13 +98,13 @@ func (ma *moveAction) invoke(bs battleState) {
 	if infatuation := ma.userSlot.mon.hasAilment(infatuationAilment); infatuation != nil {
 		if roll(1, 2) {
 			ma.userSlot.invulnerableAction = nil
-			vlogf("%s is infatuated with %s", ma.userSlot.mon.base.Name, infatuation.afflictedBy.mon.base.Name)
+			vprintf("%s is infatuated with %s", ma.userSlot.mon.base.Name, infatuation.afflictedBy.mon.base.Name)
 			return
 		}
 	}
 
 	if ma.flinch {
-		vlogf("%s flinched", ma.userSlot.mon.base.Name)
+		vprintf("%s flinched", ma.userSlot.mon.base.Name)
 		return
 	}
 
@@ -114,7 +114,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		if ma.userSlot.invulnerableAction == nil {
 			ma.move.PP++
 			ma.userSlot.invulnerableAction = ma
-			vlogMove(ma.prio(bs), ma.speed(bs), "%s used %s and became invulnerable", ma.userSlot.mon.base.Name, ma.move.Name)
+			vprintMove(ma.prio(bs), ma.speed(bs), "%s used %s and became invulnerable", ma.userSlot.mon.base.Name, ma.move.Name)
 			return
 		}
 		ma.userSlot.invulnerableAction = nil
@@ -123,25 +123,25 @@ func (ma *moveAction) invoke(bs battleState) {
 	if ma.userSlot.suckerPunch {
 		targetMove := bs.getActions().getMoveActionBy(ma.targetSlot.mon)
 		if targetMove == nil || targetMove.move.Class == statusClass {
-			vlogMove(ma.prio(bs), ma.speed(bs), "%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
+			vprintMove(ma.prio(bs), ma.speed(bs), "%s used sucker punch but it failed", ma.userSlot.mon.base.Name)
 			return
 		}
 	}
 
 	target := ma.targetSlot.mon
 	if ma.move.Accuracy > 0 && !ma.pursuit && !accuracyRoll(bs, ma.userSlot.mon, target, ma.move) {
-		vlogMove(ma.prio(bs), ma.speed(bs), "%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
+		vprintMove(ma.prio(bs), ma.speed(bs), "%s's move %s missed", ma.userSlot.mon.base.Name, ma.move.Name)
 		return
 	}
 
-	vlogMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
+	vprintMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
 
 	if ma.move.Name == "struggle" {
 		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.maxHP() / 4))
 	}
 
 	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
-		vlogln("but it failed")
+		vprintln("but it failed")
 		return
 	}
 
@@ -193,11 +193,11 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 		return
 	case "belly-drum":
 		if target.hp*2 <= target.maxHP() {
-			vlogf("but it failed")
+			vprintf("but it failed")
 			return
 		}
 
-		vlogf("%s took damage from belly drum", target.base.Name)
+		vprintf("%s took damage from belly drum", target.base.Name)
 		target.changeHpBy(-(target.maxHP() / 2))
 		target.changeStatStageBy(attack, 6, false)
 	}
@@ -205,7 +205,7 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	if ma.move.Heal > 0 {
 		change := target.maxHP() * ma.move.Heal / 100
 		target.changeHpBy(change)
-		vlogf("%s healed for %d", target.base.Name, change)
+		vprintf("%s healed for %d", target.base.Name, change)
 	}
 
 	if ma.move.Ailment != noneAilment {
@@ -247,7 +247,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	damage := calculateDamage(user, target, ma.move, crit, bs.getWeather(), false, false, ma.pursuit)
 	if damage == 0 {
-		vlogf("it does not affect %s", target.base.Name)
+		vprintf("it does not affect %s", target.base.Name)
 		return false
 	}
 
@@ -265,23 +265,23 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	})
 
 	damage = min(damage, target.hp)
-	vlogf("%s took %d damage", target.base.Name, int(damage))
+	vprintf("%s took %d damage", target.base.Name, int(damage))
 	if *crit {
-		vlogf("it was a critical hit!")
+		vprintf("it was a critical hit!")
 	}
 	if ma.move.Name == "bug-bite" && target.item.state.isBerry() && !target.item.consumed {
-		vlogf("%s's %s was consumed by bug bite", target.base.Name, target.item.String())
+		vprintf("%s's %s was consumed by bug bite", target.base.Name, target.item.String())
 		item, _ := registerItem(target.item.state, user)
 		item.activate()
 		target.item, _ = registerItem(noneItem, target)
 
 	} else if ma.move.Name == "wake-up-slap" {
 		if a := target.hasAilment(sleepAilment); a != nil {
-			vlogf("%s woke up", target.base.Name)
+			vprintf("%s woke up", target.base.Name)
 			delete(target.ailments, sleepAilment)
 		}
 	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != stickyHoldAbility {
-		vlogf("%s had its %s knocked off", target.base.Name, target.item.String())
+		vprintf("%s had its %s knocked off", target.base.Name, target.item.String())
 		target.item = &item{
 			consumed: true,
 		}
@@ -308,9 +308,9 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 		user.changeHpBy(change)
 		if change >= 0 {
-			vlogf("%s healed for %d", user.base.Name, change)
+			vprintf("%s healed for %d", user.base.Name, change)
 		} else {
-			vlogf("%s took recoil for %d", user.base.Name, -change)
+			vprintf("%s took recoil for %d", user.base.Name, -change)
 			if user.hp <= 0 {
 				monFainted(bs, ma.userSlot, false)
 			}

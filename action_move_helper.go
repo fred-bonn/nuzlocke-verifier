@@ -302,7 +302,7 @@ func monFainted(bs battleState, slot *slot, pursuit bool) {
 	if !pursuit {
 		injectReplaceAction(bs, slot, false)
 	}
-	vlogf("%s fainted!", slot.mon.base.Name)
+	vprintf("%s fainted!", slot.mon.base.Name)
 }
 
 func fetchPursuitMiddleware(name string) func(a action) bool {

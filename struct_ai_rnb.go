@@ -101,7 +101,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 				}
 			}
 			if a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
-				vlogln(3)
+				vprintln(3)
 				scores[i] += 3
 			}
 		}
@@ -171,7 +171,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 	}
 
-	vlogln(scores)
+	vprintln(scores)
 
 	maxScore := scores[0]
 	for _, score := range scores {

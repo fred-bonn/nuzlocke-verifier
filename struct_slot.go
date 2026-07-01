@@ -51,7 +51,7 @@ func (s *slot) resolveProtect() {
 		s.protected = true
 		s.protectTurns++
 	} else {
-		vlogln("but it failed")
+		vprintln("but it failed")
 	}
 }
 

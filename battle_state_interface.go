@@ -36,11 +36,11 @@ func resolveEndOfTurn(bs battleState) {
 				ailment.turns--
 				takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
 				if ailment.turns <= 0 {
-					vlogf("%s was freed", slot.mon.base.Name)
+					vprintf("%s was freed", slot.mon.base.Name)
 					delete(slot.mon.ailments, ailment.state)
 				}
 			case leechSeedAilment:
-				vlogf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
+				vprintf("%s leeched health from %s", ailment.afflictedBy.mon.base.Name, slot.mon.base.Name)
 				dmg := takeResidualDamage(bs, slot, ailment.state.String(), 1, 8)
 				ailment.afflictedBy.mon.changeHpBy(dmg)
 			case yawnAilment:
@@ -68,7 +68,7 @@ func resolveEndOfTurn(bs battleState) {
 		}
 
 		if slot.mon.ability == harvestAbility && roll(1, 2) && slot.mon.item.state.isBerry() {
-			vlogf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.String())
+			vprintf("%s harvested its %s", slot.mon.base.Name, slot.mon.item.String())
 			slot.mon.item.consumed = false
 			slot.mon.checkItemTrigger(true, nil)
 		} else if slot.mon.ability == speedBoostAbility && !slot.firstTurn {
@@ -77,7 +77,7 @@ func resolveEndOfTurn(bs battleState) {
 
 		if slot.mon.item.state == leftovers {
 			change := slot.mon.maxHP() / 16
-			vlogItem("%s restored %d health from leftovers", slot.mon.base.Name, change)
+			vprintItem("%s restored %d health from leftovers", slot.mon.base.Name, change)
 			slot.mon.changeHpBy(change)
 		}
 
@@ -91,12 +91,12 @@ func takeResidualDamage(bs battleState, slot *slot, effect string, num, den int)
 	}
 
 	change := slot.mon.maxHP() * num / den
-	vlogf("%s took %d damage from %s", slot.mon.base.Name, change, effect)
+	vprintf("%s took %d damage from %s", slot.mon.base.Name, change, effect)
 	slot.mon.changeHpBy(-change)
 	if slot.mon.hp <= 0 {
 		slot.mon.fainted = true
 		injectReplaceAction(bs, slot, false)
-		vlogf("%s fainted!", slot.mon.base.Name)
+		vprintf("%s fainted!", slot.mon.base.Name)
 	}
 	return change
 }

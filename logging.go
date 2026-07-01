@@ -5,41 +5,41 @@ import (
 	"log"
 )
 
-func vlogln(v ...any) {
+func vprintln(v ...any) {
 	if !*verbose {
 		return
 	}
 	fmt.Println(v...)
 }
 
-func vlogf(format string, v ...any) {
+func vprintf(format string, v ...any) {
 	if !*verbose {
 		return
 	}
 	fmt.Printf(format+"\n", v...)
 }
 
-func vlogWithPrefix(prefix, format string, v ...any) {
+func vprintWithPrefix(prefix, format string, v ...any) {
 	if !*verbose {
 		return
 	}
 	fmt.Printf("%s %s\n", prefix, fmt.Sprintf(format, v...))
 }
 
-func vlogMove(prio, speed int, format string, v ...any) {
-	vlogWithPrefix(fmt.Sprintf("[MOVE, %d/%d]", prio, speed), format, v...)
+func vprintMove(prio, speed int, format string, v ...any) {
+	vprintWithPrefix(fmt.Sprintf("[MOVE, %d/%d]", prio, speed), format, v...)
 }
 
-func vlogSwitch(format string, v ...any) {
-	vlogWithPrefix("[SWITCH]", format, v...)
+func vprintSwitch(format string, v ...any) {
+	vprintWithPrefix("[SWITCH]", format, v...)
 }
 
-func vlogReplace(format string, v ...any) {
-	vlogWithPrefix("[REPLACE]", format, v...)
+func vprintReplace(format string, v ...any) {
+	vprintWithPrefix("[REPLACE]", format, v...)
 }
 
-func vlogItem(format string, v ...any) {
-	vlogWithPrefix("[ITEM]", format, v...)
+func vprintItem(format string, v ...any) {
+	vprintWithPrefix("[ITEM]", format, v...)
 }
 
 func elogf(format string, v ...any) {
