@@ -100,9 +100,7 @@ func (cfg *config) loadPokemon(name string) (BasePokemon, error) {
 		p = toPokemon(pokemonJSON)
 
 		// Save the fetched Pokemon data to a file for future use
-		vprintln(p)
 		data, err = json.Marshal(p)
-		vprintln(data)
 		if err != nil {
 			return BasePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
 		}
