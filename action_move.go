@@ -30,7 +30,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
-	if (ma.move.Name == "fake-out" || ma.move.Name == "first-impression") && !ma.userSlot.firstTurn {
+	if (ma.move.Name == "fake out" || ma.move.Name == "first impression") && !ma.userSlot.firstTurn {
 		vprintMove(ma.prio(bs), ma.speed(bs), "%s used %s", ma.userSlot.mon.base.Name, ma.move.Name)
 		vprintf("but it failed")
 		return
@@ -38,7 +38,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	ma.userSlot.firstTurn = false
 
-	ma.userSlot.suckerPunch = ma.move.Name == "sucker-punch"
+	ma.userSlot.suckerPunch = ma.move.Name == "sucker punch"
 
 	if _, ok := ma.userSlot.mon.ailments[freezeAilment]; ok {
 		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
@@ -185,13 +185,13 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 		target.changeStatStageBy(attack, 2, false)
 		target.applyAilment(confusionAilment, ma.move, ma.userSlot)
 		return
-	case "focus-energy":
+	case "focus energy":
 		target.focusEnergy = true
 		return
-	case "laser-focus":
+	case "laser focus":
 		target.laserFocus = true
 		return
-	case "belly-drum":
+	case "belly drum":
 		if target.hp*2 <= target.maxHP() {
 			vprintf("but it failed")
 			return
@@ -269,18 +269,18 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	if *crit {
 		vprintf("it was a critical hit!")
 	}
-	if ma.move.Name == "bug-bite" && target.item.state.isBerry() && !target.item.consumed {
+	if ma.move.Name == "bug bite" && target.item.state.isBerry() && !target.item.consumed {
 		vprintf("%s's %s was consumed by bug bite", target.base.Name, target.item.String())
 		item, _ := registerItem(target.item.state, user)
 		item.activate()
 		target.item, _ = registerItem(noneItem, target)
 
-	} else if ma.move.Name == "wake-up-slap" {
+	} else if ma.move.Name == "wake up slap" {
 		if a := target.hasAilment(sleepAilment); a != nil {
 			vprintf("%s woke up", target.base.Name)
 			delete(target.ailments, sleepAilment)
 		}
-	} else if ma.move.Name == "knock-off" && !target.item.consumed && target.ability != stickyHoldAbility {
+	} else if ma.move.Name == "knock off" && !target.item.consumed && target.ability != stickyHoldAbility {
 		vprintf("%s had its %s knocked off", target.base.Name, target.item.String())
 		target.item = &item{
 			consumed: true,

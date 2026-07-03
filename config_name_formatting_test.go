@@ -12,7 +12,7 @@ func TestCleanPokemonNames(t *testing.T) {
 		"Farfetch’d": {"Farfetch’d", "farfetch’d"},
 		"empty":      {"", ""},
 		"numerals":   {"Porygon2", "porygon2"},
-		"hypohen":    {"Ho-Oh", "ho-oh"},
+		"hyphen":     {"Ho-Oh", "ho-oh"},
 		"regional":   {"Arcanine-Hisui", "arcanine-hisui"},
 	}
 

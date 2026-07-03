@@ -19,7 +19,7 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 	new.unnerved = s.mon.unnerved
 	s.mon = new
 	for effect := range s.trainer.field {
-		if effect == "stealth-rock" {
+		if effect == stealthRockEffect {
 			num, dem := s.mon.applyMoveType(1, 8, rockType)
 			takeResidualDamage(bs, s, "stealth rock", num, dem)
 			continue
@@ -28,11 +28,11 @@ func (s *slot) setMon(bs battleState, new *pokemon) {
 			continue
 		}
 		switch effect {
-		case "spikes":
+		case spikesEffect:
 			takeResidualDamage(bs, s, "spikes", 1, 8)
-		case "toxic-spikes":
+		case toxicSpikesEffect:
 			s.mon.applyAilment(poisonAilment, nil, nil)
-		case "sticky-web":
+		case stickyWebEffect:
 			s.mon.changeStatStageBy(speed, -1, true)
 		}
 	}
@@ -56,12 +56,15 @@ func (s *slot) resolveProtect() {
 }
 
 func (s *slot) hasFieldEffect(effect string) bool {
-	if _, ok := s.trainer.field[effect]; ok {
+	if _, ok := s.trainer.field[stringToFieldEffect(effect)]; ok {
 		return true
 	}
 	return false
 }
 
 func (s *slot) applyFieldEffect(effect string) {
-	s.trainer.field[effect] = struct{}{}
+	e := stringToFieldEffect(effect)
+	turns := 0
+	// code here to assign turn number based on which field effect it is
+	s.trainer.field[e] = turns
 }

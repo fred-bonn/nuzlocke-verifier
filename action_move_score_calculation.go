@@ -52,7 +52,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 	}
 
 	switch ma.move.Name {
-	case "sticky-web":
+	case "sticky web":
 		if ma.targetSlot.hasFieldEffect(ma.move.Name) {
 			return -64
 		}
@@ -60,7 +60,7 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 			return 9 + 3*rollInt(3, 4)
 		}
 		return 6 + 3*rollInt(3, 4)
-	case "stealth-rock", "spikes", "toxic-spikes":
+	case "stealth rock", "spikes", "toxic spikes":
 		if ma.targetSlot.hasFieldEffect(ma.move.Name) {
 			return -64
 		}
@@ -72,15 +72,15 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		if ma.targetSlot.mon.hasAilment(infatuationAilment) != nil || ma.targetSlot.mon.ability == obliviousAbility {
 			return -64
 		}
-	case "leech-seed":
+	case "leech seed":
 		if ma.targetSlot.mon.hasAilment(leechSeedAilment) != nil || ma.targetSlot.mon.hasType(grassType) {
 			return -64
 		}
 	case "toxic":
 		return ma.scoreToxic(bs)
-	case "focus-energy", "laser-focus":
+	case "focus energy", "laser focus":
 		return ma.scoreCritStatus()
-	case "belly-drum":
+	case "belly drum":
 		return ma.scoreBellyDrum(bs)
 	}
 
@@ -174,9 +174,9 @@ func (ma *moveAction) scoreSleepMove(bs battleState) int {
 		}
 
 		if user.hasMovePredicate(func(m *Move) bool {
-			return m.Name == "dream-eater" || m.Name == "nightmare"
+			return m.Name == "dream eater" || m.Name == "nightmare"
 		}) && !target.hasMovePredicate(func(m *Move) bool {
-			return m.Name == "snore" || m.Name == "sleep-talk"
+			return m.Name == "snore" || m.Name == "sleep talk"
 		}) {
 			score += 1
 		}
@@ -275,7 +275,7 @@ func (ma *moveAction) scoreCritStatus() int {
 	if ma.targetSlot.mon.ability.blocksCrits() && user.ability != moldBreakerAbility {
 		return -64
 	}
-	if ma.move.Name == "focus-energy" && user.focusEnergy {
+	if ma.move.Name == "focus energy" && user.focusEnergy {
 		return -64
 	}
 

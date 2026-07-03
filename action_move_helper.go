@@ -79,26 +79,26 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		}
 		*crit = false
 		return (user.level * (rand.Intn(100) + 51)) / 100
-	case "seismic-toss", "night-shade":
+	case "seismic toss", "night shade":
 		*crit = false
 		return user.level
-	case "sonic-boom":
+	case "sonic boom":
 		*crit = false
 		return 20
-	case "dragon-rage":
+	case "dragon rage":
 		*crit = false
 		return 40
 	case "endeavor":
 		*crit = false
 		return target.hp - user.hp
-	case "super-fang":
+	case "super fang":
 		*crit = false
 		return max(1, target.hp/2)
 	}
 
 	if move.Name == "acrobatics" && (user.item.consumed || user.item.state == flyingGem) {
 		power *= 2
-	} else if move.Name == "wake-up-slap" && target.hasAilment(sleepAilment) != nil {
+	} else if move.Name == "wake up slap" && target.hasAilment(sleepAilment) != nil {
 		power *= 2
 	} else if move.Name == "venoshock" && (target.hasAilment(poisonAilment) != nil || target.hasAilment(toxicAilment) != nil) {
 		power *= 2
@@ -121,7 +121,7 @@ func calculateDamage(user, target *pokemon, move *Move, crit *bool, weather weat
 		}
 	} else if move.Name == "pursuit" && pursuit {
 		power *= 2
-	} else if move.Name == "knock-off" && !target.item.consumed {
+	} else if move.Name == "knock off" && !target.item.consumed {
 		power *= 2
 	}
 
@@ -216,7 +216,7 @@ func accuracyRoll(bs battleState, user *pokemon, target *pokemon, move *Move) bo
 		return true
 	} else if move.Name == "toxic" && user.hasType(poisonType) {
 		return true
-	} else if move.Name == "thunder-wave" && user.hasType(electricType) {
+	} else if move.Name == "thunder wave" && user.hasType(electricType) {
 		return true
 	}
 

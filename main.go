@@ -36,11 +36,11 @@ func main() {
 		trainer{
 			ai:     rnbAi{},
 			player: true,
-			field:  map[string]struct{}{},
+			field:  make(map[fieldEffect]int),
 		},
 		trainer{
 			ai:    rnbAi{},
-			field: map[string]struct{}{},
+			field: make(map[fieldEffect]int),
 		},
 		playerParty,
 		opponentParty,
