@@ -34,13 +34,13 @@ func main() {
 
 	sbs := initSingleBattleState(
 		trainer{
-			ai:     rnbAi{},
-			player: true,
-			field:  make(map[fieldEffect]int),
+			ai:           rnbAi{},
+			player:       true,
+			fieldEffects: make(map[fieldEffect]int),
 		},
 		trainer{
-			ai:    rnbAi{},
-			field: make(map[fieldEffect]int),
+			ai:           rnbAi{},
+			fieldEffects: make(map[fieldEffect]int),
 		},
 		playerParty,
 		opponentParty,

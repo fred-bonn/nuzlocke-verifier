@@ -15,14 +15,15 @@ type benchBattleState struct {
 	actions *actionQueue
 }
 
-func (bs *benchBattleState) execute()                      {}
-func (bs *benchBattleState) gatherActions()                {}
-func (bs *benchBattleState) getAllSlots() []*slot          { return nil }
-func (bs *benchBattleState) getOtherSlots(s *slot) []*slot { return nil }
-func (bs *benchBattleState) getOpponentSlot(s *slot) *slot { return nil }
-func (bs *benchBattleState) getActions() *actionQueue      { return bs.actions }
-func (bs *benchBattleState) getWeather() weatherState      { return noneWeather }
-func (bs *benchBattleState) setWeather(weatherState)       {}
+func (bs *benchBattleState) execute()                             {}
+func (bs *benchBattleState) gatherActions()                       {}
+func (bs *benchBattleState) getAllSlots() []*slot                 { return nil }
+func (bs *benchBattleState) getOtherSlots(s *slot) []*slot        { return nil }
+func (bs *benchBattleState) getOpponentSlot(s *slot) *slot        { return nil }
+func (bs *benchBattleState) getActions() *actionQueue             { return bs.actions }
+func (bs *benchBattleState) getWeather() weatherState             { return noneWeather }
+func (bs *benchBattleState) setWeather(weatherState)              {}
+func (bs *benchBattleState) getFieldEffects() map[fieldEffect]int { return nil }
 
 func newEmptyActionQueue() *actionQueue {
 	return &actionQueue{

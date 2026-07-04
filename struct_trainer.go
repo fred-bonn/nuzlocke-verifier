@@ -4,7 +4,7 @@ type trainer struct {
 	pokemonParty []*pokemon
 	player       bool
 	ai           ai
-	field        map[fieldEffect]int
+	fieldEffects map[fieldEffect]int
 	lost         bool
 }
 

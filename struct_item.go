@@ -659,6 +659,7 @@ func makeLumBerry(mon *pokemon) *item {
 				if mon.hasAilment(ailment) != nil {
 					delete(mon.ailments, ailment)
 					vprintItem("%s had its %s removed", mon.base.Name, ailment.String())
+					break
 				}
 			}
 			if mon.hasAilment(confusionAilment) != nil {

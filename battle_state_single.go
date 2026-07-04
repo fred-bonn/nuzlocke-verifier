@@ -7,6 +7,7 @@ type singleBattleState struct {
 	opponent           *trainer
 	actions            actionQueue
 	weather            weatherState
+	fieldEffects       map[fieldEffect]int
 }
 
 func (sbs *singleBattleState) execute() {
@@ -71,6 +72,10 @@ func (sbs *singleBattleState) getWeather() weatherState {
 func (sbs *singleBattleState) setWeather(w weatherState) {
 	sbs.weather = w
 	w.onset()
+}
+
+func (sbs *singleBattleState) getFieldEffects() map[fieldEffect]int {
+	return sbs.fieldEffects
 }
 
 func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*pokemon, weather weatherState) *singleBattleState {

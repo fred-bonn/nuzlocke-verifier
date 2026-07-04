@@ -9,6 +9,7 @@ type battleState interface {
 	getActions() *actionQueue
 	getWeather() weatherState
 	setWeather(weatherState)
+	getFieldEffects() map[fieldEffect]int
 }
 
 func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
