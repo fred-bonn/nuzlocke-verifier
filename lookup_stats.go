@@ -11,6 +11,7 @@ const (
 	speed
 	accuracy
 	evasion
+	noStat
 )
 
 func (s stat) String() string {
@@ -32,7 +33,7 @@ func (s stat) String() string {
 	case evasion:
 		return "evasion"
 	default:
-		elogf("warning: stats.String(): something went wrong with stat %d", s)
+		elogf("warning: stats.String(): stat %d does not have a string version", s)
 		return ""
 	}
 }
@@ -56,8 +57,7 @@ func stringToStat(s string) stat {
 	case "evasion":
 		return evasion
 	default:
-		elogFatalf("error: %s is not a valid stat", s)
-		return 0
+		return noStat
 	}
 }
 

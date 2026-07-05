@@ -76,7 +76,6 @@ func TestWeatherOnset(t *testing.T) {
 		"hail":      {hailWeather, "to hail"},
 	}
 
-	// Enable verbose mode for this test
 	oldVerbose := *verbose
 	*verbose = true
 	t.Cleanup(func() {

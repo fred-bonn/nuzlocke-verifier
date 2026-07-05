@@ -18,7 +18,7 @@ func TestCleanPokemonNames(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			if got := cleanName(tc.input, false); got != tc.want {
+			if got := cleanName(tc.input); got != tc.want {
 				t.Errorf("%s: cleanPokemonName(%q) = %q, want %q", name, tc.input, got, tc.want)
 			}
 		})
@@ -78,7 +78,7 @@ func TestCleanMoveNames(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			if got := cleanName(tc.input, true); got != tc.want {
+			if got := cleanName(tc.input); got != tc.want {
 				t.Errorf("%s: cleanMoveName(%q) = %q, want %q", name, tc.input, got, tc.want)
 			}
 		})

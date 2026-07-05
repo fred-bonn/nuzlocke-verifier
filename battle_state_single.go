@@ -8,9 +8,10 @@ type singleBattleState struct {
 	actions            actionQueue
 	weather            weatherState
 	fieldEffects       map[fieldEffect]int
+	err                error
 }
 
-func (sbs *singleBattleState) execute() {
+func (sbs *singleBattleState) execute() error {
 	vprintln("\nStarting battle...")
 
 	for k := 0; !sbs.player.lost && !sbs.opponent.lost; k++ {
@@ -23,16 +24,28 @@ func (sbs *singleBattleState) execute() {
 		for len(sbs.actions.queue) > 0 {
 			action, _ := sbs.actions.queue.pop()
 			action.invoke(sbs)
+			if sbs.err != nil {
+				return sbs.err
+			}
 		}
 		resolveEndOfTurn(sbs)
 		// if the end of turn causes mons to faint, empty the queue for replace actions
 		for len(sbs.actions.queue) > 0 {
 			action, _ := sbs.actions.queue.pop()
 			action.invoke(sbs)
+			if sbs.err != nil {
+				return sbs.err
+			}
 		}
 	}
 	vprintln("=====")
 	vprintln("Ending battle...")
+
+	return nil
+}
+
+func (sbs *singleBattleState) setError(err error) {
+	sbs.err = err
 }
 
 func (sbs *singleBattleState) gatherActions() {

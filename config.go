@@ -47,14 +47,20 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 		if err != nil {
 			return nil, err
 		}
-		basePokemon.Name = cleanName(mon.Name, false)
+
+		basePokemon.Name = cleanName(mon.Name)
 
 		for _, moveName := range mon.Moves {
 			baseMove, err := cfg.loadMove(apiName(moveName))
 			if err != nil {
 				return nil, err
 			}
-			baseMove.Name = cleanName(moveName, true)
+
+			if mb, ok := moveBalanceMap[baseMove.Name]; ok {
+				mb.apply(&baseMove)
+			}
+
+			baseMove.Name = cleanName(moveName)
 
 			moves = append(moves, &baseMove)
 		}
@@ -71,6 +77,9 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error)
 		finalPokemon.item = item
 
 		finalPokemon.ability = stringToAbility(strings.ToLower(mon.Ability))
+		if finalPokemon.ability == noneAbility {
+			return nil, fmt.Errorf("%s is not a valid ability for %s", strings.ToLower(mon.Ability), mon.Name)
+		}
 
 		res = append(res, &finalPokemon)
 	}
@@ -89,23 +98,28 @@ func (cfg *config) loadPokemon(name string) (BasePokemon, error) {
 			return BasePokemon{}, fmt.Errorf("failed unmarshaling '%s' Pokemon data: %w", name, err)
 		}
 		fmt.Printf("Loaded '%s' from file\n", name)
-	} else {
-		// Otherwise, fetch the Pokemon data from the API
-		pokemonJSON, err := cfg.client.FetchPokemon(name)
-		if err != nil {
-			return BasePokemon{}, fmt.Errorf("failed fetching Pokemon '%s': %w", name, err)
-		}
-		fmt.Printf("Fetched '%s' from API\n", name)
 
-		p = toPokemon(pokemonJSON)
-
-		// Save the fetched Pokemon data to a file for future use
-		data, err = json.Marshal(p)
-		if err != nil {
-			return BasePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
-		}
-		writeToFile(fmt.Sprintf("data/pokemon/%s.json", name), data)
+		return p, nil
 	}
+
+	// Otherwise, fetch the Pokemon data from the API
+	pokemonJSON, err := cfg.client.FetchPokemon(name)
+	if err != nil {
+		return BasePokemon{}, fmt.Errorf("failed fetching Pokemon '%s': %w", name, err)
+	}
+	fmt.Printf("Fetched '%s' from API\n", name)
+
+	p, err = toPokemon(pokemonJSON)
+	if err != nil {
+		return BasePokemon{}, err
+	}
+
+	// Save the fetched Pokemon data to a file for future use
+	data, err = json.Marshal(p)
+	if err != nil {
+		return BasePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
+	}
+	writeToFile(fmt.Sprintf("data/pokemon/%s.json", name), data)
 
 	return p, nil
 }
@@ -131,27 +145,28 @@ func (cfg *config) loadMove(name string) (Move, error) {
 			return Move{}, fmt.Errorf("failed unmarshaling Move '%s' data: %w", name, err)
 		}
 		fmt.Printf("Loaded '%s' from file\n", name)
-	} else {
-		// Otherwise, fetch the Move data from the API
-		moveJson, err := cfg.client.FetchMove(name)
-		if err != nil {
-			return Move{}, fmt.Errorf("failed fetching Move '%s': %w", name, err)
-		}
-		fmt.Printf("Fetched '%s' from API\n", name)
 
-		m = toMove(moveJson)
-
-		// Save the fetched Move data using the internal Move struct to a file for future use
-		data, err = json.Marshal(m)
-		if err != nil {
-			return m, fmt.Errorf("failed marshaling Move JSON data '%s' to file: %w", name, err)
-		}
-		writeToFile(fmt.Sprintf("data/moves/%s.json", name), data)
+		return m, nil
 	}
 
-	if mb, ok := moveBalanceMap[m.Name]; ok {
-		mb.apply(&m)
+	// Otherwise, fetch the Move data from the API
+	moveJson, err := cfg.client.FetchMove(name)
+	if err != nil {
+		return Move{}, fmt.Errorf("failed fetching Move '%s': %w", name, err)
 	}
+	fmt.Printf("Fetched '%s' from API\n", name)
+
+	m, err = toMove(moveJson)
+	if err != nil {
+		return Move{}, err
+	}
+
+	// Save the fetched Move data using the internal Move struct to a file for future use
+	data, err = json.Marshal(m)
+	if err != nil {
+		return m, fmt.Errorf("failed marshaling Move JSON data '%s' to file: %w", name, err)
+	}
+	writeToFile(fmt.Sprintf("data/moves/%s.json", name), data)
 
 	return m, nil
 }
@@ -162,9 +177,14 @@ func generateHiddenPower(name string) (Move, error) {
 		return Move{}, fmt.Errorf("type not specified for hidden power")
 	}
 
+	moveType := stringToPokemonType(parts[2])
+	if moveType == noType {
+		return Move{}, fmt.Errorf("%s is not a valid type for %s", parts[2], name)
+	}
+
 	move := Move{
 		Name:     "hidden power",
-		Type:     stringToPokemonType(parts[2]),
+		Type:     moveType,
 		Power:    60,
 		Accuracy: 100,
 		Class:    specialClass,
@@ -190,7 +210,7 @@ func apiName(name string) string {
 	return name
 }
 
-func cleanName(name string, move bool) string {
+func cleanName(name string) string {
 	name = strings.ToLower(name)
 	if !hasHyphen(name) && !isRegionalPokemon(name) {
 		name = strings.ReplaceAll(name, "-", " ")
@@ -200,7 +220,7 @@ func cleanName(name string, move bool) string {
 }
 
 func hasHyphen(name string) bool {
-	var pokemonWithHyphen = map[string]struct{}{
+	var withHyphen = map[string]struct{}{
 		"ho-oh":     {},
 		"porygon-z": {},
 		"jangmo-o":  {},
@@ -212,7 +232,7 @@ func hasHyphen(name string) bool {
 		"chi-yu":    {},
 	}
 
-	if _, ok := pokemonWithHyphen[name]; ok {
+	if _, ok := withHyphen[name]; ok {
 		return true
 	}
 

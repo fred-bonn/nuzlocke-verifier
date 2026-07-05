@@ -45,7 +45,3 @@ func vprintItem(format string, v ...any) {
 func elogf(format string, v ...any) {
 	log.Printf(format, v...)
 }
-
-func elogFatalf(format string, v ...any) {
-	log.Fatalf(format, v...)
-}

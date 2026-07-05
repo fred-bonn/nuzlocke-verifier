@@ -7,7 +7,8 @@ import (
 type ability int
 
 const (
-	insomniaAbility ability = iota
+	noneAbility ability = iota
+	insomniaAbility
 	vitalSpiritAbility
 	sweetVeilAbility
 	gluttonyAbility
@@ -92,7 +93,6 @@ const (
 	galvanizeAbility
 	refrigerateAbility
 	normalizeAbility
-	noneAbility
 )
 
 func (a ability) String() string {
@@ -268,7 +268,7 @@ func (a ability) String() string {
 	case normalizeAbility:
 		return "normalize"
 	default:
-		elogf("warning: ability.String(): something went wrong with ability %d", a)
+		elogf("warning: ability.String(): ability %d does not have a string version", a)
 		return ""
 	}
 }
@@ -446,7 +446,6 @@ func stringToAbility(s string) ability {
 	case "normalize":
 		return normalizeAbility
 	default:
-		elogFatalf("error: %s is not a valid ability", s)
 		return noneAbility
 	}
 }

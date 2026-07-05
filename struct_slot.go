@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type slot struct {
 	mon                *pokemon
 	trainer            *trainer
@@ -62,9 +64,15 @@ func (s *slot) hasFieldEffect(effect string) bool {
 	return false
 }
 
-func (s *slot) applyFieldEffect(effect string) {
+func (s *slot) applyFieldEffect(effect string) error {
 	e := stringToFieldEffect(effect)
+	if e == noneEffect {
+		return fmt.Errorf("%s is not a valid effect", effect)
+	}
+
 	turns := 0
 	// code here to assign turn number based on which field effect it is
 	s.trainer.fieldEffects[e] = turns
+
+	return nil
 }

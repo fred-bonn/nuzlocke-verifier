@@ -15,7 +15,8 @@ type benchBattleState struct {
 	actions *actionQueue
 }
 
-func (bs *benchBattleState) execute()                             {}
+func (bs *benchBattleState) execute() error                       { return nil }
+func (bs *benchBattleState) setError(error)                       {}
 func (bs *benchBattleState) gatherActions()                       {}
 func (bs *benchBattleState) getAllSlots() []*slot                 { return nil }
 func (bs *benchBattleState) getOtherSlots(s *slot) []*slot        { return nil }

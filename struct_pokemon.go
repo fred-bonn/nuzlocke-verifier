@@ -60,9 +60,15 @@ func initPokemon(base BasePokemon, level int, ivs map[string]int, nature string,
 		ailments: make(map[ailmentState]*ailment),
 	}
 
-	setIVs(&res, ivs)
+	err = setIVs(&res, ivs)
+	if err != nil {
+		return pokemon{}, err
+	}
 
-	calculateStats(&res)
+	err = calculateStats(&res)
+	if err != nil {
+		return pokemon{}, err
+	}
 
 	if hp == -1 {
 		hp = res.maxHP()
@@ -77,16 +83,24 @@ func initPokemon(base BasePokemon, level int, ivs map[string]int, nature string,
 	return res, nil
 }
 
-func setIVs(pokemon *pokemon, ivs map[string]int) {
+func setIVs(pokemon *pokemon, ivs map[string]int) error {
 	for key, val := range ivs {
 		stat := stringToStat(key)
+		if stat == noStat {
+			return fmt.Errorf("%s is not a valid stat for %s", key, pokemon.base.Name)
+		}
 		pokemon.ivs[stat] = max(0, min(31, val))
 	}
+
+	return nil
 }
 
-func calculateStats(pokemon *pokemon) {
+func calculateStats(pokemon *pokemon) error {
 	for key, val := range pokemon.base.Stats {
 		stat := stringToStat(key)
+		if stat == noStat {
+			return fmt.Errorf("%s is not a valid stat for %s", key, pokemon.base.Name)
+		}
 		pokemon.stats[stat] = ((val*2+pokemon.ivs[stat])*pokemon.level)/100 + 5
 	}
 	// Shedinja case: if HP is 1, it stays 1 regardless of level or IVs
@@ -104,6 +118,8 @@ func calculateStats(pokemon *pokemon) {
 		pokemon.stats[posNat] = (pokemon.stats[posNat] * 110) / 100
 		pokemon.stats[negNat] = (pokemon.stats[negNat] * 90) / 100
 	}
+
+	return nil
 }
 
 func (p *pokemon) switchReset() {

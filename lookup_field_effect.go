@@ -41,6 +41,5 @@ func stringToFieldEffect(s string) fieldEffect {
 	if e, ok := fieldEffectMap[s]; ok {
 		return e
 	}
-	elogFatalf("error: %s is not a valid field effect", s)
 	return noneEffect
 }

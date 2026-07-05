@@ -1,6 +1,10 @@
 package main
 
-import "github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
+import (
+	"fmt"
+
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
+)
 
 type BasePokemon struct {
 	Id     int
@@ -11,10 +15,13 @@ type BasePokemon struct {
 	Stats  map[string]int
 }
 
-func toPokemon(pj pokeapi.PokemonJSON) BasePokemon {
+func toPokemon(pj pokeapi.PokemonJSON) (BasePokemon, error) {
 	types := make([]pokemonType, len(pj.Types))
 	for i, t := range pj.Types {
 		types[i] = stringToPokemonType(t.Type.Name)
+		if types[i] == noType {
+			return BasePokemon{}, fmt.Errorf("%s is not a valid type for %s", t.Type.Name, pj.Name)
+		}
 	}
 
 	stats := make(map[string]int, 6)
@@ -29,5 +36,5 @@ func toPokemon(pj pokeapi.PokemonJSON) BasePokemon {
 		Weight: pj.Weight,
 		Types:  types,
 		Stats:  stats,
-	}
+	}, nil
 }

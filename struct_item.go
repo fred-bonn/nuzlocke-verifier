@@ -338,7 +338,7 @@ func (i itemState) String() string {
 	case focusSash:
 		return "focus sash"
 	default:
-		elogf("warning: itemState.String(): something went wrong with itemState %d", i)
+		elogf("warning: itemState %d does not have a string version", i)
 		return ""
 	}
 }
@@ -477,12 +477,6 @@ func registerItem(is itemState, mon *pokemon) (*item, error) {
 	factory := createItemFactory(builder, mon)
 
 	return factory(), nil
-}
-
-func checkItemTriggers(bs battleState, e any) {
-	for _, slot := range bs.getAllSlots() {
-		slot.mon.checkItemTrigger(true, e)
-	}
 }
 
 func makePassiveItemMiddleware(is itemState) func(mon *pokemon) *item {

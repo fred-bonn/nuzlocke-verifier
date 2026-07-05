@@ -103,7 +103,7 @@ func (as ailmentState) String() string {
 	case yawnAilment:
 		return "yawn"
 	default:
-		elogf("warning: ailmenState.String(): something went wrong with ailmentState %d", as)
+		elogf("warning: ailmenState.String(): ailmentState %d does not have a string version", as)
 		return ""
 	}
 }

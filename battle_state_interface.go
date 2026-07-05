@@ -1,7 +1,8 @@
 package main
 
 type battleState interface {
-	execute()
+	execute() error
+	setError(error)
 	gatherActions()
 	getAllSlots() []*slot
 	getOtherSlots(slot *slot) []*slot

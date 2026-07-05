@@ -5,7 +5,7 @@ type moveBalance struct {
 	accuracy     *int
 	pp           *int
 	effectChance *int
-	pokemonType  *string
+	pokemonType  *pokemonType
 }
 
 func (mb moveBalance) apply(m *Move) {
@@ -22,7 +22,7 @@ func (mb moveBalance) apply(m *Move) {
 		m.StatChance = *mb.effectChance
 	}
 	if mb.pokemonType != nil {
-		m.Type = stringToPokemonType(*mb.pokemonType)
+		m.Type = *mb.pokemonType
 	}
 }
 
@@ -102,7 +102,7 @@ var moveBalanceMap = map[string]*moveBalance{
 		pp: new(10),
 	},
 	"covet": {
-		pokemonType: new("fairy"),
+		pokemonType: new(fairyType),
 	},
 	"crabhammer": {
 		accuracy: new(100),
@@ -487,7 +487,7 @@ var moveBalanceMap = map[string]*moveBalance{
 	},
 	"super-fang": {
 		accuracy:    new(100),
-		pokemonType: new("dark"),
+		pokemonType: new(darkType),
 	},
 	"supersonic": {
 		accuracy: new(70),

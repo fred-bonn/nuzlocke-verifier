@@ -268,7 +268,7 @@ func determineHits(move *Move) int {
 	return move.MaxHits
 }
 
-func determineCrit(user, target *pokemon, move *Move) *bool {
+func determineCrit(user *pokemon, move *Move) *bool {
 	rate := determineCritRate(user, move)
 
 	return new(roll(1, critRateMap[rate]))

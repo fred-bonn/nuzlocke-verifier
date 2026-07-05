@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -176,7 +177,11 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	}
 
 	if ma.move.Category == "field-effect" {
-		ma.targetSlot.applyFieldEffect(ma.move.Name)
+		err := ma.targetSlot.applyFieldEffect(ma.move.Name)
+		if err != nil {
+			bs.setError(err)
+		}
+
 		return
 	}
 
@@ -213,7 +218,12 @@ func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive
 	}
 
 	for stat, change := range ma.move.StatChanges {
-		target.changeStatStageBy(stringToStat(stat), change, offensive)
+		s := stringToStat(stat)
+		if s == noStat {
+			bs.setError(fmt.Errorf("%s is not a valid stat for %s", stat, ma.move.Name))
+			return
+		}
+		target.changeStatStageBy(s, change, offensive)
 	}
 }
 
@@ -243,7 +253,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 	user := ma.userSlot.mon
 	target := ma.targetSlot.mon
 
-	crit := determineCrit(user, target, ma.move)
+	crit := determineCrit(user, ma.move)
 
 	damage := calculateDamage(user, target, ma.move, crit, bs.getWeather(), false, false, ma.pursuit)
 	if damage == 0 {
@@ -337,7 +347,12 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if ma.move.StatChance > 0 && ma.move.Category == "damage-raise" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
-			user.changeStatStageBy(stringToStat(stat), change, false)
+			s := stringToStat(stat)
+			if s == noStat {
+				bs.setError(fmt.Errorf("%s is not a valid stat for %s", stat, ma.move.Name))
+				return false
+			}
+			user.changeStatStageBy(s, change, false)
 		}
 	}
 
@@ -367,7 +382,12 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 
 	if ma.move.StatChance > 0 && ma.move.Category == "damage-lower" && roll(ma.move.StatChance*sg, 100) {
 		for stat, change := range ma.move.StatChanges {
-			target.changeStatStageBy(stringToStat(stat), change, true)
+			s := stringToStat(stat)
+			if s == noStat {
+				bs.setError(fmt.Errorf("%s is not a valid stat for %s", stat, ma.move.Name))
+				return false
+			}
+			target.changeStatStageBy(s, change, true)
 		}
 	}
 
