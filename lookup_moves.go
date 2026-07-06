@@ -4,11 +4,16 @@ var sleepMoves = map[string]struct{}{
 	"dark void":     {},
 	"grass whistle": {},
 	"hypnosis":      {},
-	"lovely-kiss":   {},
+	"lovely kiss":   {},
 	"sing":          {},
-	"sleep-powder":  {},
+	"sleep powder":  {},
 	"spore":         {},
 	"yawn":          {},
+}
+
+func isSleepMove(move string) bool {
+	_, ok := sleepMoves[move]
+	return ok
 }
 
 var pivotMoves = map[string]struct{}{
@@ -22,6 +27,11 @@ var pivotMoves = map[string]struct{}{
 	"shed tail":        {},
 }
 
+func isPivotMove(move string) bool {
+	_, ok := pivotMoves[move]
+	return ok
+}
+
 var speedControlMoves = map[string]struct{}{
 	"electroweb": {},
 	"icy wind":   {},
@@ -30,6 +40,11 @@ var speedControlMoves = map[string]struct{}{
 	"rock tomb":  {},
 	"bulldoze":   {},
 	"glaciate":   {},
+}
+
+func isSpeedControlMove(move string) bool {
+	_, ok := speedControlMoves[move]
+	return ok
 }
 
 var offenseControlMoves = map[string]moveClass{
@@ -43,14 +58,29 @@ var offenseControlMoves = map[string]moveClass{
 	"lunge":          physicalClass,
 }
 
+func isOffenseControlMove(move string) (moveClass, bool) {
+	c, ok := offenseControlMoves[move]
+	return c, ok
+}
+
 var protectMoves = map[string]struct{}{
 	"protect":      {},
 	"detect":       {},
 	"kings shield": {},
 }
 
+func isProtectMove(move string) bool {
+	_, ok := protectMoves[move]
+	return ok
+}
+
 var multipleTurnMoves = map[string]struct{}{
 	"bounce": {},
+}
+
+func isMultipleTurnMove(move string) bool {
+	_, ok := multipleTurnMoves[move]
+	return ok
 }
 
 var paralysisMoves = map[string]struct{}{
@@ -58,6 +88,11 @@ var paralysisMoves = map[string]struct{}{
 	"glare":        {},
 	"stun spore":   {},
 	"nuzzle":       {},
+}
+
+func isParalysisMove(move string) bool {
+	_, ok := paralysisMoves[move]
+	return ok
 }
 
 var powderMoves = map[string]struct{}{
@@ -70,6 +105,11 @@ var powderMoves = map[string]struct{}{
 	"cotten spore":  {},
 }
 
+func isPowderMove(move string) bool {
+	_, ok := powderMoves[move]
+	return ok
+}
+
 var selfThawingMoves = map[string]struct{}{
 	"flame wheel":     {},
 	"sacred fire":     {},
@@ -79,5 +119,10 @@ var selfThawingMoves = map[string]struct{}{
 	"steam eruption":  {},
 	"burn up":         {},
 	"pyro ball":       {},
-	"scorching-sands": {},
+	"scorching sands": {},
+}
+
+func isSelfThawingMove(move string) bool {
+	_, ok := selfThawingMoves[move]
+	return ok
 }

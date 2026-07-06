@@ -381,3 +381,7 @@ func (p *pokemon) applyMoveType(num, dem int, moveType pokemonType) (int, int) {
 
 	return num, dem
 }
+
+func (p *pokemon) isImmuneToPowderMoves() bool {
+	return p.hasType(grassType) || p.ability == overcoatAbility
+}

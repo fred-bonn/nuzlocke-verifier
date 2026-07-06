@@ -42,7 +42,7 @@ func (ma *moveAction) invoke(bs battleState) {
 	ma.userSlot.suckerPunch = ma.move.Name == "sucker punch"
 
 	if _, ok := ma.userSlot.mon.ailments[freezeAilment]; ok {
-		if _, ok := selfThawingMoves[ma.move.Name]; ok || roll(1, 5) {
+		if isSelfThawingMove(ma.move.Name) || roll(1, 5) {
 			vprintf("%s thawed out", ma.userSlot.mon.base.Name)
 			delete(ma.userSlot.mon.ailments, freezeAilment)
 		} else {
@@ -111,7 +111,7 @@ func (ma *moveAction) invoke(bs battleState) {
 
 	ma.move.PP--
 
-	if _, ok := multipleTurnMoves[ma.move.Name]; ok {
+	if isMultipleTurnMove(ma.move.Name) {
 		if ma.userSlot.invulnerableAction == nil {
 			ma.move.PP++
 			ma.userSlot.invulnerableAction = ma
@@ -141,7 +141,18 @@ func (ma *moveAction) invoke(bs battleState) {
 		ma.userSlot.mon.changeHpBy(-(ma.userSlot.mon.maxHP() / 4))
 	}
 
-	if ma.targetSlot.protected || ma.targetSlot.invulnerableAction != nil {
+	if ma.targetSlot.protected {
+		vprintln("but it failed")
+		return
+	}
+
+	if ma.targetSlot.invulnerableAction != nil && ma.userSlot.mon.ability != noGuardAbility && ma.targetSlot.mon.ability != noGuardAbility {
+		// special cases for surf against dive, thunder against fly, etc
+		vprintln("but it failed")
+		return
+	}
+
+	if isPowderMove(ma.move.Name) && ma.targetSlot.mon.isImmuneToPowderMoves() {
 		vprintln("but it failed")
 		return
 	}
@@ -171,7 +182,7 @@ func (ma *moveAction) invoke(bs battleState) {
 }
 
 func (ma *moveAction) applyStatusMove(bs battleState, target *pokemon, offensive bool) {
-	if _, ok := protectMoves[ma.move.Name]; ok {
+	if isProtectMove(ma.move.Name) {
 		ma.userSlot.resolveProtect()
 		return
 	}
@@ -356,7 +367,7 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		}
 	}
 
-	if _, ok := pivotMoves[ma.move.Name]; ok {
+	if isPivotMove(ma.move.Name) {
 		if ma.userSlot.trainer.canReplace(bs) {
 			injectReplaceAction(bs, ma.userSlot, true)
 		}

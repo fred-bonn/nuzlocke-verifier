@@ -34,7 +34,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i] = 7
 			continue
-		} else if a.move.Name == "fake-out" {
+		} else if a.move.Name == "fake out" {
 			if !a.userSlot.firstTurn || a.targetSlot.mon.ability == innerFocusAbility || a.targetSlot.mon.ability == shieldDustAbility {
 				damage[i] = -1
 				scores[i] = -64
@@ -42,7 +42,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			}
 			scores[i] = 9
 
-		} else if a.move.Name == "first-impression" && !a.userSlot.firstTurn {
+		} else if a.move.Name == "first impression" && !a.userSlot.firstTurn {
 			damage[i] = -1
 			scores[i] = -64
 			continue
@@ -50,7 +50,7 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 			damage[i] = -1
 			scores[i] = -64
 			continue
-		} else if a.move.Name == "sucker-punch" && a.userSlot.suckerPunch && roll(1, 2) {
+		} else if a.move.Name == "sucker punch" && a.userSlot.suckerPunch && roll(1, 2) {
 			scores[i] = -20
 		}
 
@@ -79,15 +79,15 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		// add additional scoring to damaging moves
-		if a.move.Name == "fell-stinger" && kills[i] {
+		if a.move.Name == "fell stinger" && kills[i] {
 			if a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
 				scores[i] = 21 + 2*rollInt(1, 5)
 			} else {
 				scores[i] = 15 + 2*rollInt(1, 5)
 			}
-		} else if a.move.Name == "acid-spray" {
+		} else if a.move.Name == "acid spray" {
 			scores[i] = 6
-		} else if a.move.Name == "future-sight" {
+		} else if a.move.Name == "future sight" {
 			// needs 8 score instead if faster and dead to target
 			scores[i] = 6
 		} else if a.move.Name == "pursuit" {
@@ -154,12 +154,12 @@ func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAc
 		}
 
 		// moves from this point that gets a base score if and only if it neither kills or is highest damage
-		if _, ok := speedControlMoves[a.move.Name]; ok && !a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
+		if isSpeedControlMove(a.move.Name) && !a.userSlot.mon.isFasterThan(bs, a.targetSlot.mon) {
 			scores[i] = 6
 			continue
 		}
 
-		if c, ok := offenseControlMoves[a.move.Name]; ok {
+		if c, ok := isOffenseControlMove(a.move.Name); ok {
 			if a.targetSlot.mon.hasMovePredicate(func(m *Move) bool {
 				return m.Class == c
 			}) {

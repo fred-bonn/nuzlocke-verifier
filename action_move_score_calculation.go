@@ -38,16 +38,16 @@ func (ma *moveAction) scoreStatusMove(bs battleState) int {
 		return 5
 	}
 
-	if _, ok := powderMoves[ma.move.Name]; ok && (ma.targetSlot.mon.hasType(grassType) || ma.targetSlot.mon.ability == overcoatAbility) {
+	if isPowderMove(ma.move.Name) && ma.targetSlot.mon.isImmuneToPowderMoves() {
 		return -64
 	}
-	if _, ok := paralysisMoves[ma.move.Name]; ok {
+	if isParalysisMove(ma.move.Name) {
 		return ma.scoreParalysisMove(bs)
 	}
-	if _, ok := sleepMoves[ma.move.Name]; ok {
+	if isSleepMove(ma.move.Name) {
 		return ma.scoreSleepMove(bs)
 	}
-	if _, ok := protectMoves[ma.move.Name]; ok {
+	if isProtectMove(ma.move.Name) {
 		return ma.scoreProtectMove(bs)
 	}
 
@@ -297,10 +297,7 @@ func (ma *moveAction) scoreBellyDrum(bs battleState) int {
 	target := ma.targetSlot.mon
 
 	if a := target.hasAilment(freezeAilment); a != nil && target.hasMovePredicate(func(m *Move) bool {
-		if _, ok := selfThawingMoves[m.Name]; ok {
-			return true
-		}
-		return false
+		return isSelfThawingMove(m.Name)
 	}) {
 		return 9
 	}
