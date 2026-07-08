@@ -13,6 +13,13 @@ func (ba *benchAction) speed(bs battleState) int { return ba.spd }
 
 type benchBattleState struct {
 	actions *actionQueue
+	weather weatherState
+}
+
+func initBenchBattleState(w weatherState) *benchBattleState {
+	return &benchBattleState{
+		weather: w,
+	}
 }
 
 func (bs *benchBattleState) execute() error                       { return nil }
@@ -22,7 +29,7 @@ func (bs *benchBattleState) getAllSlots() []*slot                 { return nil }
 func (bs *benchBattleState) getOtherSlots(s *slot) []*slot        { return nil }
 func (bs *benchBattleState) getOpponentSlot(s *slot) *slot        { return nil }
 func (bs *benchBattleState) getActions() *actionQueue             { return bs.actions }
-func (bs *benchBattleState) getWeather() weatherState             { return noneWeather }
+func (bs *benchBattleState) getWeather() weatherState             { return bs.weather }
 func (bs *benchBattleState) setWeather(weatherState)              {}
 func (bs *benchBattleState) getFieldEffects() map[fieldEffect]int { return nil }
 

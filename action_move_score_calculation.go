@@ -235,7 +235,7 @@ func (ma *moveAction) scoreProtectMove(bs battleState) int {
 	if ma.userSlot.firstTurn {
 		score--
 	}
-	// still needs perish song and cursed,
+	// still needs perish song and cursed
 	if target.hasAilment(poisonAilment) != nil || target.hasAilment(toxicAilment) != nil || target.hasAilment(burnAilment) != nil || target.hasAilment(leechSeedAilment) != nil || target.hasAilment(yawnAilment) != nil || target.hasAilment(infatuationAilment) != nil {
 		score++
 	}
