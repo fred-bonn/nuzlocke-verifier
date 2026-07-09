@@ -235,63 +235,58 @@ func (p *pokemon) accuracyFraction() (int, int) {
 	return 3, 3 - stage
 }
 
-func (p *pokemon) hasType(typeName pokemonType) bool {
-	for _, t := range p.base.Types {
-		if typeName == t {
-			return true
-		}
-	}
-	return false
+func (p *pokemon) hasType(pokemonType pokemonType) bool {
+	return slices.Contains(p.base.Types, pokemonType)
 }
 
-func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *slot) {
+func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *slot) bool {
 	if ailment == noneAilment {
 		elogf("warning: %s applies an ailment but is none", ailment.String())
-		return
+		return false
 	}
 
 	if _, ok := p.ailments[ailment]; ok {
-		return
+		return false
 	}
 	if ailment.isNonVolatileStatus() && p.hasNonVolatileAilment() {
-		return
+		return false
 	}
 
 	switch ailment {
 	case burnAilment:
 		if p.hasType(fireType) || p.ability == waterVeilAbility {
-			return
+			return false
 		}
 	case paralysisAilment:
 		if p.hasType(electricType) || p.ability == limberAbility {
-			return
+			return false
 		}
 	case poisonAilment, toxicAilment:
 		if p.ability == immunityAbility {
-			return
+			return false
 		}
 		if (p.hasType(poisonType) || p.hasType(steelType)) && (afflictedBy == nil || afflictedBy.mon.ability != corrosionAbility) {
-			return
+			return false
 		}
 	case freezeAilment:
 		if p.hasType(iceType) || p.ability == magmaArmorAbility {
-			return
+			return false
 		}
 	case sleepAilment, yawnAilment:
 		if p.ability.blocksSleep() || p.hasNonVolatileAilment() {
-			return
+			return false
 		}
 	case trapAilment:
 		p.ailments[ailment] = generateTrap(move.MinTurns, move.MaxTurns, afflictedBy)
-		return
+		return true
 	case infatuationAilment:
-		if afflictedBy.mon.ability == obliviousAbility {
-			return
+		if p.ability == obliviousAbility {
+			return false
 		}
 	}
 
 	if ailment == poisonAilment {
-		if move != nil && (move.Name == "toxic" || move.Name == "poison-fang") {
+		if move != nil && (move.Name == "toxic" || move.Name == "poison fang") {
 			ailment = toxicAilment
 		}
 	}
@@ -302,6 +297,8 @@ func (p *pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
 	p.checkItemTrigger(true, nil)
+
+	return true
 }
 
 func (p *pokemon) hasAilment(ailment ailmentState) *ailment {
