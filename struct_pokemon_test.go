@@ -295,3 +295,37 @@ func TestToxicConversion(t *testing.T) {
 		})
 	}
 }
+
+func TestIsGrounded(t *testing.T) {
+	tests := map[string]struct {
+		pokemonType pokemonType
+		ability     ability
+		item        itemState
+		want        bool
+	}{
+		"flying":             {flyingType, noneAbility, noneItem, false},
+		"flying iron ball":   {flyingType, noneAbility, ironBall, true},
+		"intim":              {normalType, intimidateAbility, noneItem, true},
+		"intim iron ball":    {normalType, intimidateAbility, ironBall, true},
+		"levitate":           {normalType, levitateAbility, noneItem, false},
+		"levitate iron ball": {normalType, levitateAbility, ironBall, true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				base: BasePokemon{
+					Types: []pokemonType{tc.pokemonType},
+				},
+				ability: tc.ability,
+			}
+			item, _ := registerItem(tc.item, &mon)
+			mon.item = item
+
+			got := mon.isGrounded()
+			if got != tc.want {
+				t.Fatalf("mon.isGrounded() = %t, want %t", got, tc.want)
+			}
+		})
+	}
+}
