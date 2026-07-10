@@ -203,36 +203,32 @@ func TestAccuracyFration(t *testing.T) {
 func TestApplyAilment(t *testing.T) {
 	tests := map[string]struct {
 		ailment     ailmentState
-		move        string
 		pokemonType pokemonType
 		ability     ability
 		item        itemState
 		want        bool
-		toxic       bool
 		removed     bool
 	}{
-		"burn":                  {burnAilment, "none", normalType, intimidateAbility, noneItem, true, false, false},
-		"para":                  {paralysisAilment, "none", normalType, intimidateAbility, noneItem, true, false, false},
-		"para cheri":            {paralysisAilment, "none", normalType, intimidateAbility, cheriBerry, true, false, true},
-		"para chesto":           {paralysisAilment, "none", normalType, intimidateAbility, chestoBerry, true, false, false},
-		"burn fire":             {burnAilment, "none", fireType, intimidateAbility, noneItem, false, false, false},
-		"para electric":         {paralysisAilment, "none", electricType, intimidateAbility, noneItem, false, false, false},
-		"confusion lum":         {confusionAilment, "none", normalType, intimidateAbility, lumBerry, true, false, true},
-		"confusion persim":      {confusionAilment, "none", normalType, intimidateAbility, persimBerry, true, false, true},
-		"freeze ice":            {freezeAilment, "none", iceType, intimidateAbility, noneItem, false, false, false},
-		"freeze magma armor":    {freezeAilment, "none", normalType, magmaArmorAbility, noneItem, false, false, false},
-		"freeze aspear":         {freezeAilment, "none", normalType, noneAbility, aspearBerry, true, false, true},
-		"burn water veil":       {burnAilment, "none", normalType, waterVeilAbility, noneItem, false, false, false},
-		"para limber":           {paralysisAilment, "none", normalType, limberAbility, noneItem, false, false, false},
-		"poison":                {poisonAilment, "none", normalType, intimidateAbility, noneItem, true, false, false},
-		"poison steel":          {poisonAilment, "none", steelType, intimidateAbility, noneItem, false, false, false},
-		"poison pecha":          {poisonAilment, "none", normalType, intimidateAbility, pechaBerry, true, false, true},
-		"poison immunity":       {poisonAilment, "none", normalType, immunityAbility, noneItem, false, false, false},
-		"poison toxic":          {poisonAilment, "toxic", normalType, noneAbility, noneItem, true, true, false},
-		"poison poison fang":    {poisonAilment, "poison fang", normalType, noneAbility, noneItem, true, true, false},
-		"sleep vital spirit":    {sleepAilment, "none", normalType, vitalSpiritAbility, noneItem, false, false, false},
-		"yawn vital spirit":     {yawnAilment, "none", normalType, vitalSpiritAbility, noneItem, false, false, false},
-		"infatuation oblivious": {infatuationAilment, "none", normalType, obliviousAbility, noneItem, false, false, false},
+		"burn":                  {burnAilment, normalType, intimidateAbility, noneItem, true, false},
+		"para":                  {paralysisAilment, normalType, intimidateAbility, noneItem, true, false},
+		"para cheri":            {paralysisAilment, normalType, intimidateAbility, cheriBerry, true, true},
+		"para chesto":           {paralysisAilment, normalType, intimidateAbility, chestoBerry, true, false},
+		"burn fire":             {burnAilment, fireType, intimidateAbility, noneItem, false, false},
+		"para electric":         {paralysisAilment, electricType, intimidateAbility, noneItem, false, false},
+		"confusion lum":         {confusionAilment, normalType, intimidateAbility, lumBerry, true, true},
+		"confusion persim":      {confusionAilment, normalType, intimidateAbility, persimBerry, true, true},
+		"freeze ice":            {freezeAilment, iceType, intimidateAbility, noneItem, false, false},
+		"freeze magma armor":    {freezeAilment, normalType, magmaArmorAbility, noneItem, false, false},
+		"freeze aspear":         {freezeAilment, normalType, noneAbility, aspearBerry, true, true},
+		"burn water veil":       {burnAilment, normalType, waterVeilAbility, noneItem, false, false},
+		"para limber":           {paralysisAilment, normalType, limberAbility, noneItem, false, false},
+		"poison":                {poisonAilment, normalType, intimidateAbility, noneItem, true, false},
+		"poison steel":          {poisonAilment, steelType, intimidateAbility, noneItem, false, false},
+		"poison pecha":          {poisonAilment, normalType, intimidateAbility, pechaBerry, true, true},
+		"poison immunity":       {poisonAilment, normalType, immunityAbility, noneItem, false, false},
+		"sleep vital spirit":    {sleepAilment, normalType, vitalSpiritAbility, noneItem, false, false},
+		"yawn vital spirit":     {yawnAilment, normalType, vitalSpiritAbility, noneItem, false, false},
+		"infatuation oblivious": {infatuationAilment, normalType, obliviousAbility, noneItem, false, false},
 	}
 
 	for name, tc := range tests {
@@ -244,34 +240,57 @@ func TestApplyAilment(t *testing.T) {
 				ability:  tc.ability,
 				ailments: make(map[ailmentState]*ailment),
 			}
-			move := Move{
-				Name: tc.move,
-			}
 			item, _ := registerItem(tc.item, &mon)
 			mon.item = item
 
-			got := mon.applyAilment(tc.ailment, &move, nil)
+			got := mon.applyAilment(tc.ailment, nil, nil)
 			if got != tc.want {
-				t.Fatalf("mon.applyAilment(%s, %s, nil) = %t, want %t", tc.ailment.String(), tc.move, got, tc.want)
+				t.Fatalf("mon.applyAilment(%s, nil, nil) = %t, want %t", tc.ailment.String(), got, tc.want)
 			}
 			if got {
 				if tc.removed != (mon.hasAilment(tc.ailment) == nil) {
-					if tc.ailment != poisonAilment || !tc.toxic {
-						t.Fatalf("mon.applyAilment(%s, %s, nil) applied %s, but the state after is wrong, removed: %t, has: %t", tc.ailment.String(), tc.move, tc.ailment.String(), tc.removed, mon.hasAilment(tc.ailment) != nil)
-					}
+					t.Fatalf("mon.applyAilment(%s, nil, nil) applied %s, but the state after is wrong, removed: %t, has: %t", tc.ailment.String(), tc.ailment.String(), tc.removed, mon.hasAilment(tc.ailment) != nil)
 				}
 
-				if !tc.removed && tc.ailment == poisonAilment && tc.toxic && (mon.hasAilment(poisonAilment) != nil || mon.hasAilment(toxicAilment) == nil) {
-					t.Fatalf("poison was supposed to be converted to toxic due to %s", tc.move)
-				}
-
-				gotAgain := mon.applyAilment(tc.ailment, &move, nil)
+				gotAgain := mon.applyAilment(tc.ailment, nil, nil)
 				if got && tc.removed && !gotAgain {
 					t.Fatalf("%s was removed but did not get re-applied the second time", tc.ailment.String())
 				}
 				if got && !tc.removed && gotAgain {
 					t.Fatalf("%s was not removed but did get re-applied the second time", tc.ailment.String())
 				}
+			}
+		})
+	}
+}
+
+func TestToxicConversion(t *testing.T) {
+	tests := map[string]struct {
+		move string
+		want bool
+	}{
+		"poison fang": {"poison fang", true},
+		"toxic":       {"toxic", true},
+		"tackle":      {"tackle", false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				ailments: make(map[ailmentState]*ailment),
+			}
+			move := Move{
+				Name: tc.move,
+			}
+			item, _ := registerItem(noneItem, &mon)
+			mon.item = item
+
+			mon.applyAilment(poisonAilment, &move, nil)
+			if tc.want && mon.hasAilment(toxicAilment) == nil {
+				t.Fatalf("mon.applyAilment(poison, %s, nil) did not convert the poison to toxic", tc.move)
+			}
+			if !tc.want && mon.hasAilment(toxicAilment) != nil {
+				t.Fatalf("mon.applyAilment(poison, %s, nil) did converted the poison to toxic", tc.move)
 			}
 		})
 	}
