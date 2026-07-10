@@ -200,6 +200,102 @@ func TestAccuracyFration(t *testing.T) {
 	}
 }
 
+func TestChangeStatStageBy(t *testing.T) {
+	tests := map[string]struct {
+		initial   int
+		stat      stat
+		change    int
+		offensive bool
+		ability   ability
+		want      int
+	}{
+		"increases stage":               {initial: 0, stat: attack, change: 1, want: 1},
+		"decreases stage":               {initial: 0, stat: defense, change: -1, want: -1},
+		"caps positive stage":           {initial: 5, stat: speed, change: 2, want: 6},
+		"caps negative stage":           {initial: -5, stat: speed, change: -2, want: -6},
+		"clear body blocks offense":     {initial: 0, stat: attack, change: -1, offensive: true, ability: clearBodyAbility, want: 0},
+		"clear body blocks not offense": {initial: 0, stat: attack, change: -1, offensive: false, ability: clearBodyAbility, want: -1},
+		"keen eye blocks accuracy":      {initial: 0, stat: accuracy, change: -1, ability: keenEyeAbility, want: 0},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				stages:  []int{0, 0, 0, 0, 0, 0, 0, 0, 0},
+				ability: tc.ability,
+			}
+			mon.stages[tc.stat] = tc.initial
+
+			mon.changeStatStageBy(tc.stat, tc.change, tc.offensive)
+
+			if got := mon.stages[tc.stat]; got != tc.want {
+				t.Errorf("mon.changeStatStageBy(%s, %d, %t) = %d, want %d", tc.stat, tc.change, tc.offensive, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestHasAilment(t *testing.T) {
+	tests := map[string]struct {
+		has   ailmentState
+		check ailmentState
+		want  bool
+	}{
+		"para/para":     {paralysisAilment, paralysisAilment, true},
+		"para/freeze":   {paralysisAilment, freezeAilment, false},
+		"poison/poison": {poisonAilment, poisonAilment, true},
+		"poison/toxic":  {poisonAilment, toxicAilment, false},
+		"toxic/poison":  {toxicAilment, poisonAilment, false},
+		"yawn/yawn":     {yawnAilment, yawnAilment, true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				ailments: map[ailmentState]*ailment{
+					tc.has: {
+						state: tc.has,
+					},
+				},
+			}
+
+			if got := mon.hasAilment(tc.check) != nil; tc.want != got {
+				t.Errorf("mon.hasAilment(%s) = %t, want %t", tc.check.String(), got, tc.want)
+			}
+		})
+	}
+}
+
+func TestHasNonVolatileAilment(t *testing.T) {
+	tests := map[string]struct {
+		has  ailmentState
+		want bool
+	}{
+		"para":        {paralysisAilment, true},
+		"sleep":       {sleepAilment, true},
+		"toxic":       {toxicAilment, true},
+		"yawn":        {yawnAilment, false},
+		"infatuation": {infatuationAilment, false},
+		"confusion":   {confusionAilment, false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				ailments: map[ailmentState]*ailment{
+					tc.has: {
+						state: tc.has,
+					},
+				},
+			}
+
+			if got := mon.hasNonVolatileAilment(); tc.want != got {
+				t.Errorf("mon.hasAilment() = %t, want %t", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestApplyAilment(t *testing.T) {
 	tests := map[string]struct {
 		ailment     ailmentState
