@@ -2,37 +2,6 @@ package main
 
 import "testing"
 
-type benchAction struct {
-	priority int
-	spd      int
-}
-
-func (ba *benchAction) invoke(bs battleState)    {}
-func (ba *benchAction) prio(bs battleState) int  { return ba.priority }
-func (ba *benchAction) speed(bs battleState) int { return ba.spd }
-
-type benchBattleState struct {
-	actions *actionQueue
-	weather weatherState
-}
-
-func initBenchBattleState(w weatherState) *benchBattleState {
-	return &benchBattleState{
-		weather: w,
-	}
-}
-
-func (bs *benchBattleState) execute() error                       { return nil }
-func (bs *benchBattleState) setError(error)                       {}
-func (bs *benchBattleState) gatherActions()                       {}
-func (bs *benchBattleState) getAllSlots() []*slot                 { return nil }
-func (bs *benchBattleState) getOtherSlots(s *slot) []*slot        { return nil }
-func (bs *benchBattleState) getOpponentSlot(s *slot) *slot        { return nil }
-func (bs *benchBattleState) getActions() *actionQueue             { return bs.actions }
-func (bs *benchBattleState) getWeather() weatherState             { return bs.weather }
-func (bs *benchBattleState) setWeather(weatherState)              {}
-func (bs *benchBattleState) getFieldEffects() map[fieldEffect]int { return nil }
-
 func newEmptyActionQueue() *actionQueue {
 	return &actionQueue{
 		queue: make(priorityQueue[action], 0, 5),
@@ -43,13 +12,13 @@ func newEmptyActionQueue() *actionQueue {
 // creating a new queue, pushing actions, and then sorting for execution.
 func BenchmarkActionQueueInit(b *testing.B) {
 	actions := []action{
-		&benchAction{priority: 1, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
+		&dummyAction{priority: 1, spd: 50},
+		&dummyAction{priority: 5, spd: 30},
+		&dummyAction{priority: 3, spd: 70},
+		&dummyAction{priority: 2, spd: 40},
+		&dummyAction{priority: 4, spd: 60},
 	}
-	bs := &benchBattleState{}
+	bs := &dummyBattleState{}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -67,13 +36,13 @@ func BenchmarkActionQueueInit(b *testing.B) {
 // Reuses the same queue allocation across iterations to focus on the drain cost.
 func BenchmarkActionQueueDrain(b *testing.B) {
 	actions := []action{
-		&benchAction{priority: 2, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
+		&dummyAction{priority: 2, spd: 50},
+		&dummyAction{priority: 5, spd: 30},
+		&dummyAction{priority: 3, spd: 70},
+		&dummyAction{priority: 2, spd: 40},
+		&dummyAction{priority: 4, spd: 60},
 	}
-	bs := &benchBattleState{}
+	bs := &dummyBattleState{}
 	q := newEmptyActionQueue()
 	bs.actions = q
 

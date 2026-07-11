@@ -14,11 +14,11 @@ func newEmptyActionQueueHeap() *ActionQueueOld {
 // creating a new heap, initializing it, and pushing actions for execution.
 func BenchmarkActionQueueHeapInit(b *testing.B) {
 	actions := []action{
-		&benchAction{priority: 1, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
+		&dummyAction{priority: 1, spd: 50},
+		&dummyAction{priority: 5, spd: 30},
+		&dummyAction{priority: 3, spd: 70},
+		&dummyAction{priority: 2, spd: 40},
+		&dummyAction{priority: 4, spd: 60},
 	}
 
 	b.ReportAllocs()
@@ -36,11 +36,11 @@ func BenchmarkActionQueueHeapInit(b *testing.B) {
 // Reuses the same heap allocation across iterations to focus on the drain cost.
 func BenchmarkActionQueueHeapDrain(b *testing.B) {
 	actions := []action{
-		&benchAction{priority: 2, spd: 50},
-		&benchAction{priority: 5, spd: 30},
-		&benchAction{priority: 3, spd: 70},
-		&benchAction{priority: 2, spd: 40},
-		&benchAction{priority: 4, spd: 60},
+		&dummyAction{priority: 2, spd: 50},
+		&dummyAction{priority: 5, spd: 30},
+		&dummyAction{priority: 3, spd: 70},
+		&dummyAction{priority: 2, spd: 40},
+		&dummyAction{priority: 4, spd: 60},
 	}
 	q := newEmptyActionQueueHeap()
 	heap.Init(q)
