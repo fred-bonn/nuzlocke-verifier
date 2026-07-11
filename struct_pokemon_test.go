@@ -8,11 +8,11 @@ func TestIsImmuneToPowderMoves(t *testing.T) {
 		a    ability
 		want bool
 	}{
-		"grass":              {grassType, intimidateAbility, true},
-		"grass overcoat:":    {grassType, overcoatAbility, true},
-		"not grass 1":        {flyingType, intimidateAbility, false},
-		"not grass 2":        {waterType, intimidateAbility, false},
-		"not grass overcoat": {fireType, overcoatAbility, true},
+		"grass":              {t: grassType, a: intimidateAbility, want: true},
+		"grass overcoat:":    {t: grassType, a: overcoatAbility, want: true},
+		"not grass 1":        {t: flyingType, a: intimidateAbility, want: false},
+		"not grass 2":        {t: waterType, a: intimidateAbility, want: false},
+		"not grass overcoat": {t: fireType, a: overcoatAbility, want: true},
 	}
 
 	for name, tc := range tests {
@@ -74,22 +74,22 @@ func TestEffectiveSpeed(t *testing.T) {
 		unburden  bool
 		want      int
 	}{
-		"positive stage":                 {1, 100, noneItem, noneAbility, noneWeather, false, false, 150},
-		"negative stage":                 {-1, 100, noneItem, noneAbility, noneWeather, false, false, 66},
-		"paralyzed":                      {0, 100, noneItem, noneAbility, noneWeather, true, false, 25},
-		"positive stage paralyzed":       {1, 100, noneItem, noneAbility, noneWeather, true, false, 37},
-		"iron ball":                      {0, 100, ironBall, noneAbility, noneWeather, false, false, 50},
-		"negative stage iron ball":       {-1, 100, ironBall, noneAbility, noneWeather, false, false, 33},
-		"swift swim no rain":             {0, 100, noneItem, swiftSwimAbility, noneWeather, false, false, 100},
-		"swift swim rain":                {0, 100, noneItem, swiftSwimAbility, rainWeather, false, false, 200},
-		"sand rush rain":                 {0, 100, noneItem, sandRushAbility, rainWeather, false, false, 100},
-		"sand rush sandstorm":            {0, 100, noneItem, sandRushAbility, sandstormWeather, false, false, 200},
-		"slush rush rain":                {0, 100, noneItem, slushRushAbility, rainWeather, false, false, 100},
-		"slush rush sandstorm iron ball": {0, 100, ironBall, slushRushAbility, hailWeather, false, false, 100},
-		"chloro rain":                    {0, 100, noneItem, chlorophyllAbility, rainWeather, false, false, 100},
-		"chloro sun positive stage":      {1, 100, noneItem, chlorophyllAbility, sunWeather, false, false, 300},
-		"unburden no ability":            {0, 100, noneItem, noneAbility, noneWeather, false, true, 100},
-		"unburden":                       {0, 100, noneItem, unburdenAbility, noneWeather, false, true, 200},
+		"positive stage":                 {stage: 1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 150},
+		"negative stage":                 {stage: -1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 66},
+		"paralyzed":                      {stage: 0, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 25},
+		"positive stage paralyzed":       {stage: 1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 37},
+		"iron ball":                      {stage: 0, base: 100, item: ironBall, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 50},
+		"negative stage iron ball":       {stage: -1, base: 100, item: ironBall, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 33},
+		"swift swim no rain":             {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 100},
+		"swift swim rain":                {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 200},
+		"sand rush rain":                 {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
+		"sand rush sandstorm":            {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: sandstormWeather, paralyzed: false, unburden: false, want: 200},
+		"slush rush rain":                {stage: 0, base: 100, item: noneItem, ability: slushRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
+		"slush rush sandstorm iron ball": {stage: 0, base: 100, item: ironBall, ability: slushRushAbility, weather: hailWeather, paralyzed: false, unburden: false, want: 100},
+		"chloro rain":                    {stage: 0, base: 100, item: noneItem, ability: chlorophyllAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
+		"chloro sun positive stage":      {stage: 1, base: 100, item: noneItem, ability: chlorophyllAbility, weather: sunWeather, paralyzed: false, unburden: false, want: 300},
+		"unburden no ability":            {stage: 0, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 100},
+		"unburden":                       {stage: 0, base: 100, item: noneItem, ability: unburdenAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 200},
 	}
 
 	for name, tc := range tests {
@@ -126,26 +126,26 @@ func TestEvasionFraction(t *testing.T) {
 			dem int
 		}
 	}{
-		"positive stage 1": {1, false, struct {
+		"positive stage 1": {stage: 1, keenEye: false, want: struct {
 			num int
 			dem int
-		}{3, 4}},
-		"positive stage 5": {5, false, struct {
+		}{num: 3, dem: 4}},
+		"positive stage 5": {stage: 5, keenEye: false, want: struct {
 			num int
 			dem int
-		}{3, 8}},
-		"negative stage -1": {-1, false, struct {
+		}{num: 3, dem: 8}},
+		"negative stage -1": {stage: -1, keenEye: false, want: struct {
 			num int
 			dem int
-		}{4, 3}},
-		"keen eye positve": {5, true, struct {
+		}{num: 4, dem: 3}},
+		"keen eye positve": {stage: 5, keenEye: true, want: struct {
 			num int
 			dem int
-		}{1, 1}},
-		"keen eye netative": {-3, true, struct {
+		}{num: 1, dem: 1}},
+		"keen eye netative": {stage: -3, keenEye: true, want: struct {
 			num int
 			dem int
-		}{1, 1}},
+		}{num: 1, dem: 1}},
 	}
 
 	for name, tc := range tests {
@@ -171,18 +171,18 @@ func TestAccuracyFration(t *testing.T) {
 			dem int
 		}
 	}{
-		"positive stage 1": {1, struct {
+		"positive stage 1": {stage: 1, want: struct {
 			num int
 			dem int
-		}{4, 3}},
-		"negative stage -1": {-1, struct {
+		}{num: 4, dem: 3}},
+		"negative stage -1": {stage: -1, want: struct {
 			num int
 			dem int
-		}{3, 4}},
-		"negative stage -5": {-5, struct {
+		}{num: 3, dem: 4}},
+		"negative stage -5": {stage: -5, want: struct {
 			num int
 			dem int
-		}{3, 8}},
+		}{num: 3, dem: 8}},
 	}
 
 	for name, tc := range tests {
@@ -241,12 +241,12 @@ func TestHasAilment(t *testing.T) {
 		check ailmentState
 		want  bool
 	}{
-		"para/para":     {paralysisAilment, paralysisAilment, true},
-		"para/freeze":   {paralysisAilment, freezeAilment, false},
-		"poison/poison": {poisonAilment, poisonAilment, true},
-		"poison/toxic":  {poisonAilment, toxicAilment, false},
-		"toxic/poison":  {toxicAilment, poisonAilment, false},
-		"yawn/yawn":     {yawnAilment, yawnAilment, true},
+		"para/para":     {has: paralysisAilment, check: paralysisAilment, want: true},
+		"para/freeze":   {has: paralysisAilment, check: freezeAilment, want: false},
+		"poison/poison": {has: poisonAilment, check: poisonAilment, want: true},
+		"poison/toxic":  {has: poisonAilment, check: toxicAilment, want: false},
+		"toxic/poison":  {has: toxicAilment, check: poisonAilment, want: false},
+		"yawn/yawn":     {has: yawnAilment, check: yawnAilment, want: true},
 	}
 
 	for name, tc := range tests {
@@ -271,12 +271,12 @@ func TestHasNonVolatileAilment(t *testing.T) {
 		has  ailmentState
 		want bool
 	}{
-		"para":        {paralysisAilment, true},
-		"sleep":       {sleepAilment, true},
-		"toxic":       {toxicAilment, true},
-		"yawn":        {yawnAilment, false},
-		"infatuation": {infatuationAilment, false},
-		"confusion":   {confusionAilment, false},
+		"para":        {has: paralysisAilment, want: true},
+		"sleep":       {has: sleepAilment, want: true},
+		"toxic":       {has: toxicAilment, want: true},
+		"yawn":        {has: yawnAilment, want: false},
+		"infatuation": {has: infatuationAilment, want: false},
+		"confusion":   {has: confusionAilment, want: false},
 	}
 
 	for name, tc := range tests {
@@ -301,30 +301,27 @@ func TestApplyAilment(t *testing.T) {
 		ailment     ailmentState
 		pokemonType pokemonType
 		ability     ability
-		item        itemState
 		want        bool
-		removed     bool
 	}{
-		"burn":                  {burnAilment, normalType, intimidateAbility, noneItem, true, false},
-		"para":                  {paralysisAilment, normalType, intimidateAbility, noneItem, true, false},
-		"para cheri":            {paralysisAilment, normalType, intimidateAbility, cheriBerry, true, true},
-		"para chesto":           {paralysisAilment, normalType, intimidateAbility, chestoBerry, true, false},
-		"burn fire":             {burnAilment, fireType, intimidateAbility, noneItem, false, false},
-		"para electric":         {paralysisAilment, electricType, intimidateAbility, noneItem, false, false},
-		"confusion lum":         {confusionAilment, normalType, intimidateAbility, lumBerry, true, true},
-		"confusion persim":      {confusionAilment, normalType, intimidateAbility, persimBerry, true, true},
-		"freeze ice":            {freezeAilment, iceType, intimidateAbility, noneItem, false, false},
-		"freeze magma armor":    {freezeAilment, normalType, magmaArmorAbility, noneItem, false, false},
-		"freeze aspear":         {freezeAilment, normalType, noneAbility, aspearBerry, true, true},
-		"burn water veil":       {burnAilment, normalType, waterVeilAbility, noneItem, false, false},
-		"para limber":           {paralysisAilment, normalType, limberAbility, noneItem, false, false},
-		"poison":                {poisonAilment, normalType, intimidateAbility, noneItem, true, false},
-		"poison steel":          {poisonAilment, steelType, intimidateAbility, noneItem, false, false},
-		"poison pecha":          {poisonAilment, normalType, intimidateAbility, pechaBerry, true, true},
-		"poison immunity":       {poisonAilment, normalType, immunityAbility, noneItem, false, false},
-		"sleep vital spirit":    {sleepAilment, normalType, vitalSpiritAbility, noneItem, false, false},
-		"yawn vital spirit":     {yawnAilment, normalType, vitalSpiritAbility, noneItem, false, false},
-		"infatuation oblivious": {infatuationAilment, normalType, obliviousAbility, noneItem, false, false},
+		"burn":                  {ailment: burnAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
+		"burn fire":             {ailment: burnAilment, pokemonType: fireType, ability: intimidateAbility, want: false},
+		"para":                  {ailment: paralysisAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
+		"para electric":         {ailment: paralysisAilment, pokemonType: electricType, ability: intimidateAbility, want: false},
+		"freeze":                {ailment: freezeAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"freeze ice":            {ailment: freezeAilment, pokemonType: iceType, ability: intimidateAbility, want: false},
+		"freeze magma armor":    {ailment: freezeAilment, pokemonType: normalType, ability: magmaArmorAbility, want: false},
+		"poison":                {ailment: poisonAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
+		"poison steel":          {ailment: poisonAilment, pokemonType: steelType, ability: intimidateAbility, want: false},
+		"poison immunity":       {ailment: poisonAilment, pokemonType: normalType, ability: immunityAbility, want: false},
+		"sleep":                 {ailment: sleepAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"sleep vital spirit":    {ailment: sleepAilment, pokemonType: normalType, ability: vitalSpiritAbility, want: false},
+		"yawn":                  {ailment: yawnAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"yawn vital spirit":     {ailment: yawnAilment, pokemonType: normalType, ability: vitalSpiritAbility, want: false},
+		"confusion":             {ailment: confusionAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"infatuation":           {ailment: infatuationAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"infatuation oblivious": {ailment: infatuationAilment, pokemonType: normalType, ability: obliviousAbility, want: false},
+		"burn water veil":       {ailment: burnAilment, pokemonType: normalType, ability: waterVeilAbility, want: false},
+		"para limber":           {ailment: paralysisAilment, pokemonType: normalType, ability: limberAbility, want: false},
 	}
 
 	for name, tc := range tests {
@@ -336,25 +333,97 @@ func TestApplyAilment(t *testing.T) {
 				ability:  tc.ability,
 				ailments: make(map[ailmentState]*ailment),
 			}
-			item, _ := registerItem(tc.item, &mon)
+			item, _ := registerItem(noneItem, &mon)
 			mon.item = item
 
 			got := mon.applyAilment(tc.ailment, nil, nil)
 			if got != tc.want {
 				t.Fatalf("mon.applyAilment(%s, nil, nil) = %t, want %t", tc.ailment.String(), got, tc.want)
 			}
-			if got {
-				if tc.removed != (mon.hasAilment(tc.ailment) == nil) {
-					t.Fatalf("mon.applyAilment(%s, nil, nil) applied %s, but the state after is wrong, removed: %t, has: %t", tc.ailment.String(), tc.ailment.String(), tc.removed, mon.hasAilment(tc.ailment) != nil)
-				}
+			if tc.want && mon.hasAilment(tc.ailment) == nil {
+				t.Fatalf("mon.applyAilment(%s, nil, nil) did not leave %s applied", tc.ailment.String(), tc.ailment.String())
+			}
+			if !tc.want && mon.hasAilment(tc.ailment) != nil {
+				t.Fatalf("mon.applyAilment(%s, nil, nil) applied %s despite a blocking condition", tc.ailment.String(), tc.ailment.String())
+			}
+		})
+	}
+}
 
-				gotAgain := mon.applyAilment(tc.ailment, nil, nil)
-				if got && tc.removed && !gotAgain {
-					t.Fatalf("%s was removed but did not get re-applied the second time", tc.ailment.String())
-				}
-				if got && !tc.removed && gotAgain {
-					t.Fatalf("%s was not removed but did get re-applied the second time", tc.ailment.String())
-				}
+func TestBerryItemsCureAilments(t *testing.T) {
+	tests := map[string]struct {
+		ailment  ailmentState
+		item     itemState
+		unnerved bool
+		want     bool
+	}{
+		"cheri cures paralysis":       {ailment: paralysisAilment, item: cheriBerry, want: true},
+		"cheri blocked by unnerve":    {ailment: paralysisAilment, item: cheriBerry, unnerved: true, want: false},
+		"chesto cures sleep":          {ailment: sleepAilment, item: chestoBerry, want: true},
+		"chesto does not cure poison": {ailment: poisonAilment, item: chestoBerry, want: false},
+		"pecha cures poison":          {ailment: poisonAilment, item: pechaBerry, want: true},
+		"rawst cures burn":            {ailment: burnAilment, item: rawstBerry, want: true},
+		"aspear cures freeze":         {ailment: freezeAilment, item: aspearBerry, want: true},
+		"persim cures confusion":      {ailment: confusionAilment, item: persimBerry, want: true},
+		"persim does not cure freeze": {ailment: freezeAilment, item: persimBerry, want: false},
+		"lum cures paralysis":         {ailment: paralysisAilment, item: lumBerry, want: true},
+		"lum cures sleep":             {ailment: sleepAilment, item: lumBerry, want: true},
+		"lum blocked by unnerve":      {ailment: paralysisAilment, item: lumBerry, unnerved: true, want: false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				base: BasePokemon{
+					Types: []pokemonType{normalType},
+				},
+				unnerved: tc.unnerved,
+				ailments: make(map[ailmentState]*ailment),
+			}
+			item, _ := registerItem(tc.item, &mon)
+			mon.item = item
+
+			if got := mon.applyAilment(tc.ailment, nil, nil); got != true {
+				t.Fatalf("mon.applyAilment(%s, nil, nil) = %t, want true", tc.ailment.String(), got)
+			}
+			if got := mon.hasAilment(tc.ailment) == nil; got != tc.want {
+				t.Fatalf("mon.hasAilment(%s) = %t, want %t", tc.ailment.String(), got, tc.want)
+			}
+		})
+	}
+}
+
+func TestChangeHpBy(t *testing.T) {
+	tests := map[string]struct {
+		initialHP int
+		maxHP     int
+		change    int
+		item      itemState
+		unnerved  bool
+		want      int
+	}{
+		"increase hp":                   {initialHP: 50, maxHP: 100, change: 20, item: noneItem, want: 70},
+		"increase over max":             {initialHP: 90, maxHP: 100, change: 20, item: noneItem, want: 100},
+		"oran berry restores hp":        {initialHP: 50, maxHP: 100, change: -40, item: oranBerry, want: 20},
+		"sitrus berry restores hp":      {initialHP: 50, maxHP: 100, change: -40, item: sitrusBerry, want: 35},
+		"oran berry blocked by unnerve": {initialHP: 50, maxHP: 100, change: -40, item: oranBerry, unnerved: true, want: 10},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				stats:    []int{0, 0, 0, 0, 0, 0, 0, 0, 0},
+				hp:       tc.initialHP,
+				unnerved: tc.unnerved,
+			}
+			mon.stats[hitPoints] = tc.maxHP
+			item, _ := registerItem(tc.item, &mon)
+			mon.item = item
+
+			mon.changeHpBy(tc.change)
+
+			if got := mon.hp; got != tc.want {
+				t.Fatalf("mon.changeHpBy(%d) hp = %d, want %d", tc.change, got, tc.want)
 			}
 		})
 	}
@@ -365,9 +434,9 @@ func TestToxicConversion(t *testing.T) {
 		move string
 		want bool
 	}{
-		"poison fang": {"poison fang", true},
-		"toxic":       {"toxic", true},
-		"tackle":      {"tackle", false},
+		"poison fang": {move: "poison fang", want: true},
+		"toxic":       {move: "toxic", want: true},
+		"tackle":      {move: "tackle", want: false},
 	}
 
 	for name, tc := range tests {
@@ -399,12 +468,12 @@ func TestIsGrounded(t *testing.T) {
 		item        itemState
 		want        bool
 	}{
-		"flying":             {flyingType, noneAbility, noneItem, false},
-		"flying iron ball":   {flyingType, noneAbility, ironBall, true},
-		"intim":              {normalType, intimidateAbility, noneItem, true},
-		"intim iron ball":    {normalType, intimidateAbility, ironBall, true},
-		"levitate":           {normalType, levitateAbility, noneItem, false},
-		"levitate iron ball": {normalType, levitateAbility, ironBall, true},
+		"flying":             {pokemonType: flyingType, ability: noneAbility, item: noneItem, want: false},
+		"flying iron ball":   {pokemonType: flyingType, ability: noneAbility, item: ironBall, want: true},
+		"intim":              {pokemonType: normalType, ability: intimidateAbility, item: noneItem, want: true},
+		"intim iron ball":    {pokemonType: normalType, ability: intimidateAbility, item: ironBall, want: true},
+		"levitate":           {pokemonType: normalType, ability: levitateAbility, item: noneItem, want: false},
+		"levitate iron ball": {pokemonType: normalType, ability: levitateAbility, item: ironBall, want: true},
 	}
 
 	for name, tc := range tests {
@@ -418,8 +487,7 @@ func TestIsGrounded(t *testing.T) {
 			item, _ := registerItem(tc.item, &mon)
 			mon.item = item
 
-			got := mon.isGrounded()
-			if got != tc.want {
+			if got := mon.isGrounded(); got != tc.want {
 				t.Fatalf("mon.isGrounded() = %t, want %t", got, tc.want)
 			}
 		})

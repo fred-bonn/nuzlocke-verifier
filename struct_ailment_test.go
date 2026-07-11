@@ -42,10 +42,10 @@ func TestIsNonVolatileStatus(t *testing.T) {
 		state ailmentState
 		want  bool
 	}{
-		"paralysis":   {paralysisAilment, true},
-		"none":        {noneAilment, false},
-		"sleep":       {sleepAilment, true},
-		"infatuation": {infatuationAilment, false},
+		"paralysis":   {state: paralysisAilment, want: true},
+		"none":        {state: noneAilment, want: false},
+		"sleep":       {state: sleepAilment, want: true},
+		"infatuation": {state: infatuationAilment, want: false},
 	}
 
 	for name, tc := range tests {
@@ -59,18 +59,18 @@ func TestIsNonVolatileStatus(t *testing.T) {
 
 func TestAilmentIterators(t *testing.T) {
 	tests := map[string]struct {
-		iterator      func(func(ailmentState) bool)
-		isNonVolatile bool
+		iterator func(func(ailmentState) bool)
+		want     bool
 	}{
-		"non volatile": {nonVolatileStatuses, true},
-		"volatile":     {volatileStatuses, false},
+		"non volatile": {iterator: nonVolatileStatuses, want: true},
+		"volatile":     {iterator: volatileStatuses, want: false},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			for state := range tc.iterator {
-				if got := state.isNonVolatileStatus(); got != tc.isNonVolatile {
-					t.Errorf("%s := range %s, tc.%s.isNonVolatileStatus() = %t, want %t", state, FunctionName(tc.iterator), state, got, tc.isNonVolatile)
+				if got := state.isNonVolatileStatus(); got != tc.want {
+					t.Errorf("%s := range %s, tc.%s.isNonVolatileStatus() = %t, want %t", state, FunctionName(tc.iterator), state, got, tc.want)
 				}
 			}
 		})
@@ -88,10 +88,10 @@ func TestGenerateAilment(t *testing.T) {
 		minTurns int
 		maxTurns int
 	}{
-		"sleep":     {sleepAilment, sleepAilment, 1, 3},
-		"confusion": {confusionAilment, confusionAilment, 1, 4},
-		"yawn":      {yawnAilment, yawnAilment, 2, 2},
-		"paralysis": {paralysisAilment, paralysisAilment, 0, 0},
+		"sleep":     {state: sleepAilment, want: sleepAilment, minTurns: 1, maxTurns: 3},
+		"confusion": {state: confusionAilment, want: confusionAilment, minTurns: 1, maxTurns: 4},
+		"yawn":      {state: yawnAilment, want: yawnAilment, minTurns: 2, maxTurns: 2},
+		"paralysis": {state: paralysisAilment, want: paralysisAilment, minTurns: 0, maxTurns: 0},
 	}
 
 	for name, tc := range tests {
@@ -110,12 +110,12 @@ func TestGenerateTrap(t *testing.T) {
 		minTurns int
 		maxTurns int
 	}{
-		"1-5":   {1, 5},
-		"2-2":   {2, 2},
-		"0-1":   {0, 1},
-		"0-0":   {0, 0},
-		"99-99": {99, 99},
-		"0-10":  {0, 10},
+		"1-5":   {minTurns: 1, maxTurns: 5},
+		"2-2":   {minTurns: 2, maxTurns: 2},
+		"0-1":   {minTurns: 0, maxTurns: 1},
+		"0-0":   {minTurns: 0, maxTurns: 0},
+		"99-99": {minTurns: 99, maxTurns: 99},
+		"0-10":  {minTurns: 0, maxTurns: 10},
 	}
 
 	for name, tc := range tests {

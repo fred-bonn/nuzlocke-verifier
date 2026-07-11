@@ -16,24 +16,24 @@ func TestWeatherAffectsMon(t *testing.T) {
 		pokemonType pokemonType
 		want        bool
 	}{
-		"overcoat sand":    {sandstormWeather, overcoatAbility, false, normalType, false},
-		"overcoat hail":    {hailWeather, overcoatAbility, false, normalType, false},
-		"magic guard sand": {sandstormWeather, magicGuardAbility, false, normalType, false},
-		"magic guard hail": {hailWeather, magicGuardAbility, false, normalType, false},
-		"intim":            {sandstormWeather, intimidateAbility, false, normalType, true},
-		"intim goggles":    {sandstormWeather, intimidateAbility, true, normalType, false},
-		"sand rush 1":      {sandstormWeather, sandRushAbility, false, normalType, false},
-		"sand rush 2":      {hailWeather, sandRushAbility, false, normalType, true},
-		"sand rush 3":      {hailWeather, sandRushAbility, true, normalType, false},
-		"ice body 1":       {hailWeather, iceBodyAbility, false, normalType, false},
-		"ice body 2":       {sandstormWeather, iceBodyAbility, false, normalType, true},
-		"ice body 3":       {sandstormWeather, iceBodyAbility, true, normalType, false},
-		"ground sand":      {sandstormWeather, intimidateAbility, false, groundType, false},
-		"steel sand":       {sandstormWeather, intimidateAbility, false, steelType, false},
-		"rock sand":        {sandstormWeather, intimidateAbility, false, rockType, false},
-		"ice sand":         {sandstormWeather, intimidateAbility, false, iceType, true},
-		"ice hail":         {hailWeather, intimidateAbility, false, iceType, false},
-		"ground hail":      {hailWeather, intimidateAbility, false, groundType, true},
+		"overcoat sand":    {weather: sandstormWeather, ability: overcoatAbility, goggles: false, pokemonType: normalType, want: false},
+		"overcoat hail":    {weather: hailWeather, ability: overcoatAbility, goggles: false, pokemonType: normalType, want: false},
+		"magic guard sand": {weather: sandstormWeather, ability: magicGuardAbility, goggles: false, pokemonType: normalType, want: false},
+		"magic guard hail": {weather: hailWeather, ability: magicGuardAbility, goggles: false, pokemonType: normalType, want: false},
+		"intim":            {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: normalType, want: true},
+		"intim goggles":    {weather: sandstormWeather, ability: intimidateAbility, goggles: true, pokemonType: normalType, want: false},
+		"sand rush 1":      {weather: sandstormWeather, ability: sandRushAbility, goggles: false, pokemonType: normalType, want: false},
+		"sand rush 2":      {weather: hailWeather, ability: sandRushAbility, goggles: false, pokemonType: normalType, want: true},
+		"sand rush 3":      {weather: hailWeather, ability: sandRushAbility, goggles: true, pokemonType: normalType, want: false},
+		"ice body 1":       {weather: hailWeather, ability: iceBodyAbility, goggles: false, pokemonType: normalType, want: false},
+		"ice body 2":       {weather: sandstormWeather, ability: iceBodyAbility, goggles: false, pokemonType: normalType, want: true},
+		"ice body 3":       {weather: sandstormWeather, ability: iceBodyAbility, goggles: true, pokemonType: normalType, want: false},
+		"ground sand":      {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: groundType, want: false},
+		"steel sand":       {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: steelType, want: false},
+		"rock sand":        {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: rockType, want: false},
+		"ice sand":         {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: iceType, want: true},
+		"ice hail":         {weather: hailWeather, ability: intimidateAbility, goggles: false, pokemonType: iceType, want: false},
+		"ground hail":      {weather: hailWeather, ability: intimidateAbility, goggles: false, pokemonType: groundType, want: true},
 	}
 
 	for name, tc := range tests {
@@ -70,10 +70,10 @@ func TestWeatherOnset(t *testing.T) {
 		weather  weatherState
 		contains string
 	}{
-		"rain":      {rainWeather, "to rain"},
-		"sun":       {sunWeather, "turned harsh"},
-		"sandstorm": {sandstormWeather, "brewed"},
-		"hail":      {hailWeather, "to hail"},
+		"rain":      {weather: rainWeather, contains: "to rain"},
+		"sun":       {weather: sunWeather, contains: "turned harsh"},
+		"sandstorm": {weather: sandstormWeather, contains: "brewed"},
+		"hail":      {weather: hailWeather, contains: "to hail"},
 	}
 
 	oldVerbose := *verbose

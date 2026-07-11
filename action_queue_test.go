@@ -4,12 +4,12 @@ import "testing"
 
 func TestPriorityQueuePush(t *testing.T) {
 	tests := map[string]struct {
-		queue    priorityQueue[int]
-		push     []int
-		wantLeft priorityQueue[int]
+		queue priorityQueue[int]
+		push  []int
+		want  priorityQueue[int]
 	}{
-		"empty":          {priorityQueue[int]{}, []int{1, 2, 3}, priorityQueue[int]{1, 2, 3}},
-		"three elements": {priorityQueue[int]{1, 2, 3}, []int{1, 2, 3}, priorityQueue[int]{1, 2, 3, 1, 2, 3}},
+		"empty":          {queue: priorityQueue[int]{}, push: []int{1, 2, 3}, want: priorityQueue[int]{1, 2, 3}},
+		"three elements": {queue: priorityQueue[int]{1, 2, 3}, push: []int{1, 2, 3}, want: priorityQueue[int]{1, 2, 3, 1, 2, 3}},
 	}
 
 	for name, tc := range tests {
@@ -17,10 +17,10 @@ func TestPriorityQueuePush(t *testing.T) {
 			for _, element := range tc.push {
 				tc.queue.push(element)
 			}
-			if n := len(tc.queue); n != len(tc.wantLeft) {
-				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, len(tc.wantLeft))
+			if n := len(tc.queue); n != len(tc.want) {
+				t.Fatalf("%s: tc.queue.len() = %d, want %d", name, n, len(tc.want))
 			}
-			for i, r := range tc.wantLeft {
+			for i, r := range tc.want {
 				if r != tc.queue[i] {
 					t.Errorf("%s: mismatch at index %d, %d != %d", name, i, r, tc.queue[i])
 				}
@@ -36,9 +36,9 @@ func TestPriorityQueuePop(t *testing.T) {
 		wantOk   bool
 		wantLeft priorityQueue[int]
 	}{
-		"empty":          {priorityQueue[int]{}, 0, false, priorityQueue[int]{}},
-		"three elements": {priorityQueue[int]{1, 2, 3}, 3, true, priorityQueue[int]{1, 2}},
-		"one element":    {priorityQueue[int]{1}, 1, true, priorityQueue[int]{}},
+		"empty":          {queue: priorityQueue[int]{}, want: 0, wantOk: false, wantLeft: priorityQueue[int]{}},
+		"three elements": {queue: priorityQueue[int]{1, 2, 3}, want: 3, wantOk: true, wantLeft: priorityQueue[int]{1, 2}},
+		"one element":    {queue: priorityQueue[int]{1}, want: 1, wantOk: true, wantLeft: priorityQueue[int]{}},
 	}
 
 	for name, tc := range tests {
@@ -69,9 +69,9 @@ func TestPriorityQueueSort(t *testing.T) {
 		queue priorityQueue[int]
 		want  priorityQueue[int]
 	}{
-		"no change": {priorityQueue[int]{1, 2, 3}, priorityQueue[int]{1, 2, 3}},
-		"sort":      {priorityQueue[int]{2, 3, 1}, priorityQueue[int]{1, 2, 3}},
-		"reverse":   {priorityQueue[int]{5, 4, 3, 2, 1}, priorityQueue[int]{1, 2, 3, 4, 5}},
+		"no change": {queue: priorityQueue[int]{1, 2, 3}, want: priorityQueue[int]{1, 2, 3}},
+		"sort":      {queue: priorityQueue[int]{2, 3, 1}, want: priorityQueue[int]{1, 2, 3}},
+		"reverse":   {queue: priorityQueue[int]{5, 4, 3, 2, 1}, want: priorityQueue[int]{1, 2, 3, 4, 5}},
 	}
 
 	f := func(a int, b int) int {
@@ -100,9 +100,9 @@ func TestPriorityQueueInsert(t *testing.T) {
 		input int
 		want  priorityQueue[int]
 	}{
-		"start":  {priorityQueue[int]{1, 2, 3}, 1, priorityQueue[int]{1, 1, 2, 3}},
-		"end":    {priorityQueue[int]{1, 2, 3}, 5, priorityQueue[int]{1, 2, 3, 5}},
-		"middle": {priorityQueue[int]{1, 2, 3}, 2, priorityQueue[int]{1, 2, 2, 3}},
+		"start":  {queue: priorityQueue[int]{1, 2, 3}, input: 1, want: priorityQueue[int]{1, 1, 2, 3}},
+		"end":    {queue: priorityQueue[int]{1, 2, 3}, input: 5, want: priorityQueue[int]{1, 2, 3, 5}},
+		"middle": {queue: priorityQueue[int]{1, 2, 3}, input: 2, want: priorityQueue[int]{1, 2, 2, 3}},
 	}
 
 	f := func(a int, b int) bool {

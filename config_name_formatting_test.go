@@ -7,13 +7,13 @@ func TestCleanPokemonNames(t *testing.T) {
 		input string
 		want  string
 	}{
-		"lowercases": {"pIkAcHu", "pikachu"},
-		"dot":        {"Mr. Mime", "mr. mime"},
-		"Farfetch’d": {"Farfetch’d", "farfetch’d"},
-		"empty":      {"", ""},
-		"numerals":   {"Porygon2", "porygon2"},
-		"hyphen":     {"Ho-Oh", "ho-oh"},
-		"regional":   {"Arcanine-Hisui", "arcanine-hisui"},
+		"lowercases": {input: "pIkAcHu", want: "pikachu"},
+		"dot":        {input: "Mr. Mime", want: "mr. mime"},
+		"Farfetch’d": {input: "Farfetch’d", want: "farfetch’d"},
+		"empty":      {input: "", want: ""},
+		"numerals":   {input: "Porygon2", want: "porygon2"},
+		"hyphen":     {input: "Ho-Oh", want: "ho-oh"},
+		"regional":   {input: "Arcanine-Hisui", want: "arcanine-hisui"},
 	}
 
 	for name, tc := range tests {
@@ -30,10 +30,10 @@ func TestHasHyphen(t *testing.T) {
 		input string
 		want  bool
 	}{
-		"empty": {"", false},
-		"mon":   {"ho-oh", true},
-		"mon2":  {"pikachu", false},
-		"mon3":  {"arcanine-hisui", false},
+		"empty": {input: "", want: false},
+		"mon":   {input: "ho-oh", want: true},
+		"mon2":  {input: "pikachu", want: false},
+		"mon3":  {input: "arcanine-hisui", want: false},
 	}
 
 	for name, tc := range tests {
@@ -50,10 +50,10 @@ func IsRegionalPokemon(t *testing.T) {
 		input string
 		want  bool
 	}{
-		"empty": {"", false},
-		"mon":   {"ho-oh", false},
-		"mon2":  {"pikachu", false},
-		"mon3":  {"arcanine-hisui", true},
+		"empty": {input: "", want: false},
+		"mon":   {input: "ho-oh", want: false},
+		"mon2":  {input: "pikachu", want: false},
+		"mon3":  {input: "arcanine-hisui", want: true},
 	}
 
 	for name, tc := range tests {
@@ -70,10 +70,10 @@ func TestCleanMoveNames(t *testing.T) {
 		input string
 		want  string
 	}{
-		"lowercases": {"ThUndEr SHoCk", "thunder shock"},
-		"empty":      {"", ""},
-		"dash":       {"Tri-Attack", "tri attack"},
-		"numerals":   {"conversion 2", "conversion 2"},
+		"lowercases": {input: "ThUndEr SHoCk", want: "thunder shock"},
+		"empty":      {input: "", want: ""},
+		"dash":       {input: "Tri-Attack", want: "tri attack"},
+		"numerals":   {input: "conversion 2", want: "conversion 2"},
 	}
 
 	for name, tc := range tests {
