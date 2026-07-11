@@ -200,7 +200,7 @@ func TestAccuracyFration(t *testing.T) {
 	}
 }
 
-func TestChangeStatStageBy2(t *testing.T) {
+func TestChangeStatStageBy(t *testing.T) {
 	tests := map[string]struct {
 		initial   int
 		stat      stat
