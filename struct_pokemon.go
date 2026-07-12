@@ -366,12 +366,11 @@ func (p *pokemon) applyMoveType(num, dem int, moveType pokemonType) (int, int) {
 			continue
 		}
 		switch getEffectiveness(moveType, t) {
-		case 0:
+		case immuneEffectivensss:
 			num = 0
-		case 0.5:
+		case resistedEffectiveness:
 			dem *= 2
-		case 1:
-		case 2:
+		case superEffectiveness:
 			num *= 2
 		}
 	}

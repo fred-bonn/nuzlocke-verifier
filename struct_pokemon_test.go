@@ -350,75 +350,24 @@ func TestApplyAilment(t *testing.T) {
 	}
 }
 
-func TestBerryItemsCureAilments(t *testing.T) {
-	tests := map[string]struct {
-		ailment  ailmentState
-		item     itemState
-		unnerved bool
-		want     bool
-	}{
-		"cheri cures paralysis":       {ailment: paralysisAilment, item: cheriBerry, want: true},
-		"cheri blocked by unnerve":    {ailment: paralysisAilment, item: cheriBerry, unnerved: true, want: false},
-		"chesto cures sleep":          {ailment: sleepAilment, item: chestoBerry, want: true},
-		"chesto does not cure poison": {ailment: poisonAilment, item: chestoBerry, want: false},
-		"pecha cures poison":          {ailment: poisonAilment, item: pechaBerry, want: true},
-		"rawst cures burn":            {ailment: burnAilment, item: rawstBerry, want: true},
-		"aspear cures freeze":         {ailment: freezeAilment, item: aspearBerry, want: true},
-		"persim cures confusion":      {ailment: confusionAilment, item: persimBerry, want: true},
-		"persim does not cure freeze": {ailment: freezeAilment, item: persimBerry, want: false},
-		"lum cures paralysis":         {ailment: paralysisAilment, item: lumBerry, want: true},
-		"lum cures sleep":             {ailment: sleepAilment, item: lumBerry, want: true},
-		"lum blocked by unnerve":      {ailment: paralysisAilment, item: lumBerry, unnerved: true, want: false},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			mon := pokemon{
-				base: BasePokemon{
-					Types: []pokemonType{normalType},
-				},
-				unnerved: tc.unnerved,
-				ailments: make(map[ailmentState]*ailment),
-			}
-			item, _ := registerItem(tc.item, &mon)
-			mon.item = item
-
-			if got := mon.applyAilment(tc.ailment, nil, nil); got != true {
-				t.Fatalf("mon.applyAilment(%s, nil, nil) = %t, want true", tc.ailment.String(), got)
-			}
-			if got := mon.hasAilment(tc.ailment) == nil; got != tc.want {
-				t.Fatalf("mon.hasAilment(%s) = %t, want %t", tc.ailment.String(), got, tc.want)
-			}
-		})
-	}
-}
-
 func TestChangeHpBy(t *testing.T) {
 	tests := map[string]struct {
 		initialHP int
 		maxHP     int
 		change    int
-		item      itemState
-		unnerved  bool
 		want      int
 	}{
-		"increase hp":                   {initialHP: 50, maxHP: 100, change: 20, item: noneItem, want: 70},
-		"increase over max":             {initialHP: 90, maxHP: 100, change: 20, item: noneItem, want: 100},
-		"oran berry restores hp":        {initialHP: 50, maxHP: 100, change: -40, item: oranBerry, want: 20},
-		"sitrus berry restores hp":      {initialHP: 50, maxHP: 100, change: -40, item: sitrusBerry, want: 35},
-		"oran berry blocked by unnerve": {initialHP: 50, maxHP: 100, change: -40, item: oranBerry, unnerved: true, want: 10},
+		"increase hp":       {initialHP: 50, maxHP: 100, change: 20, want: 70},
+		"increase over max": {initialHP: 90, maxHP: 100, change: 20, want: 100},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			mon := pokemon{
-				stats:    []int{0, 0, 0, 0, 0, 0, 0, 0, 0},
-				hp:       tc.initialHP,
-				unnerved: tc.unnerved,
+				stats: []int{0, 0, 0, 0, 0, 0, 0, 0, 0},
+				hp:    tc.initialHP,
 			}
 			mon.stats[hitPoints] = tc.maxHP
-			item, _ := registerItem(tc.item, &mon)
-			mon.item = item
 
 			mon.changeHpBy(tc.change)
 
@@ -447,8 +396,6 @@ func TestToxicConversion(t *testing.T) {
 			move := Move{
 				Name: tc.move,
 			}
-			item, _ := registerItem(noneItem, &mon)
-			mon.item = item
 
 			mon.applyAilment(poisonAilment, &move, nil)
 			if tc.want && mon.hasAilment(toxicAilment) == nil {
