@@ -364,7 +364,9 @@ func (i item) String() string {
 
 func (p *pokemon) checkItemTrigger(consume bool, event any) {
 	if p.item == nil {
-		elogf("warning: p.checkItemTrigger: item is nil for %s", p.base.Name)
+		if p.base.Name != "" {
+			elogf("warning: p.checkItemTrigger: item is nil for %s", p.base.Name)
+		}
 		return
 	}
 	if p.item.trigger == nil || p.item.consumed {

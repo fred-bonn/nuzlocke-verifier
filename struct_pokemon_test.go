@@ -440,3 +440,93 @@ func TestIsGrounded(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyMoveType(t *testing.T) {
+	tests := map[string]struct {
+		input struct {
+			num int
+			dem int
+		}
+		pokemonTypes []pokemonType
+		ability      ability
+		item         itemState
+		moveType     pokemonType
+		want         struct {
+			num int
+			dem int
+		}
+	}{
+		"fighting against normal": {input: struct {
+			num int
+			dem int
+		}{
+			num: 6, dem: 3,
+		}, pokemonTypes: []pokemonType{normalType}, moveType: fightingType, want: struct {
+			num int
+			dem int
+		}{
+			num: 12, dem: 3,
+		}},
+		"fighting against normal/flying": {input: struct {
+			num int
+			dem int
+		}{
+			num: 6, dem: 3,
+		}, pokemonTypes: []pokemonType{normalType, flyingType}, moveType: fightingType, want: struct {
+			num int
+			dem int
+		}{
+			num: 12, dem: 6,
+		}},
+		"ghost against normal": {input: struct {
+			num int
+			dem int
+		}{
+			num: 99, dem: 1,
+		}, pokemonTypes: []pokemonType{normalType}, moveType: ghostType, want: struct {
+			num int
+			dem int
+		}{
+			num: 0, dem: 1,
+		}},
+		"ground against levitate": {input: struct {
+			num int
+			dem int
+		}{
+			num: 2, dem: 1,
+		}, pokemonTypes: []pokemonType{normalType}, ability: levitateAbility, moveType: groundType, want: struct {
+			num int
+			dem int
+		}{
+			num: 0, dem: 1,
+		}},
+		"ground against levitate and iron ball": {input: struct {
+			num int
+			dem int
+		}{
+			num: 2, dem: 1,
+		}, pokemonTypes: []pokemonType{normalType}, ability: levitateAbility, item: ironBall, moveType: groundType, want: struct {
+			num int
+			dem int
+		}{
+			num: 2, dem: 1,
+		}},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{
+				base: BasePokemon{
+					Types: tc.pokemonTypes,
+				},
+				ability: tc.ability,
+			}
+			item, _ := registerItem(tc.item, &mon)
+			mon.item = item
+
+			if num, dem := mon.applyMoveType(tc.input.num, tc.input.dem, tc.moveType); num != tc.want.num || dem != tc.want.dem {
+				t.Fatalf("mon.applyMoveType(%d, %d, %s) = %d, %d; want %d, %d", tc.input.num, tc.input.dem, tc.moveType.String(), num, dem, tc.want.num, tc.want.dem)
+			}
+		})
+	}
+}

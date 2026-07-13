@@ -365,6 +365,11 @@ func (p *pokemon) applyMoveType(num, dem int, moveType pokemonType) (int, int) {
 		if t == flyingType && moveType == groundType && p.isGrounded() {
 			continue
 		}
+		if p.ability == levitateAbility && moveType == groundType && !p.isGrounded() {
+			num = 0
+			continue
+		}
+
 		switch getEffectiveness(moveType, t) {
 		case immuneEffectivensss:
 			num = 0
