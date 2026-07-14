@@ -11,7 +11,7 @@ import (
 func TestWeatherAffectsMon(t *testing.T) {
 	tests := map[string]struct {
 		weather     weatherState
-		ability     ability
+		ability     abilityState
 		goggles     bool
 		pokemonType pokemonType
 		want        bool

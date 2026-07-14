@@ -4,10 +4,10 @@ import (
 	"math/rand"
 )
 
-type ability int
+type abilityState int
 
 const (
-	noneAbility ability = iota
+	noneAbility abilityState = iota
 	insomniaAbility
 	vitalSpiritAbility
 	sweetVeilAbility
@@ -95,7 +95,7 @@ const (
 	normalizeAbility
 )
 
-func (a ability) String() string {
+func (a abilityState) String() string {
 	switch a {
 	case insomniaAbility:
 		return "insomnia"
@@ -273,7 +273,7 @@ func (a ability) String() string {
 	}
 }
 
-func stringToAbility(s string) ability {
+func stringToAbility(s string) abilityState {
 	switch s {
 	case "insomnia":
 		return insomniaAbility
@@ -450,15 +450,15 @@ func stringToAbility(s string) ability {
 	}
 }
 
-func (a ability) blocksCrits() bool {
+func (a abilityState) blocksCrits() bool {
 	return a >= battleArmorAbility && a <= magmaArmorAbility
 }
 
-func (a ability) blocksSleep() bool {
+func (a abilityState) blocksSleep() bool {
 	return a >= insomniaAbility && a <= sweetVeilAbility
 }
 
-var onSwitchAbilities = map[ability]func(s *slot, bs battleState, switchIn bool){
+var onSwitchAbilities = map[abilityState]func(s *slot, bs battleState, switchIn bool){
 	traceAbility:       trace,
 	unnerveAbility:     unnerve,
 	intimidateAbility:  intimidate,
@@ -563,7 +563,7 @@ func sandStream(s *slot, bs battleState, switchIn bool) {
 	bs.setWeather(sandstormWeather)
 }
 
-var typeConvertingAbilities = map[ability]func(t *pokemonType, p *int){
+var typeConvertingAbilities = map[abilityState]func(t *pokemonType, p *int){
 	aerilateAbility:    typeConvertingAbilitiesMiddleware(flyingType),
 	pixilateAbility:    typeConvertingAbilitiesMiddleware(fairyType),
 	galvanizeAbility:   typeConvertingAbilitiesMiddleware(electricType),
@@ -587,7 +587,7 @@ func typeConvertingAbilitiesMiddleware(t1 pokemonType) func(t *pokemonType, p *i
 	}
 }
 
-var typeImmunityAbilities = map[ability]func(u *pokemon, t pokemonType, s bool) bool{
+var typeImmunityAbilities = map[abilityState]func(u *pokemon, t pokemonType, s bool) bool{
 	flashFireAbility:    flashFire,
 	drySkinAbility:      drySkin,
 	waterAbsorbAbility:  drySkin,
@@ -680,14 +680,14 @@ func levitate(p *pokemon, t pokemonType, s bool) bool {
 	return t == groundType
 }
 
-var pinchAbilities = map[ability]pokemonType{
+var pinchAbilities = map[abilityState]pokemonType{
 	overgrowAbility: grassType,
 	blazeAbility:    fireType,
 	torrentAbility:  waterType,
 	swarmAbility:    bugType,
 }
 
-var contactDefensiveAbilities = map[ability]func(u, t *slot){
+var contactDefensiveAbilities = map[abilityState]func(u, t *slot){
 	roughSkinAbility:   roughSkin,
 	ironBarbsAbility:   roughSkin,
 	cuteCharmAbility:   cuteCharm,
@@ -736,7 +736,7 @@ func effectSpore(u, t *slot) {
 	}
 }
 
-var contactOffensiveAbilities = map[ability]func(u, t *slot){
+var contactOffensiveAbilities = map[abilityState]func(u, t *slot){
 	poisonTouchAbility: poisonTouch,
 }
 

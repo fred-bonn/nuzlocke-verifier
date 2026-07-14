@@ -20,6 +20,11 @@ const (
 	salacBerry
 	petayaBerry
 	apicotBerry
+	figyBerry
+	iapapaBerry
+	wikiBerry
+	aguavBerry
+	magoBerry
 	babiriBerry
 	chilanBerry
 	chartiBerry
@@ -100,6 +105,11 @@ var itemStateMap = map[string]itemState{
 	"liechi berry":   liechiBerry,
 	"ganlon berry":   ganlonBerry,
 	"salac berry":    salacBerry,
+	"figy berry":     figyBerry,
+	"iapapa berry":   iapapaBerry,
+	"wiki berry":     wikiBerry,
+	"aguav berry":    aguavBerry,
+	"mago berry":     magoBerry,
 	"petaya berry":   petayaBerry,
 	"apicot berry":   apicotBerry,
 	"babiri berry":   babiriBerry,
@@ -211,6 +221,16 @@ func (i itemState) String() string {
 		return "petaya berry"
 	case apicotBerry:
 		return "apicot berry"
+	case figyBerry:
+		return "figy berry"
+	case iapapaBerry:
+		return "iapapa berry"
+	case wikiBerry:
+		return "wiki berry"
+	case aguavBerry:
+		return "aguav berry"
+	case magoBerry:
+		return "mago berry"
 	case babiriBerry:
 		return "babiri berry"
 	case chilanBerry:
@@ -401,6 +421,11 @@ var itemBuilders = map[itemState]ItemFactoryBuilder{
 	salacBerry:    makeStatBoostBerryMiddleware(salacBerry, speed),
 	petayaBerry:   makeStatBoostBerryMiddleware(petayaBerry, specialAttack),
 	apicotBerry:   makeStatBoostBerryMiddleware(apicotBerry, specialDefense),
+	figyBerry:     makePinchHealingBerryMiddleware(figyBerry, attack),
+	iapapaBerry:   makePinchHealingBerryMiddleware(iapapaBerry, defense),
+	wikiBerry:     makePinchHealingBerryMiddleware(wikiBerry, specialAttack),
+	aguavBerry:    makePinchHealingBerryMiddleware(aguavBerry, specialDefense),
+	magoBerry:     makePinchHealingBerryMiddleware(magoBerry, speed),
 	babiriBerry:   makeResistBerryMiddleware(babiriBerry, steelType),
 	chilanBerry:   makeResistBerryMiddleware(chilanBerry, normalType),
 	chartiBerry:   makeResistBerryMiddleware(chartiBerry, rockType),
@@ -537,7 +562,7 @@ func makeOranBerry(mon *pokemon) *item {
 	return &item{
 		state: oranBerry,
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
+			return mon.hp > 0 && !mon.unnerved && mon.hp*2 <= mon.maxHP()
 		},
 		activate: func() {
 			mon.changeHpBy(10)
@@ -551,7 +576,7 @@ func makeSitrusBerry(mon *pokemon) *item {
 	return &item{
 		state: sitrusBerry,
 		trigger: func(any) bool {
-			return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
+			return mon.hp > 0 && !mon.unnerved && mon.hp*2 <= mon.maxHP()
 		},
 		activate: func() {
 			restore := mon.maxHP() / 4
@@ -694,15 +719,50 @@ func makeStatBoostBerryMiddleware(is itemState, stat stat) func(mon *pokemon) *i
 		return &item{
 			state: is,
 			trigger: func(any) bool {
-				if mon.ability == gluttonyAbility {
-					return !mon.unnerved && mon.hp > 0 && mon.hp*2 <= mon.maxHP()
+				if mon.unnerved {
+					return false
 				}
-				return !mon.unnerved && mon.hp > 0 && mon.hp*4 <= mon.maxHP()
+				if mon.hp <= 0 {
+					return false
+				}
+				if mon.ability == gluttonyAbility {
+					return mon.hp*2 <= mon.maxHP()
+				}
+				return mon.hp*4 <= mon.maxHP()
 			},
 			activate: func() {
 				vprintItem("%s ate its %s", mon.base.Name, is)
 				mon.changeStatStageBy(stat, 1, false)
 				cheekPouch(mon)
+			},
+		}
+	}
+}
+
+func makePinchHealingBerryMiddleware(is itemState, stat stat) func(mon *pokemon) *item {
+	return func(mon *pokemon) *item {
+		return &item{
+			state: is,
+			trigger: func(any) bool {
+				if mon.unnerved {
+					return false
+				}
+				if mon.hp <= 0 {
+					return false
+				}
+				if mon.ability == gluttonyAbility {
+					return mon.hp*2 <= mon.maxHP()
+				}
+				return mon.hp*4 <= mon.maxHP()
+			},
+			activate: func() {
+				restore := mon.maxHP() / 2
+				mon.changeHpBy(restore)
+				vprintItem("%s ate its %s and restored %d hp", mon.base.Name, is.String(), restore)
+				cheekPouch(mon)
+				if mon.nat.negative == stat {
+					mon.applyAilment(confusionAilment, nil, nil)
+				}
 			},
 		}
 	}

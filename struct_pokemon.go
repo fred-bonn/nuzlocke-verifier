@@ -9,7 +9,7 @@ type pokemon struct {
 	base        BasePokemon
 	level       int
 	ivs         []int
-	nature      []stat
+	nat         nature
 	moves       []*Move
 	lockedMove  *Move
 	stats       []int
@@ -18,7 +18,7 @@ type pokemon struct {
 	fainted     bool
 	ailments    map[ailmentState]*ailment
 	item        *item
-	ability     ability
+	ability     abilityState
 	unnerved    bool
 	flashFire   bool
 	unburden    bool
@@ -27,10 +27,10 @@ type pokemon struct {
 	laserFocus  bool
 }
 
-func getNature(nature string) ([]stat, error) {
-	res, ok := natureChart[nature]
+func getNature(nat string) (nature, error) {
+	res, ok := natureChart[nat]
 	if !ok {
-		return nil, fmt.Errorf("invalid nature: %s", nature)
+		return nature{}, fmt.Errorf("invalid nature: %s", nat)
 	}
 
 	return res, nil
@@ -51,7 +51,7 @@ func initPokemon(base BasePokemon, level int, ivs map[string]int, nature string,
 		base:     base,
 		level:    level,
 		ivs:      []int{31, 31, 31, 31, 31, 31},
-		nature:   nat,
+		nat:      nat,
 		moves:    moves,
 		stats:    []int{0, 0, 0, 0, 0, 0},
 		stages:   []int{0, 0, 0, 0, 0, 0, 0, 0},
@@ -111,8 +111,8 @@ func calculateStats(pokemon *pokemon) error {
 	}
 
 	// Apply nature modifiers
-	posNat := pokemon.nature[0]
-	negNat := pokemon.nature[1]
+	posNat := pokemon.nat.positive
+	negNat := pokemon.nat.negative
 
 	if posNat != negNat {
 		pokemon.stats[posNat] = (pokemon.stats[posNat] * 110) / 100

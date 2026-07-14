@@ -61,7 +61,12 @@ func stringToStat(s string) stat {
 	}
 }
 
-var natureChart = map[string][]stat{
+type nature struct {
+	positive stat
+	negative stat
+}
+
+var natureChart = map[string]nature{
 	"hardy":   {attack, attack},
 	"lonely":  {attack, defense},
 	"adamant": {attack, specialAttack},

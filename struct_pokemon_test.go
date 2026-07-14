@@ -5,7 +5,7 @@ import "testing"
 func TestIsImmuneToPowderMoves(t *testing.T) {
 	tests := map[string]struct {
 		t    pokemonType
-		a    ability
+		a    abilityState
 		want bool
 	}{
 		"grass":              {t: grassType, a: intimidateAbility, want: true},
@@ -68,7 +68,7 @@ func TestEffectiveSpeed(t *testing.T) {
 		stage     int
 		base      int
 		item      itemState
-		ability   ability
+		ability   abilityState
 		weather   weatherState
 		paralyzed bool
 		unburden  bool
@@ -206,7 +206,7 @@ func TestChangeStatStageBy(t *testing.T) {
 		stat      stat
 		change    int
 		offensive bool
-		ability   ability
+		ability   abilityState
 		want      int
 	}{
 		"increases stage":               {initial: 0, stat: attack, change: 1, want: 1},
@@ -300,7 +300,7 @@ func TestApplyAilment(t *testing.T) {
 	tests := map[string]struct {
 		ailment     ailmentState
 		pokemonType pokemonType
-		ability     ability
+		ability     abilityState
 		want        bool
 	}{
 		"burn":                  {ailment: burnAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
@@ -411,7 +411,7 @@ func TestToxicConversion(t *testing.T) {
 func TestIsGrounded(t *testing.T) {
 	tests := map[string]struct {
 		pokemonType pokemonType
-		ability     ability
+		ability     abilityState
 		item        itemState
 		want        bool
 	}{
@@ -448,7 +448,7 @@ func TestApplyMoveType(t *testing.T) {
 			dem int
 		}
 		pokemonTypes []pokemonType
-		ability      ability
+		ability      abilityState
 		item         itemState
 		moveType     pokemonType
 		want         struct {
