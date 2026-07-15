@@ -55,10 +55,10 @@ func TestBerryItemsHeal(t *testing.T) {
 		unnerved  bool
 		want      int
 	}{
-		"oran berry restores hp":         {initialHP: 25, maxHP: 100, item: oranBerry, want: 35},
-		"oran berry not below threshold": {initialHP: 60, maxHP: 100, item: oranBerry, want: 60},
-		"sitrus berry restores hp":       {initialHP: 25, maxHP: 100, item: sitrusBerry, want: 50},
-		"oran berry blocked by unnerve":  {initialHP: 25, maxHP: 100, item: oranBerry, unnerved: true, want: 25},
+		"oran  heals below threshold hp":       {initialHP: 50, maxHP: 100, item: oranBerry, want: 60},
+		"oran  does not heal below threshold":  {initialHP: 51, maxHP: 100, item: oranBerry, want: 51},
+		"sitrus heals below threshold hp":      {initialHP: 50, maxHP: 100, item: sitrusBerry, want: 75},
+		"sitrus does not heal below threshold": {initialHP: 51, maxHP: 100, item: oranBerry, unnerved: true, want: 51},
 	}
 
 	for name, tc := range tests {
@@ -85,11 +85,11 @@ func TestIsBerry(t *testing.T) {
 		item itemState
 		want bool
 	}{
-		"oran":         {item: oranBerry, want: true},
-		"none":         {item: noneItem, want: false},
-		"yache:":       {item: yacheBerry, want: true},
+		"oran berry":   {item: oranBerry, want: true},
+		"no item":      {item: noneItem, want: false},
+		"yache berry":  {item: yacheBerry, want: true},
 		"iron ball":    {item: ironBall, want: false},
-		"liechi":       {item: liechiBerry, want: true},
+		"liechi berry": {item: liechiBerry, want: true},
 		"mystic water": {item: mysticWater, want: false},
 	}
 
@@ -110,8 +110,8 @@ func TestIsChoice(t *testing.T) {
 		"choice scarf":  {item: choiceScarf, want: true},
 		"choice specs":  {item: choiceSpecs, want: true},
 		"focus sash:":   {item: focusSash, want: false},
-		"none":          {item: noneItem, want: false},
-		"oran":          {item: oranBerry, want: false},
+		"no item":       {item: noneItem, want: false},
+		"oran berry":    {item: oranBerry, want: false},
 		"silver powder": {item: silverPowder, want: false},
 		"choice band":   {item: choiceBand, want: true},
 		"assault vest":  {item: assaultVest, want: false},
@@ -126,7 +126,7 @@ func TestIsChoice(t *testing.T) {
 	}
 }
 
-func TestPinchHealingBerries(t *testing.T) {
+func TestPinchHealBerries(t *testing.T) {
 	tests := map[string]struct {
 		item         itemState
 		nature       string
@@ -137,23 +137,23 @@ func TestPinchHealingBerries(t *testing.T) {
 		wantHp       int
 		wantConfused bool
 	}{
-		"figy lonely":               {item: figyBerry, nature: "lonely", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
-		"figy bold":                 {item: figyBerry, nature: "bold", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
-		"figy lonely 50":            {item: figyBerry, nature: "lonely", initialHp: 50, maxHp: 100, gluttony: true, wantHp: 100},
-		"figy bold 51":              {item: figyBerry, nature: "bold", initialHp: 51, maxHp: 100, gluttony: true, wantHp: 51},
-		"iapapa adamant":            {item: iapapaBerry, nature: "adamant", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
-		"iapapa hasty":              {item: iapapaBerry, nature: "hasty", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
-		"wiki rash":                 {item: wikiBerry, nature: "rash", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
-		"wiki impish":               {item: wikiBerry, nature: "impish", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
-		"aguav relaxed":             {item: aguavBerry, nature: "relaxed", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
-		"aguav rash":                {item: aguavBerry, nature: "rash", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
-		"mago modest":               {item: magoBerry, nature: "modest", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
-		"mago sassy":                {item: magoBerry, nature: "sassy", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
-		"iapapa adamant dead":       {item: iapapaBerry, nature: "adamant", initialHp: 0, maxHp: 100, gluttony: true, wantHp: 0},
-		"aguav rash unnerved":       {item: aguavBerry, nature: "rash", initialHp: 40, maxHp: 100, gluttony: true, unnerved: true, wantHp: 40},
-		"figy lonely no ability":    {item: figyBerry, nature: "lonely", initialHp: 40, maxHp: 100, wantHp: 40},
-		"figy lonely no ability 25": {item: figyBerry, nature: "lonely", initialHp: 25, maxHp: 100, wantHp: 75},
-		"figy lonely no ability 26": {item: figyBerry, nature: "lonely", initialHp: 26, maxHp: 100, wantHp: 26},
+		"figy with lonely nature":                          {item: figyBerry, nature: "lonely", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
+		"figy with bold nature confuses":                   {item: figyBerry, nature: "bold", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
+		"figy heals at threshold":                          {item: figyBerry, nature: "lonely", initialHp: 50, maxHp: 100, gluttony: true, wantHp: 100},
+		"figy does not heal above threshold":               {item: figyBerry, nature: "bold", initialHp: 51, maxHp: 100, gluttony: true, wantHp: 51},
+		"iapapa with adamant nature":                       {item: iapapaBerry, nature: "adamant", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
+		"iapapa with hasty nasture confuses":               {item: iapapaBerry, nature: "hasty", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
+		"wiki with rash nature":                            {item: wikiBerry, nature: "rash", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
+		"wiki with impish nature confuses":                 {item: wikiBerry, nature: "impish", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
+		"aguav with relaxed nature":                        {item: aguavBerry, nature: "relaxed", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
+		"aguav with rash nature confuses":                  {item: aguavBerry, nature: "rash", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
+		"mago wtih modest nature":                          {item: magoBerry, nature: "modest", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90},
+		"mago with sassy nature confuses":                  {item: magoBerry, nature: "sassy", initialHp: 40, maxHp: 100, gluttony: true, wantHp: 90, wantConfused: true},
+		"iapapa does not heal dead mons":                   {item: iapapaBerry, nature: "adamant", initialHp: 0, maxHp: 100, gluttony: true, wantHp: 0},
+		"aguav blocked by unnerve":                         {item: aguavBerry, nature: "rash", initialHp: 40, maxHp: 100, gluttony: true, unnerved: true, wantHp: 40},
+		"figy without gluttony does not heal":              {item: figyBerry, nature: "lonely", initialHp: 40, maxHp: 100, wantHp: 40},
+		"figy without gluttony heals at threshold":         {item: figyBerry, nature: "lonely", initialHp: 25, maxHp: 100, wantHp: 75},
+		"figy without gluttony does not heal at threshold": {item: figyBerry, nature: "lonely", initialHp: 26, maxHp: 100, wantHp: 26},
 	}
 
 	for name, tc := range tests {
@@ -185,6 +185,10 @@ func TestPinchHealingBerries(t *testing.T) {
 				} else {
 					t.Errorf("mon was confused by %s with a %s nature", tc.item.String(), tc.nature)
 				}
+			}
+
+			if tc.initialHp != tc.wantHp && !item.consumed {
+				t.Errorf("%s was not consumed", tc.item.String())
 			}
 		})
 	}
@@ -226,6 +230,10 @@ func TestStatBoostBerries(t *testing.T) {
 			if got := mon.stages[attack]; got != tc.wantStage {
 				t.Errorf("mon.stages[attack] = %d, want %d", got, tc.wantStage)
 			}
+
+			if tc.wantStage == 1 && !item.consumed {
+				t.Errorf("%s was not consumed", tc.item.String())
+			}
 		})
 	}
 }
@@ -235,12 +243,14 @@ func TestResistBerries(t *testing.T) {
 		item          itemState
 		pokemon       pokemonType
 		unnerved      bool
+		event         bool
 		initialDamage int
 		want          int
 	}{
-		"chople reduces fighting damage":   {item: chopleBerry, pokemon: fightingType, initialDamage: 100, want: 50},
-		"chople ignores non-matching type": {item: chopleBerry, pokemon: normalType, initialDamage: 100, want: 100},
-		"chople blocked by unnerve":        {item: chopleBerry, pokemon: fightingType, initialDamage: 100, unnerved: true, want: 100},
+		"chople reduces fighting damage":          {item: chopleBerry, pokemon: fightingType, event: true, initialDamage: 100, want: 50},
+		"chople ignores non-matching type":        {item: chopleBerry, pokemon: normalType, event: true, initialDamage: 100, want: 100},
+		"chople blocked by unnerve":               {item: chopleBerry, pokemon: fightingType, event: true, initialDamage: 100, unnerved: true, want: 100},
+		"berry wont activate if event is missing": {item: chopleBerry, pokemon: fightingType, initialDamage: 100, want: 100},
 	}
 
 	for name, tc := range tests {
@@ -250,13 +260,61 @@ func TestResistBerries(t *testing.T) {
 			mon.item = item
 
 			damage := tc.initialDamage
-			mon.checkItemTrigger(true, resistBerryEvent{
-				pokemonType: tc.pokemon,
-				damage:      &damage,
-			})
+			if tc.event {
+				mon.checkItemTrigger(true, resistBerryEvent{
+					pokemonType: tc.pokemon,
+					damage:      &damage,
+				})
+			} else {
+				mon.checkItemTrigger(true, nil)
+			}
 
 			if got := damage; got != tc.want {
 				t.Errorf("damage = %d, want %d", got, tc.want)
+			}
+
+			if tc.initialDamage != tc.want && !item.consumed {
+				t.Errorf("%s was not consumed", tc.item.String())
+			}
+		})
+	}
+}
+
+func TestTypeGems(t *testing.T) {
+	tests := map[string]struct {
+		item         itemState
+		move         pokemonType
+		initialPower int
+		event        bool
+		want         int
+	}{
+		"normal gem increases normal type":              {item: normalGem, move: normalType, initialPower: 100, event: true, want: 150},
+		"normal gem does not increase normal fire type": {item: normalGem, move: fireType, initialPower: 100, event: true, want: 100},
+		"gem wont activate if event is missing":         {item: normalGem, move: normalType, initialPower: 100, want: 100},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{}
+			item, _ := registerItem(tc.item, &mon)
+			mon.item = item
+
+			power := tc.initialPower
+			if tc.event {
+				mon.checkItemTrigger(true, gemEvent{
+					pokemonType: tc.move,
+					power:       &power,
+				})
+			} else {
+				mon.checkItemTrigger(true, nil)
+			}
+
+			if got := power; got != tc.want {
+				t.Errorf("power = %d, want %d", got, tc.want)
+			}
+
+			if tc.initialPower != tc.want && !item.consumed {
+				t.Errorf("%s was not consumed", tc.item.String())
 			}
 		})
 	}

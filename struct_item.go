@@ -769,8 +769,8 @@ func makePinchHealingBerryMiddleware(is itemState, stat stat) func(mon *pokemon)
 }
 
 func makeResistBerryMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon) *item {
-	var d *int
 	return func(mon *pokemon) *item {
+		var d *int
 		return &item{
 			state: is,
 			trigger: func(e any) bool {
@@ -794,8 +794,8 @@ func makeResistBerryMiddleware(is itemState, pokemonType pokemonType) func(mon *
 }
 
 func makeGemMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon) *item {
-	var p *int
 	return func(mon *pokemon) *item {
+		var p *int
 		return &item{
 			state: is,
 			trigger: func(e any) bool {
@@ -817,6 +817,7 @@ func makeGemMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon)
 	}
 }
 
+// change this so it doesn't permanently alter the underlying pokemon
 func makeChoiceScarf(mon *pokemon) *item {
 	mon.stats[speed] = mon.stats[speed] * 3 / 2
 	return &item{
@@ -824,6 +825,7 @@ func makeChoiceScarf(mon *pokemon) *item {
 	}
 }
 
+// change this so it doesn't permanently alter the underlying pokemon
 func makeAssaultVest(mon *pokemon) *item {
 	mon.stats[specialDefense] = mon.stats[specialDefense] * 3 / 2
 	return &item{
