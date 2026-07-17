@@ -484,8 +484,8 @@ var itemBuilders = map[itemState]ItemFactoryBuilder{
 	darkGem:       makeGemMiddleware(darkGem, darkType),
 	steelGem:      makeGemMiddleware(steelGem, steelType),
 	fairyGem:      makeGemMiddleware(fairyGem, fairyType),
-	assaultVest:   makeAssaultVest,
-	choiceScarf:   makeChoiceScarf,
+	assaultVest:   makePassiveItemMiddleware(assaultVest),
+	choiceScarf:   makePassiveItemMiddleware(choiceScarf),
 	choiceBand:    makeChoiceBand,
 	choiceSpecs:   makeChoiceSpecs,
 	focusSash:     makeFocusSash,
@@ -814,22 +814,6 @@ func makeGemMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon)
 				}
 			},
 		}
-	}
-}
-
-// change this so it doesn't permanently alter the underlying pokemon
-func makeChoiceScarf(mon *pokemon) *item {
-	mon.stats[speed] = mon.stats[speed] * 3 / 2
-	return &item{
-		state: choiceScarf,
-	}
-}
-
-// change this so it doesn't permanently alter the underlying pokemon
-func makeAssaultVest(mon *pokemon) *item {
-	mon.stats[specialDefense] = mon.stats[specialDefense] * 3 / 2
-	return &item{
-		state: assaultVest,
 	}
 }
 

@@ -150,6 +150,9 @@ func (p *pokemon) switchReset() {
 func (p *pokemon) effectiveStat(stat stat, crit bool) int {
 	stage := p.stages[stat]
 	base := p.stats[stat]
+	if stat == specialDefense && p.item.state == assaultVest {
+		base = base * 3 / 2
+	}
 
 	if crit {
 		switch stat {
@@ -169,6 +172,9 @@ func (p *pokemon) effectiveStat(stat stat, crit bool) int {
 func (p *pokemon) effectiveSpeed(bs battleState) int {
 	stage := p.stages[speed]
 	base := p.stats[speed]
+	if p.item.state == choiceScarf {
+		base = base * 3 / 2
+	}
 	numerator := 1
 	denominator := 1
 

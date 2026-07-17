@@ -386,6 +386,10 @@ func TestChoiceScarf(t *testing.T) {
 			if got := mon.effectiveSpeed(bs); got != tc.want {
 				t.Errorf("mon.effectiveSpeed(bs) = %d, want %d", got, tc.want)
 			}
+
+			if got := mon.stats[speed]; got != tc.speed {
+				t.Errorf("choice scarf should not modify the base stats directly")
+			}
 		})
 	}
 }
@@ -414,6 +418,10 @@ func TestAssaultVest(t *testing.T) {
 
 			if got := mon.effectiveStat(specialDefense, tc.crit); got != tc.want {
 				t.Errorf("mon.effectiveSpeed(bs) = %d, want %d", got, tc.want)
+			}
+
+			if got := mon.stats[specialDefense]; got != tc.spdef {
+				t.Errorf("assault vest should not modify the base stats directly")
 			}
 		})
 	}
