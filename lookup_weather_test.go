@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestWeatherAffectsMon(t *testing.T) {
+func TestWeatherAffectsMonAccordingToTypeAndAbilities(t *testing.T) {
 	tests := map[string]struct {
 		weather     weatherState
 		ability     abilityState
@@ -16,24 +16,24 @@ func TestWeatherAffectsMon(t *testing.T) {
 		pokemonType pokemonType
 		want        bool
 	}{
-		"overcoat sand":    {weather: sandstormWeather, ability: overcoatAbility, goggles: false, pokemonType: normalType, want: false},
-		"overcoat hail":    {weather: hailWeather, ability: overcoatAbility, goggles: false, pokemonType: normalType, want: false},
-		"magic guard sand": {weather: sandstormWeather, ability: magicGuardAbility, goggles: false, pokemonType: normalType, want: false},
-		"magic guard hail": {weather: hailWeather, ability: magicGuardAbility, goggles: false, pokemonType: normalType, want: false},
-		"intim":            {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: normalType, want: true},
-		"intim goggles":    {weather: sandstormWeather, ability: intimidateAbility, goggles: true, pokemonType: normalType, want: false},
-		"sand rush 1":      {weather: sandstormWeather, ability: sandRushAbility, goggles: false, pokemonType: normalType, want: false},
-		"sand rush 2":      {weather: hailWeather, ability: sandRushAbility, goggles: false, pokemonType: normalType, want: true},
-		"sand rush 3":      {weather: hailWeather, ability: sandRushAbility, goggles: true, pokemonType: normalType, want: false},
-		"ice body 1":       {weather: hailWeather, ability: iceBodyAbility, goggles: false, pokemonType: normalType, want: false},
-		"ice body 2":       {weather: sandstormWeather, ability: iceBodyAbility, goggles: false, pokemonType: normalType, want: true},
-		"ice body 3":       {weather: sandstormWeather, ability: iceBodyAbility, goggles: true, pokemonType: normalType, want: false},
-		"ground sand":      {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: groundType, want: false},
-		"steel sand":       {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: steelType, want: false},
-		"rock sand":        {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: rockType, want: false},
-		"ice sand":         {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: iceType, want: true},
-		"ice hail":         {weather: hailWeather, ability: intimidateAbility, goggles: false, pokemonType: iceType, want: false},
-		"ground hail":      {weather: hailWeather, ability: intimidateAbility, goggles: false, pokemonType: groundType, want: true},
+		"overcoat blocks sandstorm":                            {weather: sandstormWeather, ability: overcoatAbility, goggles: false, pokemonType: normalType, want: false},
+		"overcoat blocks hail":                                 {weather: hailWeather, ability: overcoatAbility, goggles: false, pokemonType: normalType, want: false},
+		"magic guard blocks sandstorm":                         {weather: sandstormWeather, ability: magicGuardAbility, goggles: false, pokemonType: normalType, want: false},
+		"magic guard blocks hail":                              {weather: hailWeather, ability: magicGuardAbility, goggles: false, pokemonType: normalType, want: false},
+		"intimidate is affected by sandstorm":                  {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: normalType, want: true},
+		"intimidate is protected by safety goggles":            {weather: sandstormWeather, ability: intimidateAbility, goggles: true, pokemonType: normalType, want: false},
+		"sand rush is unaffected by sandstorm":                 {weather: sandstormWeather, ability: sandRushAbility, goggles: false, pokemonType: normalType, want: false},
+		"sand rush is affected by hail":                        {weather: hailWeather, ability: sandRushAbility, goggles: false, pokemonType: normalType, want: true},
+		"sand rush is protected by safety goggles in hail":     {weather: hailWeather, ability: sandRushAbility, goggles: true, pokemonType: normalType, want: false},
+		"ice body is unaffected by hail":                       {weather: hailWeather, ability: iceBodyAbility, goggles: false, pokemonType: normalType, want: false},
+		"ice body is affected by sandstorm":                    {weather: sandstormWeather, ability: iceBodyAbility, goggles: false, pokemonType: normalType, want: true},
+		"ice body is protected by safety goggles in sandstorm": {weather: sandstormWeather, ability: iceBodyAbility, goggles: true, pokemonType: normalType, want: false},
+		"ground types are immune to sandstorm":                 {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: groundType, want: false},
+		"steel types are immune to sandstorm":                  {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: steelType, want: false},
+		"rock types are immune to sandstorm":                   {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: rockType, want: false},
+		"ice types are affected by sandstorm":                  {weather: sandstormWeather, ability: intimidateAbility, goggles: false, pokemonType: iceType, want: true},
+		"ice types are unaffected by hail":                     {weather: hailWeather, ability: intimidateAbility, goggles: false, pokemonType: iceType, want: false},
+		"ground types are affected by hail":                    {weather: hailWeather, ability: intimidateAbility, goggles: false, pokemonType: groundType, want: true},
 	}
 
 	for name, tc := range tests {
@@ -65,15 +65,15 @@ func TestWeatherAffectsMon(t *testing.T) {
 	}
 }
 
-func TestWeatherOnset(t *testing.T) {
+func TestWeatherOnsetReportsTheCorrectWeatherMessage(t *testing.T) {
 	tests := map[string]struct {
 		weather  weatherState
 		contains string
 	}{
-		"rain":      {weather: rainWeather, contains: "to rain"},
-		"sun":       {weather: sunWeather, contains: "turned harsh"},
-		"sandstorm": {weather: sandstormWeather, contains: "brewed"},
-		"hail":      {weather: hailWeather, contains: "to hail"},
+		"reports rain onset":      {weather: rainWeather, contains: "to rain"},
+		"reports sun onset":       {weather: sunWeather, contains: "turned harsh"},
+		"reports sandstorm onset": {weather: sandstormWeather, contains: "brewed"},
+		"reports hail onset":      {weather: hailWeather, contains: "to hail"},
 	}
 
 	oldVerbose := *verbose

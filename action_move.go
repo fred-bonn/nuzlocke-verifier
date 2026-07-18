@@ -172,9 +172,7 @@ func (ma *moveAction) invoke(bs battleState) {
 		return
 	}
 
-	ma.userSlot.mon.checkItemTrigger(true, leppaBerryEvent{
-		move: ma.move,
-	})
+	ma.userSlot.mon.checkItemTrigger(true, makeLeppaBerryEvent(ma.move))
 
 	if ma.move.Type == fireType {
 		delete(ma.targetSlot.mon.ailments, freezeAilment)
@@ -272,18 +270,12 @@ func (ma *moveAction) resolveDamage(bs battleState) bool {
 		return false
 	}
 
-	target.checkItemTrigger(true, resistBerryEvent{
-		pokemonType: ma.move.Type,
-	})
-	target.checkItemTrigger(true, focusSashEvent{
-		damage: &damage,
-	})
+	target.checkItemTrigger(true, makeResistBerryEvent(ma.move.Type, nil))
+	target.checkItemTrigger(true, makeFocusSashEvent(&damage))
 	if target.ability == sturdyAbility && target.hp == target.maxHP() {
 		damage = min(damage, target.hp-1)
 	}
-	user.checkItemTrigger(true, gemEvent{
-		pokemonType: ma.move.Type,
-	})
+	user.checkItemTrigger(true, makeGemEvent(ma.move.Type, nil))
 
 	damage = min(damage, target.hp)
 	vprintf("%s took %d damage", target.base.Name, int(damage))

@@ -147,12 +147,10 @@ func (p *pokemon) switchReset() {
 	p.laserFocus = false
 }
 
-func (p *pokemon) effectiveStat(stat stat, crit bool) int {
+func (p *pokemon) effectiveStat(stat statState, crit bool) int {
 	stage := p.stages[stat]
 	base := p.stats[stat]
-	if stat == specialDefense && p.item.state == assaultVest {
-		base = base * 3 / 2
-	}
+	p.checkItemTrigger(false, makeChoiceItemEvent(nil, stat, &base))
 
 	if crit {
 		switch stat {
@@ -172,9 +170,7 @@ func (p *pokemon) effectiveStat(stat stat, crit bool) int {
 func (p *pokemon) effectiveSpeed(bs battleState) int {
 	stage := p.stages[speed]
 	base := p.stats[speed]
-	if p.item.state == choiceScarf {
-		base = base * 3 / 2
-	}
+	p.checkItemTrigger(false, makeChoiceItemEvent(nil, speed, &base))
 	numerator := 1
 	denominator := 1
 
@@ -342,7 +338,7 @@ func (p *pokemon) hasMovePredicate(f func(*Move) bool) bool {
 	return slices.ContainsFunc(p.moves, f)
 }
 
-func (p *pokemon) changeStatStageBy(stat stat, change int, offensive bool) {
+func (p *pokemon) changeStatStageBy(stat statState, change int, offensive bool) {
 	if offensive && (p.ability == clearBodyAbility || p.ability == clearSmokeAbility) {
 		vprintf("blocked by clear body")
 		return

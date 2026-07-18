@@ -1,9 +1,9 @@
 package main
 
-type stat int
+type statState int
 
 const (
-	hitPoints stat = iota
+	hitPoints statState = iota
 	attack
 	defense
 	specialAttack
@@ -14,7 +14,7 @@ const (
 	noStat
 )
 
-func (s stat) String() string {
+func (s statState) String() string {
 	switch s {
 	case hitPoints:
 		return "hp"
@@ -38,7 +38,7 @@ func (s stat) String() string {
 	}
 }
 
-func stringToStat(s string) stat {
+func stringToStat(s string) statState {
 	switch s {
 	case "hp":
 		return hitPoints
@@ -62,8 +62,8 @@ func stringToStat(s string) stat {
 }
 
 type nature struct {
-	positive stat
-	negative stat
+	positive statState
+	negative statState
 }
 
 var natureChart = map[string]nature{

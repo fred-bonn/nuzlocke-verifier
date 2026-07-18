@@ -2,30 +2,30 @@ package main
 
 import "testing"
 
-func TestGetEffectiveness(t *testing.T) {
+func TestGetEffectivenessReturnsTheCorrectTypeMatchup(t *testing.T) {
 	tests := map[string]struct {
 		attacking pokemonType
 		defending pokemonType
 		want      effectiveness
 	}{
-		"normal/ghost":     {attacking: normalType, defending: ghostType, want: immuneEffectivensss},
-		"ghost/normal":     {attacking: ghostType, defending: normalType, want: immuneEffectivensss},
-		"fighting/normal":  {attacking: fightingType, defending: normalType, want: superEffectiveness},
-		"psychic/fighting": {attacking: psychicType, defending: fightingType, want: superEffectiveness},
-		"steel/psychic":    {attacking: steelType, defending: psychicType, want: normalEffectivenss},
-		"bug/steel":        {attacking: bugType, defending: steelType, want: resistedEffectiveness},
-		"ground/bug":       {attacking: groundType, defending: bugType, want: resistedEffectiveness},
-		"water/ground":     {attacking: waterType, defending: groundType, want: superEffectiveness},
-		"ice/water":        {attacking: iceType, defending: waterType, want: resistedEffectiveness},
-		"fire/ice":         {attacking: fireType, defending: iceType, want: superEffectiveness},
-		"fairy/fire":       {attacking: fairyType, defending: fireType, want: resistedEffectiveness},
-		"dragon/fairy":     {attacking: dragonType, defending: fairyType, want: immuneEffectivensss},
-		"electric/dragon":  {attacking: electricType, defending: dragonType, want: resistedEffectiveness},
-		"grass/electric":   {attacking: grassType, defending: electricType, want: normalEffectivenss},
-		"rock/grass":       {attacking: rockType, defending: grassType, want: normalEffectivenss},
-		"flying/rock":      {attacking: flyingType, defending: rockType, want: resistedEffectiveness},
-		"dark/flying":      {attacking: darkType, defending: flyingType, want: normalEffectivenss},
-		"poison/dark":      {attacking: poisonType, defending: darkType, want: normalEffectivenss},
+		"normal against ghost is immune":              {attacking: normalType, defending: ghostType, want: immuneEffectivensss},
+		"ghost against normal is immune":              {attacking: ghostType, defending: normalType, want: immuneEffectivensss},
+		"fighting against normal is super effective":  {attacking: fightingType, defending: normalType, want: superEffectiveness},
+		"psychic against fighting is super effective": {attacking: psychicType, defending: fightingType, want: superEffectiveness},
+		"steel against psychic is neutral":            {attacking: steelType, defending: psychicType, want: normalEffectivenss},
+		"bug against steel is resisted":               {attacking: bugType, defending: steelType, want: resistedEffectiveness},
+		"ground against bug is resisted":              {attacking: groundType, defending: bugType, want: resistedEffectiveness},
+		"water against ground is super effective":     {attacking: waterType, defending: groundType, want: superEffectiveness},
+		"ice against water is resisted":               {attacking: iceType, defending: waterType, want: resistedEffectiveness},
+		"fire against ice is super effective":         {attacking: fireType, defending: iceType, want: superEffectiveness},
+		"fairy against fire is resisted":              {attacking: fairyType, defending: fireType, want: resistedEffectiveness},
+		"dragon against fairy is immune":              {attacking: dragonType, defending: fairyType, want: immuneEffectivensss},
+		"electric against dragon is resisted":         {attacking: electricType, defending: dragonType, want: resistedEffectiveness},
+		"grass against electric is neutral":           {attacking: grassType, defending: electricType, want: normalEffectivenss},
+		"rock against grass is neutral":               {attacking: rockType, defending: grassType, want: normalEffectivenss},
+		"flying against rock is resisted":             {attacking: flyingType, defending: rockType, want: resistedEffectiveness},
+		"dark against flying is neutral":              {attacking: darkType, defending: flyingType, want: normalEffectivenss},
+		"poison against dark is neutral":              {attacking: poisonType, defending: darkType, want: normalEffectivenss},
 	}
 
 	for name, tc := range tests {

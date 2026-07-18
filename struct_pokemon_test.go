@@ -2,17 +2,17 @@ package main
 
 import "testing"
 
-func TestIsImmuneToPowderMoves(t *testing.T) {
+func TestIsImmuneToPowderMovesDetectsPowderImmunity(t *testing.T) {
 	tests := map[string]struct {
 		t    pokemonType
 		a    abilityState
 		want bool
 	}{
-		"grass":              {t: grassType, a: intimidateAbility, want: true},
-		"grass overcoat:":    {t: grassType, a: overcoatAbility, want: true},
-		"not grass 1":        {t: flyingType, a: intimidateAbility, want: false},
-		"not grass 2":        {t: waterType, a: intimidateAbility, want: false},
-		"not grass overcoat": {t: fireType, a: overcoatAbility, want: true},
+		"grass types are immune to powder moves":    {t: grassType, a: intimidateAbility, want: true},
+		"grass types remain immune with overcoat":   {t: grassType, a: overcoatAbility, want: true},
+		"non-grass types are not immune by default": {t: flyingType, a: intimidateAbility, want: false},
+		"water types are not immune by default":     {t: waterType, a: intimidateAbility, want: false},
+		"fire types are immune with overcoat":       {t: fireType, a: overcoatAbility, want: true},
 	}
 
 	for name, tc := range tests {
@@ -33,18 +33,18 @@ func TestIsImmuneToPowderMoves(t *testing.T) {
 	}
 }
 
-func TestEffectiveStat(t *testing.T) {
+func TestEffectiveStatAppliesStagesAndCritRules(t *testing.T) {
 	tests := map[string]struct {
-		stat  stat
+		stat  statState
 		crit  bool
 		stage int
 		base  int
 		want  int
 	}{
-		"positive stage":                      {stat: attack, stage: 1, base: 100, want: 150},
-		"negative stage":                      {stat: attack, stage: -1, base: 100, want: 66},
-		"defense crit ignores positive stage": {stat: defense, crit: true, stage: 1, base: 100, want: 100},
-		"attack crit ignores negative stage":  {stat: attack, crit: true, stage: -1, base: 100, want: 100},
+		"increases a stat by one stage":                 {stat: attack, stage: 1, base: 100, want: 150},
+		"decreases a stat by one stage":                 {stat: attack, stage: -1, base: 100, want: 66},
+		"ignores positive stages on a crit for defense": {stat: defense, crit: true, stage: 1, base: 100, want: 100},
+		"ignores negative stages on a crit for attack":  {stat: attack, crit: true, stage: -1, base: 100, want: 100},
 	}
 
 	for name, tc := range tests {
@@ -63,7 +63,7 @@ func TestEffectiveStat(t *testing.T) {
 	}
 }
 
-func TestEffectiveSpeed(t *testing.T) {
+func TestEffectiveSpeedAppliesSpeedModifiersCorrectly(t *testing.T) {
 	tests := map[string]struct {
 		stage     int
 		base      int
@@ -74,22 +74,22 @@ func TestEffectiveSpeed(t *testing.T) {
 		unburden  bool
 		want      int
 	}{
-		"positive stage":                 {stage: 1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 150},
-		"negative stage":                 {stage: -1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 66},
-		"paralyzed":                      {stage: 0, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 25},
-		"positive stage paralyzed":       {stage: 1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 37},
-		"iron ball":                      {stage: 0, base: 100, item: ironBall, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 50},
-		"negative stage iron ball":       {stage: -1, base: 100, item: ironBall, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 33},
-		"swift swim no rain":             {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 100},
-		"swift swim rain":                {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 200},
-		"sand rush rain":                 {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
-		"sand rush sandstorm":            {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: sandstormWeather, paralyzed: false, unburden: false, want: 200},
-		"slush rush rain":                {stage: 0, base: 100, item: noneItem, ability: slushRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
-		"slush rush sandstorm iron ball": {stage: 0, base: 100, item: ironBall, ability: slushRushAbility, weather: hailWeather, paralyzed: false, unburden: false, want: 100},
-		"chloro rain":                    {stage: 0, base: 100, item: noneItem, ability: chlorophyllAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
-		"chloro sun positive stage":      {stage: 1, base: 100, item: noneItem, ability: chlorophyllAbility, weather: sunWeather, paralyzed: false, unburden: false, want: 300},
-		"unburden no ability":            {stage: 0, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 100},
-		"unburden":                       {stage: 0, base: 100, item: noneItem, ability: unburdenAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 200},
+		"boosts speed with a positive stage":                                   {stage: 1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 150},
+		"reduces speed with a negative stage":                                  {stage: -1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 66},
+		"halves speed when paralyzed":                                          {stage: 0, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 25},
+		"combines paralysis with a positive stage":                             {stage: 1, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 37},
+		"uses iron ball to halve speed":                                        {stage: 0, base: 100, item: ironBall, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 50},
+		"uses iron ball with a negative stage":                                 {stage: -1, base: 100, item: ironBall, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 33},
+		"does not boost speed with swift swim outside rain":                    {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 100},
+		"boosts speed with swift swim in rain":                                 {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 200},
+		"does not boost speed with sand rush in rain":                          {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
+		"boosts speed with sand rush in sandstorm":                             {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: sandstormWeather, paralyzed: false, unburden: false, want: 200},
+		"does not boost speed with slush rush in rain":                         {stage: 0, base: 100, item: noneItem, ability: slushRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
+		"does not boost speed with slush rush in hail while holding iron ball": {stage: 0, base: 100, item: ironBall, ability: slushRushAbility, weather: hailWeather, paralyzed: false, unburden: false, want: 100},
+		"does not boost speed with chlorophyll outside sun":                    {stage: 0, base: 100, item: noneItem, ability: chlorophyllAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
+		"boosts speed with chlorophyll in sun":                                 {stage: 1, base: 100, item: noneItem, ability: chlorophyllAbility, weather: sunWeather, paralyzed: false, unburden: false, want: 300},
+		"does not boost speed for unburden without the ability":                {stage: 0, base: 100, item: noneItem, ability: noneAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 100},
+		"boosts speed for unburden with the ability":                           {stage: 0, base: 100, item: noneItem, ability: unburdenAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 200},
 	}
 
 	for name, tc := range tests {
@@ -117,7 +117,7 @@ func TestEffectiveSpeed(t *testing.T) {
 	}
 }
 
-func TestEvasionFraction(t *testing.T) {
+func TestEvasionFractionCalculatesTheCorrectFraction(t *testing.T) {
 	tests := map[string]struct {
 		stage   int
 		keenEye bool
@@ -126,23 +126,23 @@ func TestEvasionFraction(t *testing.T) {
 			dem int
 		}
 	}{
-		"positive stage 1": {stage: 1, keenEye: false, want: struct {
+		"uses a positive stage for evasion": {stage: 1, keenEye: false, want: struct {
 			num int
 			dem int
 		}{num: 3, dem: 4}},
-		"positive stage 5": {stage: 5, keenEye: false, want: struct {
+		"uses a larger positive stage for evasion": {stage: 5, keenEye: false, want: struct {
 			num int
 			dem int
 		}{num: 3, dem: 8}},
-		"negative stage -1": {stage: -1, keenEye: false, want: struct {
+		"uses a negative stage for evasion": {stage: -1, keenEye: false, want: struct {
 			num int
 			dem int
 		}{num: 4, dem: 3}},
-		"keen eye positve": {stage: 5, keenEye: true, want: struct {
+		"ignores evasion stages with keen eye": {stage: 5, keenEye: true, want: struct {
 			num int
 			dem int
 		}{num: 1, dem: 1}},
-		"keen eye netative": {stage: -3, keenEye: true, want: struct {
+		"ignores negative evasion stages with keen eye": {stage: -3, keenEye: true, want: struct {
 			num int
 			dem int
 		}{num: 1, dem: 1}},
@@ -163,7 +163,7 @@ func TestEvasionFraction(t *testing.T) {
 	}
 }
 
-func TestAccuracyFration(t *testing.T) {
+func TestAccuracyFractionCalculatesTheCorrectFraction(t *testing.T) {
 	tests := map[string]struct {
 		stage int
 		want  struct {
@@ -171,15 +171,15 @@ func TestAccuracyFration(t *testing.T) {
 			dem int
 		}
 	}{
-		"positive stage 1": {stage: 1, want: struct {
+		"uses a positive stage for accuracy": {stage: 1, want: struct {
 			num int
 			dem int
 		}{num: 4, dem: 3}},
-		"negative stage -1": {stage: -1, want: struct {
+		"uses a negative stage for accuracy": {stage: -1, want: struct {
 			num int
 			dem int
 		}{num: 3, dem: 4}},
-		"negative stage -5": {stage: -5, want: struct {
+		"uses a larger negative stage for accuracy": {stage: -5, want: struct {
 			num int
 			dem int
 		}{num: 3, dem: 8}},
@@ -200,22 +200,22 @@ func TestAccuracyFration(t *testing.T) {
 	}
 }
 
-func TestChangeStatStageBy(t *testing.T) {
+func TestChangeStatStageByUpdatesStagesWithinTheAllowedRange(t *testing.T) {
 	tests := map[string]struct {
 		initial   int
-		stat      stat
+		stat      statState
 		change    int
 		offensive bool
 		ability   abilityState
 		want      int
 	}{
-		"increases stage":               {initial: 0, stat: attack, change: 1, want: 1},
-		"decreases stage":               {initial: 0, stat: defense, change: -1, want: -1},
-		"caps positive stage":           {initial: 5, stat: speed, change: 2, want: 6},
-		"caps negative stage":           {initial: -5, stat: speed, change: -2, want: -6},
-		"clear body blocks offense":     {initial: 0, stat: attack, change: -1, offensive: true, ability: clearBodyAbility, want: 0},
-		"clear body blocks not offense": {initial: 0, stat: attack, change: -1, offensive: false, ability: clearBodyAbility, want: -1},
-		"keen eye blocks accuracy":      {initial: 0, stat: accuracy, change: -1, ability: keenEyeAbility, want: 0},
+		"increases the stage by one":                          {initial: 0, stat: attack, change: 1, want: 1},
+		"decreases the stage by one":                          {initial: 0, stat: defense, change: -1, want: -1},
+		"caps a positive stage at the maximum":                {initial: 5, stat: speed, change: 2, want: 6},
+		"caps a negative stage at the minimum":                {initial: -5, stat: speed, change: -2, want: -6},
+		"blocks offensive stat drops with clear body":         {initial: 0, stat: attack, change: -1, offensive: true, ability: clearBodyAbility, want: 0},
+		"does not block defensive stat drops with clear body": {initial: 0, stat: attack, change: -1, offensive: false, ability: clearBodyAbility, want: -1},
+		"blocks accuracy drops with keen eye":                 {initial: 0, stat: accuracy, change: -1, ability: keenEyeAbility, want: 0},
 	}
 
 	for name, tc := range tests {
@@ -235,18 +235,18 @@ func TestChangeStatStageBy(t *testing.T) {
 	}
 }
 
-func TestHasAilment(t *testing.T) {
+func TestHasAilmentDetectsAppliedAilments(t *testing.T) {
 	tests := map[string]struct {
 		has   ailmentState
 		check ailmentState
 		want  bool
 	}{
-		"para/para":     {has: paralysisAilment, check: paralysisAilment, want: true},
-		"para/freeze":   {has: paralysisAilment, check: freezeAilment, want: false},
-		"poison/poison": {has: poisonAilment, check: poisonAilment, want: true},
-		"poison/toxic":  {has: poisonAilment, check: toxicAilment, want: false},
-		"toxic/poison":  {has: toxicAilment, check: poisonAilment, want: false},
-		"yawn/yawn":     {has: yawnAilment, check: yawnAilment, want: true},
+		"finds a matching paralysis ailment": {has: paralysisAilment, check: paralysisAilment, want: true},
+		"does not find a different ailment":  {has: paralysisAilment, check: freezeAilment, want: false},
+		"finds a matching poison ailment":    {has: poisonAilment, check: poisonAilment, want: true},
+		"does not treat toxic as poison":     {has: poisonAilment, check: toxicAilment, want: false},
+		"does not treat poison as toxic":     {has: toxicAilment, check: poisonAilment, want: false},
+		"finds a matching yawn ailment":      {has: yawnAilment, check: yawnAilment, want: true},
 	}
 
 	for name, tc := range tests {
@@ -266,17 +266,17 @@ func TestHasAilment(t *testing.T) {
 	}
 }
 
-func TestHasNonVolatileAilment(t *testing.T) {
+func TestHasNonVolatileAilmentDetectsNonVolatileStatuses(t *testing.T) {
 	tests := map[string]struct {
 		has  ailmentState
 		want bool
 	}{
-		"para":        {has: paralysisAilment, want: true},
-		"sleep":       {has: sleepAilment, want: true},
-		"toxic":       {has: toxicAilment, want: true},
-		"yawn":        {has: yawnAilment, want: false},
-		"infatuation": {has: infatuationAilment, want: false},
-		"confusion":   {has: confusionAilment, want: false},
+		"detects paralysis as non-volatile":          {has: paralysisAilment, want: true},
+		"detects sleep as non-volatile":              {has: sleepAilment, want: true},
+		"detects toxic as non-volatile":              {has: toxicAilment, want: true},
+		"does not treat yawn as non-volatile":        {has: yawnAilment, want: false},
+		"does not treat infatuation as non-volatile": {has: infatuationAilment, want: false},
+		"does not treat confusion as non-volatile":   {has: confusionAilment, want: false},
 	}
 
 	for name, tc := range tests {
@@ -296,32 +296,32 @@ func TestHasNonVolatileAilment(t *testing.T) {
 	}
 }
 
-func TestApplyAilment(t *testing.T) {
+func TestApplyAilmentAppliesAilmentsWhenAllowed(t *testing.T) {
 	tests := map[string]struct {
 		ailment     ailmentState
 		pokemonType pokemonType
 		ability     abilityState
 		want        bool
 	}{
-		"burn":                  {ailment: burnAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
-		"burn fire":             {ailment: burnAilment, pokemonType: fireType, ability: intimidateAbility, want: false},
-		"para":                  {ailment: paralysisAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
-		"para electric":         {ailment: paralysisAilment, pokemonType: electricType, ability: intimidateAbility, want: false},
-		"freeze":                {ailment: freezeAilment, pokemonType: normalType, ability: noneAbility, want: true},
-		"freeze ice":            {ailment: freezeAilment, pokemonType: iceType, ability: intimidateAbility, want: false},
-		"freeze magma armor":    {ailment: freezeAilment, pokemonType: normalType, ability: magmaArmorAbility, want: false},
-		"poison":                {ailment: poisonAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
-		"poison steel":          {ailment: poisonAilment, pokemonType: steelType, ability: intimidateAbility, want: false},
-		"poison immunity":       {ailment: poisonAilment, pokemonType: normalType, ability: immunityAbility, want: false},
-		"sleep":                 {ailment: sleepAilment, pokemonType: normalType, ability: noneAbility, want: true},
-		"sleep vital spirit":    {ailment: sleepAilment, pokemonType: normalType, ability: vitalSpiritAbility, want: false},
-		"yawn":                  {ailment: yawnAilment, pokemonType: normalType, ability: noneAbility, want: true},
-		"yawn vital spirit":     {ailment: yawnAilment, pokemonType: normalType, ability: vitalSpiritAbility, want: false},
-		"confusion":             {ailment: confusionAilment, pokemonType: normalType, ability: noneAbility, want: true},
-		"infatuation":           {ailment: infatuationAilment, pokemonType: normalType, ability: noneAbility, want: true},
-		"infatuation oblivious": {ailment: infatuationAilment, pokemonType: normalType, ability: obliviousAbility, want: false},
-		"burn water veil":       {ailment: burnAilment, pokemonType: normalType, ability: waterVeilAbility, want: false},
-		"para limber":           {ailment: paralysisAilment, pokemonType: normalType, ability: limberAbility, want: false},
+		"applies burn to a normal type":                {ailment: burnAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
+		"does not apply burn to a fire type":           {ailment: burnAilment, pokemonType: fireType, ability: intimidateAbility, want: false},
+		"applies paralysis to a normal type":           {ailment: paralysisAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
+		"does not apply paralysis to an electric type": {ailment: paralysisAilment, pokemonType: electricType, ability: intimidateAbility, want: false},
+		"applies freeze to a normal type":              {ailment: freezeAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"does not apply freeze to an ice type":         {ailment: freezeAilment, pokemonType: iceType, ability: intimidateAbility, want: false},
+		"does not apply freeze with magma armor":       {ailment: freezeAilment, pokemonType: normalType, ability: magmaArmorAbility, want: false},
+		"applies poison to a normal type":              {ailment: poisonAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
+		"does not apply poison to a steel type":        {ailment: poisonAilment, pokemonType: steelType, ability: intimidateAbility, want: false},
+		"does not apply poison with immunity":          {ailment: poisonAilment, pokemonType: normalType, ability: immunityAbility, want: false},
+		"applies sleep to a normal type":               {ailment: sleepAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"does not apply sleep with vital spirit":       {ailment: sleepAilment, pokemonType: normalType, ability: vitalSpiritAbility, want: false},
+		"applies yawn to a normal type":                {ailment: yawnAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"does not apply yawn with vital spirit":        {ailment: yawnAilment, pokemonType: normalType, ability: vitalSpiritAbility, want: false},
+		"applies confusion to a normal type":           {ailment: confusionAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"applies infatuation to a normal type":         {ailment: infatuationAilment, pokemonType: normalType, ability: noneAbility, want: true},
+		"does not apply infatuation with oblivious":    {ailment: infatuationAilment, pokemonType: normalType, ability: obliviousAbility, want: false},
+		"does not apply burn with water veil":          {ailment: burnAilment, pokemonType: normalType, ability: waterVeilAbility, want: false},
+		"does not apply paralysis with limber":         {ailment: paralysisAilment, pokemonType: normalType, ability: limberAbility, want: false},
 	}
 
 	for name, tc := range tests {
@@ -350,15 +350,15 @@ func TestApplyAilment(t *testing.T) {
 	}
 }
 
-func TestChangeHpBy(t *testing.T) {
+func TestChangeHpByCapsHealingAndDamageAtMaxHP(t *testing.T) {
 	tests := map[string]struct {
 		initialHP int
 		maxHP     int
 		change    int
 		want      int
 	}{
-		"increase hp":       {initialHP: 50, maxHP: 100, change: 20, want: 70},
-		"increase over max": {initialHP: 90, maxHP: 100, change: 20, want: 100},
+		"increases HP by a normal amount":     {initialHP: 50, maxHP: 100, change: 20, want: 70},
+		"caps HP at the maximum when healing": {initialHP: 90, maxHP: 100, change: 20, want: 100},
 	}
 
 	for name, tc := range tests {
@@ -378,14 +378,14 @@ func TestChangeHpBy(t *testing.T) {
 	}
 }
 
-func TestToxicConversion(t *testing.T) {
+func TestToxicConversionTurnsPoisonIntoToxicWhenAppropriate(t *testing.T) {
 	tests := map[string]struct {
 		move string
 		want bool
 	}{
-		"poison fang": {move: "poison fang", want: true},
-		"toxic":       {move: "toxic", want: true},
-		"tackle":      {move: "tackle", want: false},
+		"converts poison fang into toxic":    {move: "poison fang", want: true},
+		"converts toxic into toxic":          {move: "toxic", want: true},
+		"does not convert tackle into toxic": {move: "tackle", want: false},
 	}
 
 	for name, tc := range tests {
@@ -408,19 +408,19 @@ func TestToxicConversion(t *testing.T) {
 	}
 }
 
-func TestIsGrounded(t *testing.T) {
+func TestIsGroundedAccountsForTypeAbilitiesAndItems(t *testing.T) {
 	tests := map[string]struct {
 		pokemonType pokemonType
 		ability     abilityState
 		item        itemState
 		want        bool
 	}{
-		"flying":             {pokemonType: flyingType, ability: noneAbility, item: noneItem, want: false},
-		"flying iron ball":   {pokemonType: flyingType, ability: noneAbility, item: ironBall, want: true},
-		"intim":              {pokemonType: normalType, ability: intimidateAbility, item: noneItem, want: true},
-		"intim iron ball":    {pokemonType: normalType, ability: intimidateAbility, item: ironBall, want: true},
-		"levitate":           {pokemonType: normalType, ability: levitateAbility, item: noneItem, want: false},
-		"levitate iron ball": {pokemonType: normalType, ability: levitateAbility, item: ironBall, want: true},
+		"flying types are not grounded by default":    {pokemonType: flyingType, ability: noneAbility, item: noneItem, want: false},
+		"flying types become grounded with iron ball": {pokemonType: flyingType, ability: noneAbility, item: ironBall, want: true},
+		"normal types are grounded by intimidate":     {pokemonType: normalType, ability: intimidateAbility, item: noneItem, want: true},
+		"normal types remain grounded with iron ball": {pokemonType: normalType, ability: intimidateAbility, item: ironBall, want: true},
+		"levitate prevents grounding by default":      {pokemonType: normalType, ability: levitateAbility, item: noneItem, want: false},
+		"levitate is bypassed by iron ball":           {pokemonType: normalType, ability: levitateAbility, item: ironBall, want: true},
 	}
 
 	for name, tc := range tests {
@@ -441,7 +441,7 @@ func TestIsGrounded(t *testing.T) {
 	}
 }
 
-func TestApplyMoveType(t *testing.T) {
+func TestApplyMoveTypeCalculatesTheCorrectDamageMultiplier(t *testing.T) {
 	tests := map[string]struct {
 		input struct {
 			num int
@@ -456,7 +456,7 @@ func TestApplyMoveType(t *testing.T) {
 			dem int
 		}
 	}{
-		"fighting against normal": {input: struct {
+		"calculates doubled damage against normal types": {input: struct {
 			num int
 			dem int
 		}{
@@ -467,7 +467,7 @@ func TestApplyMoveType(t *testing.T) {
 		}{
 			num: 12, dem: 3,
 		}},
-		"fighting against normal/flying": {input: struct {
+		"calculates doubled damage against a dual-type target": {input: struct {
 			num int
 			dem int
 		}{
@@ -478,7 +478,7 @@ func TestApplyMoveType(t *testing.T) {
 		}{
 			num: 12, dem: 6,
 		}},
-		"ghost against normal": {input: struct {
+		"returns zero damage against an immune target": {input: struct {
 			num int
 			dem int
 		}{
@@ -489,7 +489,7 @@ func TestApplyMoveType(t *testing.T) {
 		}{
 			num: 0, dem: 1,
 		}},
-		"ground against levitate": {input: struct {
+		"returns zero damage against a levitating target": {input: struct {
 			num int
 			dem int
 		}{
@@ -500,7 +500,7 @@ func TestApplyMoveType(t *testing.T) {
 		}{
 			num: 0, dem: 1,
 		}},
-		"ground against levitate and iron ball": {input: struct {
+		"bypasses levitate with iron ball": {input: struct {
 			num int
 			dem int
 		}{

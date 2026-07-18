@@ -484,8 +484,8 @@ var itemBuilders = map[itemState]ItemFactoryBuilder{
 	darkGem:       makeGemMiddleware(darkGem, darkType),
 	steelGem:      makeGemMiddleware(steelGem, steelType),
 	fairyGem:      makeGemMiddleware(fairyGem, fairyType),
-	assaultVest:   makePassiveItemMiddleware(assaultVest),
-	choiceScarf:   makePassiveItemMiddleware(choiceScarf),
+	assaultVest:   makeAssaultVest,
+	choiceScarf:   makeChoiceScarf,
 	choiceBand:    makeChoiceBand,
 	choiceSpecs:   makeChoiceSpecs,
 	focusSash:     makeFocusSash,
@@ -714,7 +714,7 @@ func makeLeppaBerry(mon *pokemon) *item {
 	}
 }
 
-func makeStatBoostBerryMiddleware(is itemState, stat stat) func(mon *pokemon) *item {
+func makeStatBoostBerryMiddleware(is itemState, stat statState) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		return &item{
 			state: is,
@@ -739,7 +739,7 @@ func makeStatBoostBerryMiddleware(is itemState, stat stat) func(mon *pokemon) *i
 	}
 }
 
-func makePinchHealingBerryMiddleware(is itemState, stat stat) func(mon *pokemon) *item {
+func makePinchHealingBerryMiddleware(is itemState, stat statState) func(mon *pokemon) *item {
 	return func(mon *pokemon) *item {
 		return &item{
 			state: is,
@@ -817,6 +817,48 @@ func makeGemMiddleware(is itemState, pokemonType pokemonType) func(mon *pokemon)
 	}
 }
 
+func makeAssaultVest(mon *pokemon) *item {
+	var s *int
+	return &item{
+		state: assaultVest,
+		trigger: func(e any) bool {
+			event, ok := e.(choiceItemEvent)
+			if !ok {
+				return false
+			}
+			if event.statState != specialDefense {
+				return false
+			}
+			s = event.stat
+			return true
+		},
+		activate: func() {
+			*s = *s * 3 / 2
+		},
+	}
+}
+
+func makeChoiceScarf(mon *pokemon) *item {
+	var s *int
+	return &item{
+		state: choiceScarf,
+		trigger: func(e any) bool {
+			event, ok := e.(choiceItemEvent)
+			if !ok {
+				return false
+			}
+			if event.statState != speed {
+				return false
+			}
+			s = event.stat
+			return true
+		},
+		activate: func() {
+			*s = *s * 3 / 2
+		},
+	}
+}
+
 func makeChoiceBand(mon *pokemon) *item {
 	var s *int
 	return &item{
@@ -881,25 +923,73 @@ type resistBerryEvent struct {
 	damage      *int
 }
 
+func makeResistBerryEvent(pokemonType pokemonType, damage *int) resistBerryEvent {
+	return resistBerryEvent{
+		pokemonType: pokemonType,
+		damage:      damage,
+	}
+}
+
 type gemEvent struct {
 	pokemonType pokemonType
 	power       *int
+}
+
+func makeGemEvent(pokemonType pokemonType, power *int) gemEvent {
+	return gemEvent{
+		pokemonType: pokemonType,
+		power:       power,
+	}
 }
 
 type leppaBerryEvent struct {
 	move *Move
 }
 
+func makeLeppaBerryEvent(move *Move) leppaBerryEvent {
+	return leppaBerryEvent{
+		move: move,
+	}
+}
+
 type choiceItemEvent struct {
-	move *Move
-	stat *int
+	move      *Move
+	statState statState
+	stat      *int
+}
+
+func makeChoiceItemEvent(move *Move, statState statState, stat *int) choiceItemEvent {
+	res := choiceItemEvent{
+		statState: statState,
+		stat:      stat,
+	}
+	if move == nil {
+		res.move = &Move{}
+	} else {
+		res.move = move
+	}
+
+	return res
 }
 
 type focusSashEvent struct {
 	damage *int
 }
 
+func makeFocusSashEvent(damage *int) focusSashEvent {
+	return focusSashEvent{
+		damage: damage,
+	}
+}
+
 type moveBoostingEvent struct {
-	power       *int
 	pokemonType pokemonType
+	power       *int
+}
+
+func makeMoveBoostingEvent(pokemonType pokemonType, power *int) moveBoostingEvent {
+	return moveBoostingEvent{
+		pokemonType: pokemonType,
+		power:       power,
+	}
 }

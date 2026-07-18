@@ -56,6 +56,8 @@ type Move struct {
 	Category      string
 }
 
+var emptyMove Move
+
 var contactMoves map[string]any
 
 func toMove(mj pokeapi.MoveJSON) (Move, error) {

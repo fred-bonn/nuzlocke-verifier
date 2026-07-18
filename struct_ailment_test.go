@@ -8,24 +8,24 @@ import (
 	"testing"
 )
 
-func TestStringToAilmentState(t *testing.T) {
+func TestStringToAilmentStateParsesKnownAilmentNames(t *testing.T) {
 	tests := map[string]struct {
 		input string
 		want  ailmentState
 	}{
-		"paralysis":   {input: "paralysis", want: paralysisAilment},
-		"poison":      {input: "poison", want: poisonAilment},
-		"toxic":       {input: "toxic", want: toxicAilment},
-		"burn":        {input: "burn", want: burnAilment},
-		"freeze":      {input: "freeze", want: freezeAilment},
-		"sleep":       {input: "sleep", want: sleepAilment},
-		"infatuation": {input: "infatuation", want: infatuationAilment},
-		"confusion":   {input: "confusion", want: confusionAilment},
-		"trap":        {input: "trap", want: trapAilment},
-		"bound":       {input: "bound", want: boundAilment},
-		"leech seed":  {input: "leech seed", want: leechSeedAilment},
-		"yawn":        {input: "yawn", want: yawnAilment},
-		"unknown":     {input: "", want: noneAilment},
+		"parses paralysis":               {input: "paralysis", want: paralysisAilment},
+		"parses poison":                  {input: "poison", want: poisonAilment},
+		"parses toxic":                   {input: "toxic", want: toxicAilment},
+		"parses burn":                    {input: "burn", want: burnAilment},
+		"parses freeze":                  {input: "freeze", want: freezeAilment},
+		"parses sleep":                   {input: "sleep", want: sleepAilment},
+		"parses infatuation":             {input: "infatuation", want: infatuationAilment},
+		"parses confusion":               {input: "confusion", want: confusionAilment},
+		"parses trap":                    {input: "trap", want: trapAilment},
+		"parses bound":                   {input: "bound", want: boundAilment},
+		"parses leech seed":              {input: "leech seed", want: leechSeedAilment},
+		"parses yawn":                    {input: "yawn", want: yawnAilment},
+		"defaults unknown input to none": {input: "", want: noneAilment},
 	}
 
 	for name, tc := range tests {
@@ -37,15 +37,15 @@ func TestStringToAilmentState(t *testing.T) {
 	}
 }
 
-func TestIsNonVolatileStatus(t *testing.T) {
+func TestIsNonVolatileStatusIdentifiesNonVolatileAilments(t *testing.T) {
 	tests := map[string]struct {
 		state ailmentState
 		want  bool
 	}{
-		"paralysis":   {state: paralysisAilment, want: true},
-		"none":        {state: noneAilment, want: false},
-		"sleep":       {state: sleepAilment, want: true},
-		"infatuation": {state: infatuationAilment, want: false},
+		"treats paralysis as non-volatile":       {state: paralysisAilment, want: true},
+		"treats none as not non-volatile":        {state: noneAilment, want: false},
+		"treats sleep as non-volatile":           {state: sleepAilment, want: true},
+		"treats infatuation as not non-volatile": {state: infatuationAilment, want: false},
 	}
 
 	for name, tc := range tests {
@@ -57,13 +57,13 @@ func TestIsNonVolatileStatus(t *testing.T) {
 	}
 }
 
-func TestAilmentIterators(t *testing.T) {
+func TestAilmentIteratorsIncludeTheExpectedAilmentGroups(t *testing.T) {
 	tests := map[string]struct {
 		iterator func(func(ailmentState) bool)
 		want     bool
 	}{
-		"non volatile": {iterator: nonVolatileStatuses, want: true},
-		"volatile":     {iterator: volatileStatuses, want: false},
+		"includes non-volatile statuses": {iterator: nonVolatileStatuses, want: true},
+		"includes volatile statuses":     {iterator: volatileStatuses, want: false},
 	}
 
 	for name, tc := range tests {
@@ -81,17 +81,17 @@ const (
 	generateAilmentIterations int = 500
 )
 
-func TestGenerateAilment(t *testing.T) {
+func TestGenerateAilmentProducesAValidAilmentState(t *testing.T) {
 	tests := map[string]struct {
 		state    ailmentState
 		want     ailmentState
 		minTurns int
 		maxTurns int
 	}{
-		"sleep":     {state: sleepAilment, want: sleepAilment, minTurns: 1, maxTurns: 3},
-		"confusion": {state: confusionAilment, want: confusionAilment, minTurns: 1, maxTurns: 4},
-		"yawn":      {state: yawnAilment, want: yawnAilment, minTurns: 2, maxTurns: 2},
-		"paralysis": {state: paralysisAilment, want: paralysisAilment, minTurns: 0, maxTurns: 0},
+		"generates sleep with a short duration":     {state: sleepAilment, want: sleepAilment, minTurns: 1, maxTurns: 3},
+		"generates confusion with a short duration": {state: confusionAilment, want: confusionAilment, minTurns: 1, maxTurns: 4},
+		"generates yawn with a fixed duration":      {state: yawnAilment, want: yawnAilment, minTurns: 2, maxTurns: 2},
+		"generates paralysis with zero duration":    {state: paralysisAilment, want: paralysisAilment, minTurns: 0, maxTurns: 0},
 	}
 
 	for name, tc := range tests {
@@ -105,17 +105,17 @@ func TestGenerateAilment(t *testing.T) {
 	}
 }
 
-func TestGenerateTrap(t *testing.T) {
+func TestGenerateTrapProducesAValidTrapAilment(t *testing.T) {
 	tests := map[string]struct {
 		minTurns int
 		maxTurns int
 	}{
-		"1-5":   {minTurns: 1, maxTurns: 5},
-		"2-2":   {minTurns: 2, maxTurns: 2},
-		"0-1":   {minTurns: 0, maxTurns: 1},
-		"0-0":   {minTurns: 0, maxTurns: 0},
-		"99-99": {minTurns: 99, maxTurns: 99},
-		"0-10":  {minTurns: 0, maxTurns: 10},
+		"generates a trap with 1 to 5 turns":  {minTurns: 1, maxTurns: 5},
+		"generates a trap with 2 turns":       {minTurns: 2, maxTurns: 2},
+		"generates a trap with 0 to 1 turns":  {minTurns: 0, maxTurns: 1},
+		"generates a trap with 0 turns":       {minTurns: 0, maxTurns: 0},
+		"generates a trap with 99 turns":      {minTurns: 99, maxTurns: 99},
+		"generates a trap with 0 to 10 turns": {minTurns: 0, maxTurns: 10},
 	}
 
 	for name, tc := range tests {

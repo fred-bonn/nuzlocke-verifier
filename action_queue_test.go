@@ -2,14 +2,14 @@ package main
 
 import "testing"
 
-func TestPriorityQueuePush(t *testing.T) {
+func TestPriorityQueuePushesElementsInOrder(t *testing.T) {
 	tests := map[string]struct {
 		queue priorityQueue[int]
 		push  []int
 		want  priorityQueue[int]
 	}{
-		"empty":          {queue: priorityQueue[int]{}, push: []int{1, 2, 3}, want: priorityQueue[int]{1, 2, 3}},
-		"three elements": {queue: priorityQueue[int]{1, 2, 3}, push: []int{1, 2, 3}, want: priorityQueue[int]{1, 2, 3, 1, 2, 3}},
+		"pushes into an empty queue":                      {queue: priorityQueue[int]{}, push: []int{1, 2, 3}, want: priorityQueue[int]{1, 2, 3}},
+		"pushes multiple elements into a populated queue": {queue: priorityQueue[int]{1, 2, 3}, push: []int{1, 2, 3}, want: priorityQueue[int]{1, 2, 3, 1, 2, 3}},
 	}
 
 	for name, tc := range tests {
@@ -29,16 +29,16 @@ func TestPriorityQueuePush(t *testing.T) {
 	}
 }
 
-func TestPriorityQueuePop(t *testing.T) {
+func TestPriorityQueuePopsElementsInPriorityOrder(t *testing.T) {
 	tests := map[string]struct {
 		queue    priorityQueue[int]
 		want     int
 		wantOk   bool
 		wantLeft priorityQueue[int]
 	}{
-		"empty":          {queue: priorityQueue[int]{}, want: 0, wantOk: false, wantLeft: priorityQueue[int]{}},
-		"three elements": {queue: priorityQueue[int]{1, 2, 3}, want: 3, wantOk: true, wantLeft: priorityQueue[int]{1, 2}},
-		"one element":    {queue: priorityQueue[int]{1}, want: 1, wantOk: true, wantLeft: priorityQueue[int]{}},
+		"pops from an empty queue":                              {queue: priorityQueue[int]{}, want: 0, wantOk: false, wantLeft: priorityQueue[int]{}},
+		"pops the highest priority element from a larger queue": {queue: priorityQueue[int]{1, 2, 3}, want: 3, wantOk: true, wantLeft: priorityQueue[int]{1, 2}},
+		"pops the only element from a single-item queue":        {queue: priorityQueue[int]{1}, want: 1, wantOk: true, wantLeft: priorityQueue[int]{}},
 	}
 
 	for name, tc := range tests {
@@ -64,14 +64,14 @@ func TestPriorityQueuePop(t *testing.T) {
 	}
 }
 
-func TestPriorityQueueSort(t *testing.T) {
+func TestPriorityQueueSortsElementsByPriority(t *testing.T) {
 	tests := map[string]struct {
 		queue priorityQueue[int]
 		want  priorityQueue[int]
 	}{
-		"no change": {queue: priorityQueue[int]{1, 2, 3}, want: priorityQueue[int]{1, 2, 3}},
-		"sort":      {queue: priorityQueue[int]{2, 3, 1}, want: priorityQueue[int]{1, 2, 3}},
-		"reverse":   {queue: priorityQueue[int]{5, 4, 3, 2, 1}, want: priorityQueue[int]{1, 2, 3, 4, 5}},
+		"keeps an already sorted queue unchanged": {queue: priorityQueue[int]{1, 2, 3}, want: priorityQueue[int]{1, 2, 3}},
+		"sorts a partially ordered queue":         {queue: priorityQueue[int]{2, 3, 1}, want: priorityQueue[int]{1, 2, 3}},
+		"sorts a reverse-ordered queue":           {queue: priorityQueue[int]{5, 4, 3, 2, 1}, want: priorityQueue[int]{1, 2, 3, 4, 5}},
 	}
 
 	f := func(a int, b int) int {
@@ -94,15 +94,15 @@ func TestPriorityQueueSort(t *testing.T) {
 	}
 }
 
-func TestPriorityQueueInsert(t *testing.T) {
+func TestPriorityQueueInsertsElementsAtTheCorrectPosition(t *testing.T) {
 	tests := map[string]struct {
 		queue priorityQueue[int]
 		input int
 		want  priorityQueue[int]
 	}{
-		"start":  {queue: priorityQueue[int]{1, 2, 3}, input: 1, want: priorityQueue[int]{1, 1, 2, 3}},
-		"end":    {queue: priorityQueue[int]{1, 2, 3}, input: 5, want: priorityQueue[int]{1, 2, 3, 5}},
-		"middle": {queue: priorityQueue[int]{1, 2, 3}, input: 2, want: priorityQueue[int]{1, 2, 2, 3}},
+		"inserts a duplicate at the front":  {queue: priorityQueue[int]{1, 2, 3}, input: 1, want: priorityQueue[int]{1, 1, 2, 3}},
+		"inserts a new maximum at the end":  {queue: priorityQueue[int]{1, 2, 3}, input: 5, want: priorityQueue[int]{1, 2, 3, 5}},
+		"inserts a duplicate in the middle": {queue: priorityQueue[int]{1, 2, 3}, input: 2, want: priorityQueue[int]{1, 2, 2, 3}},
 	}
 
 	f := func(a int, b int) bool {
@@ -125,7 +125,7 @@ func TestPriorityQueueInsert(t *testing.T) {
 	}
 }
 
-func TestPriorityQueueFetchBy(t *testing.T) {
+func TestPriorityQueueFetchesTheFirstMatchingElement(t *testing.T) {
 	tests := map[string]struct {
 		queue    priorityQueue[int]
 		matcher  func(int) bool
@@ -133,21 +133,21 @@ func TestPriorityQueueFetchBy(t *testing.T) {
 		wantOk   bool
 		wantLeft priorityQueue[int]
 	}{
-		"found first": {
+		"finds the first matching element": {
 			queue:    priorityQueue[int]{1, 2, 3},
 			matcher:  func(v int) bool { return v == 1 },
 			want:     1,
 			wantOk:   true,
 			wantLeft: priorityQueue[int]{2, 3},
 		},
-		"found middle": {
+		"finds a matching element in the middle": {
 			queue:    priorityQueue[int]{1, 2, 3},
 			matcher:  func(v int) bool { return v == 2 },
 			want:     2,
 			wantOk:   true,
 			wantLeft: priorityQueue[int]{1, 3},
 		},
-		"not found": {
+		"returns not found when no element matches": {
 			queue:    priorityQueue[int]{1, 2, 3},
 			matcher:  func(v int) bool { return v == 4 },
 			want:     0,

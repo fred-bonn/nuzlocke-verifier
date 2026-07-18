@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestNextToken(t *testing.T) {
+func TestNextTokenReadsTheExpectedTokenType(t *testing.T) {
 	tests := map[string][]struct {
 		input string
 		want  token
 	}{
-		"skip whitespace": {
+		"skips leading whitespace": {
 			{
 				input: "\t\t   \r\n\t",
 				want: token{
@@ -18,7 +18,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"item": {
+		"parses an item token": {
 			{
 				input: "@ item-name",
 				want: token{
@@ -27,7 +27,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"end": {
+		"returns EOF at the end of input": {
 			{
 				input: "",
 				want: token{
@@ -36,7 +36,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"level": {
+		"parses a level token": {
 			{
 				input: ": 69",
 				want: token{
@@ -45,7 +45,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"nature": {
+		"parses a nature token": {
 			{
 				input: "Jolly Nature\n",
 				want: token{
@@ -54,7 +54,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"level token": {
+		"recognizes a level token": {
 			{
 				input: "Level: 30",
 				want: token{
@@ -63,7 +63,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"status token": {
+		"recognizes a status token": {
 			{
 				input: "   Status>",
 				want: token{
@@ -72,7 +72,7 @@ func TestNextToken(t *testing.T) {
 				},
 			},
 		},
-		"move": {
+		"parses a move token": {
 			{
 				input: "\t - Tackle",
 				want: token{
@@ -96,12 +96,12 @@ func TestNextToken(t *testing.T) {
 	}
 }
 
-func TestReadIdentifier(t *testing.T) {
+func TestReadIdentifierReadsPokemonNamesCorrectly(t *testing.T) {
 	tests := map[string][]struct {
 		input string
 		want  token
 	}{
-		"mr mime": {
+		"parses a name with a period": {
 			{
 				input: "Mr. Mime   \n",
 				want: token{
@@ -110,7 +110,7 @@ func TestReadIdentifier(t *testing.T) {
 				},
 			},
 		},
-		"nidoran-f": {
+		"parses a hyphenated name": {
 			{
 				input: "Nidoran-F\n",
 				want: token{
@@ -119,7 +119,7 @@ func TestReadIdentifier(t *testing.T) {
 				},
 			},
 		},
-		"farfetch": {
+		"parses a name with an apostrophe": {
 			{
 				input: "   Farfetc'h\n",
 				want: token{
@@ -128,7 +128,7 @@ func TestReadIdentifier(t *testing.T) {
 				},
 			},
 		},
-		"porygon2": {
+		"parses a name with a numeral": {
 			{
 				input: "Porygon2\n",
 				want: token{

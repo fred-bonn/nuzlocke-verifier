@@ -98,6 +98,61 @@ func TestBerryItemsHeal(t *testing.T) {
 	}
 }
 
+func TestLeppaBerryRestoresPP(t *testing.T) {
+	tests := map[string]struct {
+		initialPP    int
+		maxPP        int
+		unnerved     bool
+		wantPP       int
+		wantConsumed bool
+	}{
+		"restores PP from 0 to 10":       {initialPP: 0, maxPP: 15, wantPP: 10, wantConsumed: true},
+		"does not restore above max PP":  {initialPP: 0, maxPP: 3, wantPP: 3, wantConsumed: true},
+		"does not restore when unnerved": {initialPP: 0, maxPP: 15, unnerved: true, wantPP: 0, wantConsumed: false},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{unnerved: tc.unnerved}
+			item, _ := registerItem(leppaBerry, &mon)
+			mon.item = item
+
+			move := Move{PP: tc.initialPP, MaxPP: tc.maxPP}
+			mon.checkItemTrigger(true, makeLeppaBerryEvent(&move))
+
+			if got := move.PP; got != tc.wantPP {
+				t.Errorf("move.PP = %d, want %d", got, tc.wantPP)
+			}
+
+			if got := item.consumed; got != tc.wantConsumed {
+				if got {
+					t.Errorf("%s was consumed", leppaBerry.String())
+				} else {
+					t.Errorf("%s was not consumed", leppaBerry.String())
+				}
+			}
+		})
+	}
+}
+
+func TestLeftoversHealsAtEndOfTurn(t *testing.T) {
+	mon := &pokemon{
+		stats: []int{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		hp:    100,
+		item:  &item{state: leftovers},
+	}
+	mon.stats[hitPoints] = 200
+
+	slotVar := &slot{mon: mon}
+	bs := &dummyBattleState{slots: []*slot{slotVar}}
+	resolveEndOfTurn(bs)
+
+	wantHP := 112
+	if got := mon.hp; got != wantHP {
+		t.Fatalf("mon.hp = %d, want %d", got, wantHP)
+	}
+}
+
 func TestIsBerry(t *testing.T) {
 	tests := map[string]struct {
 		item itemState
@@ -294,10 +349,7 @@ func TestResistBerries(t *testing.T) {
 
 			damage := tc.initialDamage
 			if tc.event {
-				mon.checkItemTrigger(true, resistBerryEvent{
-					pokemonType: tc.pokemon,
-					damage:      &damage,
-				})
+				mon.checkItemTrigger(true, makeResistBerryEvent(tc.pokemon, &damage))
 			} else {
 				mon.checkItemTrigger(true, nil)
 			}
@@ -339,10 +391,7 @@ func TestTypeGems(t *testing.T) {
 
 			power := tc.initialPower
 			if tc.event {
-				mon.checkItemTrigger(true, gemEvent{
-					pokemonType: tc.move,
-					power:       &power,
-				})
+				mon.checkItemTrigger(true, makeGemEvent(tc.move, &power))
 			} else {
 				mon.checkItemTrigger(true, nil)
 			}
@@ -455,10 +504,7 @@ func TestChoiceBand(t *testing.T) {
 
 			newAttack := tc.initialAttack
 			if tc.event {
-				mon.checkItemTrigger(false, choiceItemEvent{
-					move: &move,
-					stat: &newAttack,
-				})
+				mon.checkItemTrigger(false, makeChoiceItemEvent(&move, noStat, &newAttack))
 			} else {
 				mon.checkItemTrigger(false, nil)
 			}
@@ -502,10 +548,7 @@ func TestChoiceSpecs(t *testing.T) {
 
 			newSpecialAttack := tc.initialSpecialAttack
 			if tc.event {
-				mon.checkItemTrigger(false, choiceItemEvent{
-					move: &move,
-					stat: &newSpecialAttack,
-				})
+				mon.checkItemTrigger(false, makeChoiceItemEvent(&move, noStat, &newSpecialAttack))
 			} else {
 				mon.checkItemTrigger(false, nil)
 			}
@@ -548,9 +591,7 @@ func TestFocusSash(t *testing.T) {
 
 			damage := tc.initialDamage
 			if tc.event {
-				mon.checkItemTrigger(true, focusSashEvent{
-					damage: &damage,
-				})
+				mon.checkItemTrigger(true, makeFocusSashEvent(&damage))
 			} else {
 				mon.checkItemTrigger(true, nil)
 			}
