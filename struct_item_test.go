@@ -610,3 +610,44 @@ func TestFocusSash(t *testing.T) {
 		})
 	}
 }
+
+func TestTypeBoostingItem(t *testing.T) {
+	tests := map[string]struct {
+		initialPower int
+		item         itemState
+		move         pokemonType
+		event        bool
+		want         int
+	}{
+		"silk scarf increases power of normal moves by 20%":              {initialPower: 40, item: silkScarf, move: normalType, event: true, want: 48},
+		"silver powder increases power of bug moves by 20%":              {initialPower: 80, item: silverPowder, move: bugType, event: true, want: 96},
+		"miracle seed increases power of grass moves by 20%":             {initialPower: 10, item: miracleSeed, move: grassType, event: true, want: 12},
+		"dark glasses increases power of dark moves by 20%":              {initialPower: 25, item: blackGlasses, move: darkType, event: true, want: 30},
+		"silk scarf does not increase power of bug moves":                {initialPower: 40, item: silkScarf, move: bugType, event: true, want: 40},
+		"silk scarf does not increase power without move boosting event": {initialPower: 40, item: silkScarf, move: normalType, want: 40},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			mon := pokemon{}
+			item, _ := registerItem(tc.item, &mon)
+			mon.item = item
+
+			power := tc.initialPower
+			if tc.event {
+				mon.checkItemTrigger(false, makeMoveBoostingEvent(tc.move, &power))
+			} else {
+				mon.checkItemTrigger(false, nil)
+			}
+
+			if got := power; got != tc.want {
+				t.Errorf("power = %d, want %d", got, tc.want)
+			}
+
+			if item.consumed {
+				t.Errorf("%s should not be consumed", tc.item.String())
+			}
+		})
+
+	}
+}
