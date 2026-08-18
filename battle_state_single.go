@@ -9,6 +9,9 @@ type singleBattleState struct {
 	weather            weatherState
 	fieldEffects       map[fieldEffect]int
 	err                error
+	initialPlayer      trainer
+	initialOpponent    trainer
+	initialWeather     weatherState
 }
 
 func (sbs *singleBattleState) execute() error {
@@ -91,6 +94,90 @@ func (sbs *singleBattleState) getFieldEffects() map[fieldEffect]int {
 	return sbs.fieldEffects
 }
 
+func (sbs *singleBattleState) reset() error {
+	playerParty := clonePokemonParty(sbs.initialPlayer.pokemonParty)
+	opponentParty := clonePokemonParty(sbs.initialOpponent.pokemonParty)
+
+	player := sbs.initialPlayer
+	player.pokemonParty = playerParty
+	player.lost = false
+	player.fieldEffects = cloneFieldEffects(sbs.initialPlayer.fieldEffects)
+
+	opponent := sbs.initialOpponent
+	opponent.pokemonParty = opponentParty
+	opponent.lost = false
+	opponent.fieldEffects = cloneFieldEffects(sbs.initialOpponent.fieldEffects)
+
+	sbs.activePlayerSlot = &slot{
+		mon:       playerParty[0],
+		trainer:   &player,
+		firstTurn: true,
+	}
+	sbs.activeOpponentSlot = &slot{
+		mon:       opponentParty[0],
+		trainer:   &opponent,
+		firstTurn: true,
+	}
+	sbs.player = &player
+	sbs.opponent = &opponent
+	sbs.actions = actionQueue{queue: make(priorityQueue[action], 0, 3)}
+	sbs.weather = sbs.initialWeather
+	sbs.err = nil
+
+	sbs.setWeather(sbs.initialWeather)
+	resolveOnEntry(sbs)
+	return nil
+}
+
+func cloneFieldEffects(src map[fieldEffect]int) map[fieldEffect]int {
+	if src == nil {
+		return make(map[fieldEffect]int)
+	}
+	clone := make(map[fieldEffect]int, len(src))
+	for k, v := range src {
+		clone[k] = v
+	}
+	return clone
+}
+
+func clonePokemonParty(src []*pokemon) []*pokemon {
+	clone := make([]*pokemon, len(src))
+	for i, mon := range src {
+		clone[i] = clonePokemon(mon)
+	}
+	return clone
+}
+
+func clonePokemon(p *pokemon) *pokemon {
+	if p == nil {
+		return nil
+	}
+
+	copyP := *p
+	copyP.ivs = append([]int(nil), p.ivs...)
+	copyP.moves = append([]*Move(nil), p.moves...)
+	copyP.stats = append([]int(nil), p.stats...)
+	copyP.stages = append([]int(nil), p.stages...)
+
+	if len(p.ailments) > 0 {
+		copyP.ailments = make(map[ailmentState]*ailment, len(p.ailments))
+		for state, ailment := range p.ailments {
+			if ailment == nil {
+				continue
+			}
+			copyA := *ailment
+			copyP.ailments[state] = &copyA
+		}
+	}
+
+	if p.item != nil {
+		copyItem := *p.item
+		copyP.item = &copyItem
+	}
+
+	return &copyP
+}
+
 func initSingleBattleState(player, opponent trainer, playerParty, opponentParty []*pokemon, weather weatherState) *singleBattleState {
 	player.pokemonParty = playerParty
 	opponent.pokemonParty = opponentParty
@@ -111,10 +198,19 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		actions: actionQueue{
 			queue: make(priorityQueue[action], 0, 3),
 		},
+		initialPlayer:   player,
+		initialOpponent: opponent,
+		initialWeather:  weather,
 	}
 
-	res.setWeather(weather)
+	res.initialPlayer.pokemonParty = clonePokemonParty(playerParty)
+	res.initialOpponent.pokemonParty = clonePokemonParty(opponentParty)
+	res.initialPlayer.fieldEffects = cloneFieldEffects(player.fieldEffects)
+	res.initialOpponent.fieldEffects = cloneFieldEffects(opponent.fieldEffects)
+	res.player.pokemonParty = playerParty
+	res.opponent.pokemonParty = opponentParty
 
+	res.setWeather(weather)
 	resolveOnEntry(&res)
 
 	return &res

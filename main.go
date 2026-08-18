@@ -12,9 +12,15 @@ var verbose = pflag.BoolP("verbose", "v", false, "verbose logging")
 
 func main() {
 	weather := pflag.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
+	playerUsesLearningAI := pflag.Bool("player-learning-ai", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
+	iterations := pflag.Int("iterations", 1, "number of times to run the same battle scenario for statistics or training")
 	pflag.Parse()
 	if *weather < 0 || *weather > 4 {
 		log.Printf("error: weather (-w) must be between 0 and 4")
+		os.Exit(1)
+	}
+	if *iterations <= 0 {
+		log.Printf("error: iterations must be greater than 0")
 		os.Exit(1)
 	}
 
@@ -39,9 +45,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	playerAI := ai(rnbAi{})
+	if *playerUsesLearningAI {
+		playerAI = newLearningAi()
+	}
+
 	sbs := initSingleBattleState(
 		trainer{
-			ai:           rnbAi{},
+			ai:           playerAI,
 			player:       true,
 			fieldEffects: make(map[fieldEffect]int),
 		},
@@ -54,9 +65,21 @@ func main() {
 		weatherState(*weather),
 	)
 
-	err = sbs.execute()
-	if err != nil {
-		log.Printf("error: battle state execute failed: %s", err)
-		os.Exit(1)
+	winCount := 0
+	for i := 0; i < *iterations; i++ {
+		if err := sbs.reset(); err != nil {
+			log.Fatal(err)
+		}
+		if err := sbs.execute(); err != nil {
+			log.Fatal(err)
+		}
+		if !sbs.player.lost {
+			winCount++
+		}
+	}
+
+	if *iterations > 0 {
+		pct := float64(winCount) * 100.0 / float64(*iterations)
+		log.Printf("player win rate: %.2f%% (%d/%d)", pct, winCount, *iterations)
 	}
 }

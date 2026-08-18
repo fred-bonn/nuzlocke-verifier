@@ -8,6 +8,7 @@ type trainer struct {
 	lost         bool
 }
 
+// i want to move this logic into the ai instead of the trainer
 func (t *trainer) nextAction(bs battleState, slot *slot) action {
 	if slot.invulnerableAction != nil {
 		return slot.invulnerableAction
