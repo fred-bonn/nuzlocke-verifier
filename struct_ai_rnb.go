@@ -6,6 +6,24 @@ import (
 
 type rnbAi struct{}
 
+func (rnb rnbAi) shouldSwitch(bs battleState, slot *slot, score int, party []*pokemon) bool {
+	opponent := bs.getOpponentSlot(slot).mon
+	for _, mon := range party {
+		if mon == slot.mon || mon.fainted {
+			continue
+		}
+
+		opponentDamage := calculateMaxDamage(bs, opponent, mon, false)
+		oneHitKill := opponentDamage >= mon.hp
+		twoHitKillWhileSlower := opponentDamage*2 >= mon.hp && !opponent.isFasterThan(bs, mon)
+		if !oneHitKill && !twoHitKillWhileSlower {
+			return score <= 0 && !roll(1, 2) && slot.mon.hp > slot.mon.maxHP()/2
+		}
+	}
+
+	return false
+}
+
 func (rnb rnbAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int) {
 	scores := make([]int, len(actions))
 	damage := make([]int, len(actions))

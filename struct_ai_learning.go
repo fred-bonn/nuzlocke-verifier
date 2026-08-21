@@ -83,6 +83,10 @@ func (la *learningAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponent
 	return bestMon
 }
 
+func (la *learningAi) shouldSwitch(bs battleState, slot *slot, score int, party []*pokemon) bool {
+	return false
+}
+
 func (la *learningAi) scoreAction(bs battleState, action *moveAction) int {
 	baseScore, _ := action.scoreActionMove(bs)
 	category := "damage"

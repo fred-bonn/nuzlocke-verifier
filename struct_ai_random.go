@@ -5,6 +5,7 @@ import "math/rand"
 type ai interface {
 	evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int)
 	evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot *slot) *pokemon
+	shouldSwitch(bs battleState, slot *slot, score int, party []*pokemon) bool
 }
 
 type randomAi struct{}
@@ -15,6 +16,10 @@ func (ra randomAi) evaluateActions(bs battleState, actions []*moveAction) (*move
 
 func (ra randomAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponentSlot *slot) *pokemon {
 	return mons[rand.Intn(len(mons))]
+}
+
+func (ra randomAi) shouldSwitch(bs battleState, slot *slot, score int, party []*pokemon) bool {
+	return roll(1, 5)
 }
 
 func chooseNextAction(bs battleState, slot *slot, party []*pokemon, decisionAI ai) action {
@@ -48,7 +53,7 @@ func chooseNextAction(bs battleState, slot *slot, party []*pokemon, decisionAI a
 	if slot.mon.item.state.isChoice() {
 		slot.mon.lockedMove = chosenAction.move
 	}
-	if score > 0 || roll(1, 2) || slot.mon.hp <= slot.mon.maxHP()/2 || !canReplace(party) || slot.isTrapped() {
+	if !canReplace(party) || slot.isTrapped() || !decisionAI.shouldSwitch(bs, slot, score, party) {
 		return chosenAction
 	}
 
