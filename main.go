@@ -50,7 +50,7 @@ func main() {
 		playerAI = newLearningAi()
 	}
 
-	sbs := initSingleBattleState(
+	var bs battleState = initSingleBattleState(
 		trainer{
 			ai:           playerAI,
 			player:       true,
@@ -65,21 +65,15 @@ func main() {
 		weatherState(*weather),
 	)
 
-	winCount := 0
 	for i := 0; i < *iterations; i++ {
-		if err := sbs.reset(); err != nil {
+		if err := bs.reset(); err != nil {
 			log.Fatal(err)
 		}
-		if err := sbs.execute(); err != nil {
+		if err := bs.execute(); err != nil {
 			log.Fatal(err)
 		}
-		if !sbs.player.lost {
-			winCount++
-		}
+		bs.recordStatistics()
 	}
 
-	if *iterations > 0 {
-		pct := float64(winCount) * 100.0 / float64(*iterations)
-		log.Printf("player win rate: %.2f%% (%d/%d)", pct, winCount, *iterations)
-	}
+	bs.printStatistics()
 }

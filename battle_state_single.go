@@ -12,6 +12,7 @@ type singleBattleState struct {
 	initialPlayer      trainer
 	initialOpponent    trainer
 	initialWeather     weatherState
+	statistics         battleStatistics
 }
 
 func (sbs *singleBattleState) execute() error {
@@ -92,6 +93,18 @@ func (sbs *singleBattleState) setWeather(w weatherState) {
 
 func (sbs *singleBattleState) getFieldEffects() map[fieldEffect]int {
 	return sbs.fieldEffects
+}
+
+func (sbs *singleBattleState) getStatistics() *battleStatistics {
+	return &sbs.statistics
+}
+
+func (sbs *singleBattleState) recordStatistics() {
+	sbs.statistics.record(sbs.player)
+}
+
+func (sbs *singleBattleState) printStatistics() {
+	sbs.statistics.print(sbs.initialPlayer.pokemonParty)
 }
 
 func (sbs *singleBattleState) reset() error {
@@ -201,6 +214,7 @@ func initSingleBattleState(player, opponent trainer, playerParty, opponentParty 
 		initialPlayer:   player,
 		initialOpponent: opponent,
 		initialWeather:  weather,
+		statistics:      newBattleStatistics(playerParty),
 	}
 
 	res.initialPlayer.pokemonParty = clonePokemonParty(playerParty)

@@ -2,6 +2,7 @@ package main
 
 type battleState interface {
 	execute() error
+	reset() error
 	setError(error)
 	gatherActions()
 	getAllSlots() []*slot
@@ -11,6 +12,9 @@ type battleState interface {
 	getWeather() weatherState
 	setWeather(weatherState)
 	getFieldEffects() map[fieldEffect]int
+	getStatistics() *battleStatistics
+	recordStatistics()
+	printStatistics()
 }
 
 func injectReplaceAction(bs battleState, slot *slot, midTurn bool) {
