@@ -27,6 +27,57 @@ func (bs *battleStatistics) record(player *trainer) {
 	}
 }
 
+func (bs *battleStatistics) partySurvivalRatio() float64 {
+	if bs == nil || bs.battleCount == 0 || len(bs.pokemonSurvivors) == 0 {
+		return 0
+	}
+
+	alive := 0.0
+	for _, survivors := range bs.pokemonSurvivors {
+		alive += float64(survivors) / float64(bs.battleCount)
+	}
+	return alive / float64(len(bs.pokemonSurvivors))
+}
+
+func (bs *battleStatistics) allPartySurvived() bool {
+	if bs == nil || bs.battleCount == 0 || len(bs.pokemonSurvivors) == 0 {
+		return false
+	}
+	for _, survivors := range bs.pokemonSurvivors {
+		if survivors != bs.battleCount {
+			return false
+		}
+	}
+	return true
+}
+
+func (bs *battleStatistics) outcomeScore() float64 {
+	if bs == nil || bs.battleCount == 0 {
+		return 0
+	}
+
+	winRate := float64(bs.winCount) / float64(bs.battleCount)
+	survivalRatio := bs.partySurvivalRatio()
+	lossRate := 1.0 - winRate
+	missingMembers := 0
+	aliveMembers := 0
+	for _, survivors := range bs.pokemonSurvivors {
+		if survivors == bs.battleCount {
+			aliveMembers++
+		}
+		if survivors != bs.battleCount {
+			missingMembers++
+		}
+	}
+	aliveRatio := float64(aliveMembers) / float64(len(bs.pokemonSurvivors))
+
+	if bs.allPartySurvived() {
+		return 75000.0 + 20000.0*winRate + 15000.0*survivalRatio
+	}
+
+	return (2.0*winRate-1.0)*20000.0 + aliveRatio*35000.0 + survivalRatio*12000.0 - lossRate*22000.0 - float64(missingMembers)*14000.0
+}
+
 func (bs *battleStatistics) print(party []*pokemon) {
 	if bs.battleCount == 0 {
 		return

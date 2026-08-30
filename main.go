@@ -13,6 +13,8 @@ var verbose = pflag.BoolP("verbose", "v", false, "verbose logging")
 func main() {
 	weather := pflag.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
 	playerUsesLearningAI := pflag.Bool("player-learning-ai", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
+	policyFile := pflag.String("policy-file", "", "path to a saved policy JSON file to load and use for the player trainer")
+	savePolicy := pflag.Bool("save-policy", false, "save the learned policy under policies/ using the input file names")
 	iterations := pflag.Int("iterations", 1, "number of times to run the same battle scenario for statistics or training")
 	pflag.Parse()
 	if *weather < 0 || *weather > 4 {
@@ -45,9 +47,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	var policy *savedPolicy
+	var playerLearning *learningAi
 	playerAI := ai(rnbAi{})
-	if *playerUsesLearningAI {
-		playerAI = newLearningAi()
+	if *policyFile != "" {
+		policy, err = loadPolicyFromDisk(*policyFile)
+		if err != nil {
+			log.Printf("error: failed loading policy '%s': %s", *policyFile, err)
+			os.Exit(1)
+		}
+		if err := validatePolicyCompatibility(policy, playerParty, opponentParty); err != nil {
+			log.Printf("error: policy incompatible with input parties: %s", err)
+			os.Exit(1)
+		}
+		playerAI = newStaticPolicyAiFromPolicy(policy)
+		playerLearning = nil
+		log.Printf("loaded policy from %s: %d states, %d scored actions, %d observed actions", *policyFile, len(policy.Policy), countScoreEntries(policy.Scores), countCountEntries(policy.Counts))
+	} else if *playerUsesLearningAI {
+		playerLearning = newLearningAi()
+		playerAI = playerLearning
 	}
 
 	var bs battleState = initSingleBattleState(
@@ -73,6 +91,23 @@ func main() {
 			log.Fatal(err)
 		}
 		bs.recordStatistics()
+		if learning, ok := bs.(*singleBattleState); ok {
+			if playerAI, ok := learning.player.ai.(*learningAi); ok {
+				playerAI.recordBattleOutcome(learning.getStatistics())
+				if learning.getStatistics().allPartySurvived() {
+					log.Printf("training target reached: all party members survived after %d battle(s)", i+1)
+					break
+				}
+			}
+		}
+	}
+
+	if *savePolicy && playerLearning != nil {
+		if err := savePolicyToDisk(playerLearning, args[0], args[1], playerParty, opponentParty); err != nil {
+			log.Printf("error: failed saving policy: %s", err)
+		} else {
+			log.Printf("policy saved to %s", policyPathForInputs(args[0], args[1]))
+		}
 	}
 
 	bs.printStatistics()

@@ -147,6 +147,30 @@ func (p *pokemon) switchReset() {
 	p.laserFocus = false
 }
 
+func (p *pokemon) resetMovePPs() {
+	if p == nil {
+		return
+	}
+	for _, move := range p.moves {
+		if move == nil {
+			continue
+		}
+		move.PP = move.MaxPP
+	}
+	if p.lockedMove != nil {
+		p.lockedMove.PP = p.lockedMove.MaxPP
+	}
+	p.lockedMove = nil
+}
+
+func resetPokemonPartyPPs(party []*pokemon) {
+	for _, mon := range party {
+		if mon != nil {
+			mon.resetMovePPs()
+		}
+	}
+}
+
 func (p *pokemon) effectiveStat(stat statState, crit bool) int {
 	stage := p.stages[stat]
 	base := p.stats[stat]

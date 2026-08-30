@@ -110,6 +110,8 @@ func (sbs *singleBattleState) printStatistics() {
 func (sbs *singleBattleState) reset() error {
 	playerParty := clonePokemonParty(sbs.initialPlayer.pokemonParty)
 	opponentParty := clonePokemonParty(sbs.initialOpponent.pokemonParty)
+	resetPokemonPartyPPs(playerParty)
+	resetPokemonPartyPPs(opponentParty)
 
 	player := sbs.initialPlayer
 	player.pokemonParty = playerParty
