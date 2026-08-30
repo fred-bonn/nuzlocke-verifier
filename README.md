@@ -22,29 +22,35 @@ The main entrypoint is in [main.go](main.go). Supported flags are:
 
 | Flag | Meaning |
 | --- | --- |
-| `--player-learning-ai` | Train the player using the learning AI while the opponent keeps the RNB AI logic |
-| `--policy-file <path>` | Load a saved policy JSON and use it as a static policy for the player |
-| `--save-policy` | Save the learned policy to `policies/` using the two input file names |
-| `--iterations <n>` | Number of battle repetitions to run for training or statistics |
-| `--weather <0..4>` | Weather override: `0=none`, `1=rain`, `2=sun`, `3=sandstorm`, `4=hail` |
+| `-p`, `--player-learning-ai` | Train the player using the learning AI while the opponent keeps the RNB AI logic |
+| `-f`, `--policy-file <path>` | Load a saved policy JSON and use it as a static policy for the player |
+| `-s`, `--save-policy` | Save the learned policy to `policies/` using the two input file names |
+| `-i`, `--iterations <n>` | Number of battle repetitions to run for training or statistics |
+| `-w`, `--weather <0..4>` | Weather override: `0=none`, `1=rain`, `2=sun`, `3=sandstorm`, `4=hail` |
 | `-v`, `--verbose` | Verbose logging |
 
 Examples:
 
 ```bash
-go run . --player-learning-ai --iterations 250 data/player.txt data/rnb_trainer_1.txt
+go run . -p -i 250 data/player.txt data/rnb_trainer_1.txt
 ```
 
 Train and save a policy:
 
 ```bash
-go run . --player-learning-ai --save-policy --iterations 250 data/player.txt data/rnb_trainer_1.txt
+go run . -p -s -i 250 data/player.txt data/rnb_trainer_1.txt
 ```
 
 Load a saved policy and use it statically:
 
 ```bash
-go run . --policy-file policies/player__vs__rnb_trainer_1.json data/player.txt data/rnb_trainer_1.txt --iterations 1
+go run . -f policies/player__vs__rnb_trainer_1.json data/player.txt data/rnb_trainer_1.txt -i 1
+```
+
+The long-form flags remain supported too, so these are equivalent:
+
+```bash
+go run . --player-learning-ai --iterations 250 data/player.txt data/rnb_trainer_1.txt
 ```
 
 The policy file is named using the input filenames:

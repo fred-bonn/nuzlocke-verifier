@@ -50,6 +50,12 @@ func TestRunAcceptsVerboseFlag(t *testing.T) {
 	}
 }
 
+func TestRunHelpDoesNotReturnError(t *testing.T) {
+	if code := run([]string{"-h"}); code != 0 {
+		t.Fatalf("expected zero exit code for help request, got %d", code)
+	}
+}
+
 func TestRunRejectsMisconfiguredPolicyFile(t *testing.T) {
 	code := run([]string{"--policy-file", "missing.json", "data/player.txt", "data/rnb_trainer_1.txt"})
 	if code != 1 {

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -16,13 +18,21 @@ func main() {
 
 func run(args []string) int {
 	fs := pflag.NewFlagSet("nuzlocke-verifier", pflag.ContinueOnError)
+	fs.SetOutput(os.Stdout)
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: %s [flags] <player_showdown> <opponent_showdown>\n\nExamples:\n  %s -p -s -i 250 data/player.txt data/rnb_trainer_1.txt\n  %s -f policies/player__vs__rnb_trainer_1.json data/player.txt data/rnb_trainer_1.txt -i 1\n\n", os.Args[0], os.Args[0], os.Args[0])
+		fs.PrintDefaults()
+	}
 	verbose = fs.BoolP("verbose", "v", false, "verbose logging")
 	weather := fs.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
-	playerUsesLearningAI := fs.Bool("player-learning-ai", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
-	policyFile := fs.String("policy-file", "", "path to a saved policy JSON file to load and use for the player trainer")
-	savePolicy := fs.Bool("save-policy", false, "save the learned policy under policies/ using the input file names")
-	iterations := fs.Int("iterations", 1, "number of times to run the same battle scenario for statistics or training")
+	playerUsesLearningAI := fs.BoolP("player-learning-ai", "p", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
+	policyFile := fs.StringP("policy-file", "f", "", "path to a saved policy JSON file to load and use for the player trainer")
+	savePolicy := fs.BoolP("save-policy", "s", false, "save the learned policy under policies/ using the input file names")
+	iterations := fs.IntP("iterations", "i", 1, "number of times to run the same battle scenario for statistics or training")
 	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, pflag.ErrHelp) {
+			return 0
+		}
 		log.Printf("error: invalid flags: %s", err)
 		return 1
 	}
