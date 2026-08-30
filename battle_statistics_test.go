@@ -65,6 +65,43 @@ func TestBattleStatisticsOutcomeScoreHeavilyRewardsWinsAndPunishesLosses(t *test
 	}
 }
 
+func TestBattleStatisticsOutcomeScorePenalizesDeadPlayerPokemon(t *testing.T) {
+	fullSurvival := newBattleStatistics([]*pokemon{{base: BasePokemon{Name: "a"}}, {base: BasePokemon{Name: "b"}}, {base: BasePokemon{Name: "c"}}})
+	fullSurvival.battleCount = 1
+	fullSurvival.winCount = 1
+	fullSurvival.pokemonSurvivors = []int{1, 1, 1}
+
+	withDeadPokemon := newBattleStatistics([]*pokemon{{base: BasePokemon{Name: "a"}}, {base: BasePokemon{Name: "b"}}, {base: BasePokemon{Name: "c"}}})
+	withDeadPokemon.battleCount = 1
+	withDeadPokemon.winCount = 1
+	withDeadPokemon.pokemonSurvivors = []int{1, 0, 1}
+
+	if got := withDeadPokemon.outcomeScore(); got >= fullSurvival.outcomeScore() {
+		t.Fatalf("a dead teammate should produce a much worse score: withDead=%.2f full=%.2f", withDeadPokemon.outcomeScore(), fullSurvival.outcomeScore())
+	}
+}
+
+func TestLearningAiPrefersGuaranteedKillMovesOverSaferActions(t *testing.T) {
+	player := testSwitchPokemon("player", 100, 100, 100, 100, nil)
+	target := testSwitchPokemon("target", 100, 50, 100, 100, nil)
+	bs := testSwitchBattleState(player, target, target)
+	bs.player.player = true
+	target.hp = 20
+
+	safeMove := &Move{Name: "safe", Power: 1, PP: 1, Class: physicalClass}
+	killMove := &Move{Name: "killer", Power: 100, PP: 1, Class: physicalClass}
+	la := newLearningAi()
+	stateKey := discretizeBattleState(bs)
+	la.policy[stateKey] = []string{"move:safe", "move:killer"}
+	la.scores[stateKey] = map[string]float64{"move:safe": 0, "move:killer": 0}
+	la.counts[stateKey] = map[string]int{"move:safe": 1, "move:killer": 1}
+
+	got, _ := la.evaluateActions(bs, []*moveAction{{userSlot: bs.activePlayerSlot, targetSlot: bs.activeOpponentSlot, move: safeMove}, {userSlot: bs.activePlayerSlot, targetSlot: bs.activeOpponentSlot, move: killMove}})
+	if got.move != killMove {
+		t.Fatalf("learning AI should prefer a guaranteed KO over a non-killing move; got %s", got.move.Name)
+	}
+}
+
 func TestLearningAiChoosesSafeStateActionByScore(t *testing.T) {
 	player := testSwitchPokemon("player", 100, 100, 100, 100, nil)
 	opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, nil)
@@ -168,14 +205,17 @@ func TestDiscretizeBattleStateFlagsOpponentCritKillRisk(t *testing.T) {
 	player.hp = 50
 
 	state := discretizeBattleState(bs)
-	if !contains(state, `"opponent_crit_kill_risk":true`) {
-		t.Fatalf("state did not detect opponent lethal crit risk: %s", state)
+	if !contains(state, `"opponent_has_move_that_kills":true`) {
+		t.Fatalf("state did not detect opponent lethal kill risk: %s", state)
 	}
-	if !contains(state, `"player_hp_percent":50`) {
-		t.Fatalf("state did not encode player hp percent: %s", state)
+	if !contains(state, `"player_mon_is_faster":true`) {
+		t.Fatalf("state did not encode player speed relation: %s", state)
 	}
-	if !contains(state, `"opponent_hp_percent":100`) {
-		t.Fatalf("state did not encode opponent hp percent: %s", state)
+	if !contains(state, `"player_pokemon":"player"`) {
+		t.Fatalf("state did not encode player identity: %s", state)
+	}
+	if !contains(state, `"opponent_pokemon":"opponent"`) {
+		t.Fatalf("state did not encode opponent identity: %s", state)
 	}
 }
 
@@ -199,6 +239,45 @@ func TestPolicyRoundTripPreservesLearnedRewards(t *testing.T) {
 	}
 	if got := len(loaded.policy["state"]); got != 2 {
 		t.Fatalf("loaded policy actions were lost: got %d want 2", got)
+	}
+}
+
+func TestPolicySaveIsDeterministicForSameInput(t *testing.T) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd failed: %v", err)
+	}
+	tempDir := t.TempDir()
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatalf("Chdir temp dir failed: %v", err)
+	}
+	defer func() { _ = os.Chdir(cwd) }()
+
+	playerParty := []*pokemon{{base: BasePokemon{Name: "Horsea"}}, {base: BasePokemon{Name: "Ponyta"}}}
+	opponentParty := []*pokemon{{base: BasePokemon{Name: "Dwebble"}}}
+	la := newLearningAi()
+	la.policy["state"] = []string{"move:Bubble Beam", "switch:Ponyta"}
+	la.scores["state"] = map[string]float64{"move:Bubble Beam": 42.5, "switch:Ponyta": -12.25}
+	la.counts["state"] = map[string]int{"move:Bubble Beam": 9, "switch:Ponyta": 3}
+
+	firstPath := filepath.Join("policies", "player__vs__rnb_trainer_1.json")
+	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
+		t.Fatalf("first save policy failed: %v", err)
+	}
+	firstBytes, err := os.ReadFile(firstPath)
+	if err != nil {
+		t.Fatalf("read first saved policy failed: %v", err)
+	}
+
+	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
+		t.Fatalf("second save policy failed: %v", err)
+	}
+	secondBytes, err := os.ReadFile(firstPath)
+	if err != nil {
+		t.Fatalf("read second saved policy failed: %v", err)
+	}
+	if !bytes.Equal(firstBytes, secondBytes) {
+		t.Fatalf("same policy should save deterministically; first=%s\nsecond=%s", firstBytes, secondBytes)
 	}
 }
 
@@ -263,6 +342,11 @@ func TestPolicyCliEndToEndSmoke(t *testing.T) {
 		t.Fatalf("saved policy file was not created at %s: %v", policyPath, err)
 	}
 
+	beforeReload, err := os.ReadFile(policyPath)
+	if err != nil {
+		t.Fatalf("reading saved policy before reload failed: %v", err)
+	}
+
 	cmdLoad := exec.Command("go", "run", ".", "--policy-file", policyPath, "data/player.txt", "data/rnb_trainer_1.txt", "--iterations", "1")
 	cmdLoad.Dir = cwd
 	output, err = cmdLoad.CombinedOutput()
@@ -271,6 +355,14 @@ func TestPolicyCliEndToEndSmoke(t *testing.T) {
 	}
 	if !bytes.Contains(output, []byte("loaded policy from")) {
 		t.Fatalf("load CLI did not report the loaded policy summary:\n%s", output)
+	}
+
+	afterReload, err := os.ReadFile(policyPath)
+	if err != nil {
+		t.Fatalf("reading saved policy after reload failed: %v", err)
+	}
+	if !bytes.Equal(beforeReload, afterReload) {
+		t.Fatalf("policy should remain identical before and after reload for the same input pair\nbefore=%s\nafter=%s", beforeReload, afterReload)
 	}
 }
 

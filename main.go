@@ -113,6 +113,10 @@ func run(args []string) int {
 		if learning, ok := bs.(*singleBattleState); ok {
 			if playerAI, ok := learning.player.ai.(*learningAi); ok {
 				playerAI.recordBattleOutcome(learning.getStatistics())
+				if playerAI.policySaturated() {
+					log.Printf("training policy saturated after %d battle(s)", i+1)
+					break
+				}
 				if learning.getStatistics().allPartySurvived() {
 					log.Printf("training target reached: all party members survived after %d battle(s)", i+1)
 					break

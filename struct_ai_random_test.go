@@ -40,32 +40,49 @@ func TestLearningAiReturnsAndRecordsFirstSwitchForState(t *testing.T) {
 	}
 }
 
-func TestDiscretizeBattleStateIsCanonical(t *testing.T) {
+func TestDiscretizeBattleStateUsesMinimalStateVector(t *testing.T) {
 	player := testSwitchPokemon("player", 100, 100, 100, 100, &Move{Name: "tackle", Power: 100, PP: 1, Class: physicalClass})
 	opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, &Move{Name: "sonic boom", Power: 1, PP: 1, Class: specialClass})
-	player.ailments[burnAilment] = &ailment{state: burnAilment}
-	player.ailments[confusionAilment] = &ailment{state: confusionAilment}
 	bs := testSwitchBattleState(player, opponent, opponent)
 	bs.player.player = true
 	player.hp = 20
 	opponent.hp = 20
 
-	first := discretizeBattleState(bs)
-	second := discretizeBattleState(bs)
-	if first != second {
-		t.Fatalf("state encoding is not stable: first=%s second=%s", first, second)
+	state := discretizeBattleState(bs)
+	if !contains(state, `"player_pokemon":"player"`) {
+		t.Fatalf("state did not record player pokemon: %s", state)
 	}
-	if !contains(first, `"player_mon_is_faster":true`) {
-		t.Fatalf("state did not record player speed: %s", first)
+	if !contains(state, `"opponent_pokemon":"opponent"`) {
+		t.Fatalf("state did not record opponent pokemon: %s", state)
 	}
-	if !contains(first, `"player_ailments":["burn","confusion"]`) {
-		t.Fatalf("state did not canonicalize player ailments: %s", first)
+	if !contains(state, `"player_mon_is_faster":true`) {
+		t.Fatalf("state did not record player speed: %s", state)
 	}
-	if !contains(first, `"player_mon_has_move_that_kills":true`) {
-		t.Fatalf("state did not record player kill move: %s", first)
+	if !contains(state, `"opponent_has_move_that_kills":true`) {
+		t.Fatalf("state did not record killer move risk: %s", state)
 	}
-	if !contains(first, `"opponent_moves_that_kill":["sonic boom"]`) {
-		t.Fatalf("state did not record opponent kill move: %s", first)
+	for _, key := range []string{`"player_hp_percent"`, `"player_ailments"`, `"opponent_hp_percent"`, `"opponent_ailments"`, `"speed_hierarchy"`, `"player_mon_has_move_that_kills"`, `"opponent_moves_that_kill"`, `"opponent_crit_kill_risk"`} {
+		if strings.Contains(state, key) {
+			t.Fatalf("state still contains non-minimal field %s: %s", key, state)
+		}
+	}
+}
+
+func TestLearningAiReportsSaturationWhenPolicyStopsChanging(t *testing.T) {
+	la := newLearningAi()
+	stateKey := `{"player_pokemon":"player","opponent_pokemon":"opponent","player_mon_is_faster":true,"opponent_has_move_that_kills":true}`
+	la.policy[stateKey] = []string{"move:hit"}
+	la.scores[stateKey] = map[string]float64{"move:hit": 12}
+	la.counts[stateKey] = map[string]int{"move:hit": 5}
+
+	if la.policySaturated() {
+		t.Fatal("fresh policy should not be considered saturated on the first check")
+	}
+	if la.policySaturated() {
+		t.Fatal("a single repeated stable signature is still not enough to count as saturated")
+	}
+	if !la.policySaturated() {
+		t.Fatal("policy should be considered saturated after repeated stable signatures")
 	}
 }
 

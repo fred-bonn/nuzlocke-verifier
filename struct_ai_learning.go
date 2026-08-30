@@ -3,35 +3,36 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
+)
+
+const (
+	learnRewardWinBonus            = 5000000.0
+	learnRewardLossPenalty         = 5000000.0
+	learnRewardDeadMonPenalty      = 1500000.0
+	learnRewardGuaranteedKillBonus = 750.0
+	learnRewardCritRiskPenalty     = 3200.0
+	learnRewardStateRiskPenalty    = 1500.0
+	learnActionCountBoost          = 2.5
+	learnRewardDiscountFactor      = 0.9
+	learnRewardDecayFactor         = 0.98
+	learnRewardLearningRate        = 0.25
+	learnRewardStableThreshold     = 2
 )
 
 type discreteBattleState struct {
-	PlayerPokemon             string   `json:"player_pokemon"`
-	PlayerHPPercent           int      `json:"player_hp_percent"`
-	PlayerAilments            []string `json:"player_ailments"`
-	OpponentPokemon           string   `json:"opponent_pokemon"`
-	OpponentHPPercent         int      `json:"opponent_hp_percent"`
-	OpponentAilments          []string `json:"opponent_ailments"`
-	SpeedHierarchy            string   `json:"speed_hierarchy"`
-	PlayerMonIsFaster         bool     `json:"player_mon_is_faster"`
-	PlayerMonHasMoveThatKills bool     `json:"player_mon_has_move_that_kills"`
-	OpponentMovesThatKill     []string `json:"opponent_moves_that_kill"`
-	OpponentCritKillRisk      bool     `json:"opponent_crit_kill_risk"`
+	PlayerPokemon            string `json:"player_pokemon"`
+	OpponentPokemon          string `json:"opponent_pokemon"`
+	PlayerMonIsFaster        bool   `json:"player_mon_is_faster"`
+	OpponentHasMoveThatKills bool   `json:"opponent_has_move_that_kills"`
 }
 
 // discretizeBattleState returns a canonical key suitable for a tabular policy.
 func discretizeBattleState(bs battleState) string {
-	state := discreteBattleState{
-		PlayerAilments:        []string{},
-		OpponentAilments:      []string{},
-		OpponentMovesThatKill: []string{},
-	}
+	state := discreteBattleState{}
 	if bs == nil {
 		encoded, _ := json.Marshal(state)
 		return string(encoded)
@@ -53,34 +54,11 @@ func discretizeBattleState(bs battleState) string {
 	}
 
 	state.PlayerPokemon = playerSlot.mon.base.Name
-	state.PlayerHPPercent = hpPercent(playerSlot.mon)
-	state.PlayerAilments = discreteAilments(playerSlot.mon)
 	state.OpponentPokemon = opponentSlot.mon.base.Name
-	state.OpponentHPPercent = hpPercent(opponentSlot.mon)
-	state.OpponentAilments = discreteAilments(opponentSlot.mon)
 	playerSpeed := playerSlot.mon.effectiveSpeed(bs)
 	opponentSpeed := opponentSlot.mon.effectiveSpeed(bs)
 	state.PlayerMonIsFaster = playerSpeed > opponentSpeed
-	state.SpeedHierarchy = "slower"
-	if playerSpeed == opponentSpeed {
-		state.SpeedHierarchy = "tie"
-	} else if state.PlayerMonIsFaster {
-		state.SpeedHierarchy = "faster"
-	}
-
-	state.PlayerMonHasMoveThatKills = monHasMoveThatKills(bs, playerSlot.mon, opponentSlot.mon)
-	for _, move := range opponentSlot.mon.moves {
-		if move.PP <= 0 || move.Class == statusClass {
-			continue
-		}
-		if moveCanKill(bs, opponentSlot.mon, playerSlot.mon, move) {
-			state.OpponentMovesThatKill = append(state.OpponentMovesThatKill, move.Name)
-		}
-		if moveCanCritKill(bs, opponentSlot.mon, playerSlot.mon, move) {
-			state.OpponentCritKillRisk = true
-		}
-	}
-	sort.Strings(state.OpponentMovesThatKill)
+	state.OpponentHasMoveThatKills = opponentHasMoveThatKills(bs, opponentSlot.mon, playerSlot.mon)
 
 	return string(mustMarshalDiscreteState(state))
 }
@@ -107,6 +85,21 @@ func discreteAilments(mon *pokemon) []string {
 	}
 	sort.Strings(result)
 	return result
+}
+
+func opponentHasMoveThatKills(bs battleState, user, target *pokemon) bool {
+	for _, move := range user.moves {
+		if move == nil || move.PP <= 0 || move.Class == statusClass {
+			continue
+		}
+		if moveCanKill(bs, user, target, move) {
+			return true
+		}
+		if !target.ability.blocksCrits() && user.ability != moldBreakerAbility && moveCanCritKill(bs, user, target, move) {
+			return true
+		}
+	}
+	return false
 }
 
 func monHasMoveThatKills(bs battleState, user, target *pokemon) bool {
@@ -170,12 +163,16 @@ func moveCanCritKill(bs battleState, user, target *pokemon, move *Move) bool {
 }
 
 type learningAi struct {
-	policy      map[string][]string
-	scores      map[string]map[string]float64
-	counts      map[string]map[string]int
-	history     []stateActionEntry
-	seen        map[string]map[string]bool
-	decayFactor float64
+	policy              map[string][]string
+	scores              map[string]map[string]float64
+	counts              map[string]map[string]int
+	history             []stateActionEntry
+	seen                map[string]map[string]bool
+	decayFactor         float64
+	learningRate        float64
+	discountFactor      float64
+	lastPolicySignature string
+	stableRounds        int
 }
 
 type stateActionEntry struct {
@@ -189,18 +186,19 @@ type savedPolicy struct {
 	Policy        map[string][]string           `json:"policy"`
 	Scores        map[string]map[string]float64 `json:"scores"`
 	Counts        map[string]map[string]int     `json:"counts"`
-	CreatedAt     string                        `json:"created_at"`
 	Version       int                           `json:"version"`
 	Metadata      map[string]string             `json:"metadata,omitempty"`
 }
 
 func newLearningAi() *learningAi {
 	return &learningAi{
-		policy:      make(map[string][]string),
-		scores:      make(map[string]map[string]float64),
-		counts:      make(map[string]map[string]int),
-		seen:        make(map[string]map[string]bool),
-		decayFactor: 0.98,
+		policy:         make(map[string][]string),
+		scores:         make(map[string]map[string]float64),
+		counts:         make(map[string]map[string]int),
+		seen:           make(map[string]map[string]bool),
+		decayFactor:    learnRewardDecayFactor,
+		learningRate:   learnRewardLearningRate,
+		discountFactor: learnRewardDiscountFactor,
 	}
 }
 
@@ -245,7 +243,6 @@ func savePolicyToDisk(la *learningAi, playerInput, opponentInput string, playerP
 		Policy:        cloneActionMap(la.policy),
 		Scores:        cloneScoreMap(la.scores),
 		Counts:        cloneCountMap(la.counts),
-		CreatedAt:     nowISO(),
 		Version:       1,
 		Metadata:      map[string]string{"player_input": playerInput, "opponent_input": opponentInput},
 	}
@@ -324,10 +321,6 @@ func countCountEntries(counts map[string]map[string]int) int {
 		count += len(actions)
 	}
 	return count
-}
-
-func nowISO() string {
-	return time.Now().UTC().Format(time.RFC3339)
 }
 
 func loadLearningAIFromPolicy(policy *savedPolicy) *learningAi {
@@ -539,6 +532,51 @@ func (la *learningAi) decayScores(factor float64) {
 	}
 }
 
+func (la *learningAi) policySignature() string {
+	if la == nil {
+		return ""
+	}
+	stateKeys := make([]string, 0, len(la.policy))
+	for stateKey := range la.policy {
+		stateKeys = append(stateKeys, stateKey)
+	}
+	sort.Strings(stateKeys)
+	var b strings.Builder
+	for _, stateKey := range stateKeys {
+		actionKeys := make([]string, 0, len(la.scores[stateKey]))
+		for actionKey := range la.scores[stateKey] {
+			actionKeys = append(actionKeys, actionKey)
+		}
+		sort.Strings(actionKeys)
+		for _, actionKey := range actionKeys {
+			fmt.Fprintf(&b, "%s:%s=%.6f;", stateKey, actionKey, la.scores[stateKey][actionKey])
+		}
+	}
+	return b.String()
+}
+
+func (la *learningAi) policySaturated() bool {
+	if la == nil || len(la.policy) == 0 {
+		return false
+	}
+	current := la.policySignature()
+	if la.lastPolicySignature == "" {
+		la.lastPolicySignature = current
+		la.stableRounds = 0
+		return false
+	}
+	if current == la.lastPolicySignature {
+		la.stableRounds++
+		if la.stableRounds >= 2 {
+			return true
+		}
+		return false
+	}
+	la.lastPolicySignature = current
+	la.stableRounds = 0
+	return false
+}
+
 func (la *learningAi) recordStateAction(stateKey string, action string) {
 	if la == nil || stateKey == "" || action == "" {
 		return
@@ -561,37 +599,36 @@ func (la *learningAi) recordBattleOutcome(stats *battleStatistics) {
 	la.decayScores(la.decayFactor)
 	reward := stats.outcomeScore()
 	if stats.winCount == stats.battleCount {
-		reward += 5000000.0
+		reward += learnRewardWinBonus
 	}
 	if stats.winCount == 0 {
-		reward -= 5000000.0
+		reward -= learnRewardLossPenalty
+	}
+	for _, survivors := range stats.pokemonSurvivors {
+		if survivors < stats.battleCount {
+			reward -= learnRewardDeadMonPenalty
+		}
 	}
 	for _, entry := range la.history {
 		la.ensureState(entry.stateKey)
-		count := float64(la.counts[entry.stateKey][entry.action])
-		weight := 0.8 + min(count, 60.0)*0.2
-		la.scores[entry.stateKey][entry.action] += reward * weight
+		current := la.scores[entry.stateKey][entry.action]
+		bestFuture := 0.0
+		for _, candidateScore := range la.scores[entry.stateKey] {
+			if candidateScore > bestFuture {
+				bestFuture = candidateScore
+			}
+		}
 		if stateHasCritKillRisk(entry.stateKey) {
-			la.scores[entry.stateKey][entry.action] -= 3200.0 * (1.0 + count/12.0)
+			reward -= learnRewardCritRiskPenalty
 		}
-		if reward < 0 {
-			la.scores[entry.stateKey][entry.action] -= 0.6 * math.Abs(reward)
-		}
-		if reward > 0 {
-			la.scores[entry.stateKey][entry.action] += 0.5 * reward
+		target := reward + la.discountFactor*bestFuture
+		la.scores[entry.stateKey][entry.action] = current + la.learningRate*(target-current)
+		if la.counts[entry.stateKey] != nil {
+			la.counts[entry.stateKey][entry.action]++
 		}
 	}
 	la.history = nil
 	la.seen = make(map[string]map[string]bool)
-}
-
-func (la *learningAi) setPolicyAction(bs battleState, action string) {
-	if la == nil {
-		return
-	}
-	stateKey := discretizeBattleState(bs)
-	la.ensureState(stateKey)
-	la.policy[stateKey] = []string{action}
 }
 
 func (la *learningAi) evaluateActions(bs battleState, actions []*moveAction) (*moveAction, int) {
@@ -633,14 +670,19 @@ func (la *learningAi) evaluateActions(bs battleState, actions []*moveAction) (*m
 	bestScore := float64(fallbackScore)
 	riskPenalty := 0.0
 	if stateHasCritKillRisk(stateKey) {
-		riskPenalty = 1500.0
+		riskPenalty = learnRewardStateRiskPenalty
 	}
 	positiveFound := false
 	for _, action := range actions {
 		key := actionKey(action)
 		score := la.scores[stateKey][key]
 		if count := la.counts[stateKey][key]; count > 0 {
-			score += float64(count) * 2.5
+			score += float64(count) * learnActionCountBoost
+		}
+		if action != nil && action.move != nil && action.userSlot != nil && action.targetSlot != nil && action.userSlot.mon != nil && action.targetSlot.mon != nil {
+			if moveCanKill(bs, action.userSlot.mon, action.targetSlot.mon, action.move) {
+				score += learnRewardGuaranteedKillBonus
+			}
 		}
 		score -= riskPenalty
 		if score > 0 {
@@ -674,7 +716,7 @@ func (la *learningAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponent
 	bestScore := 0.0
 	riskPenalty := 0.0
 	if stateHasCritKillRisk(stateKey) {
-		riskPenalty = 1500.0
+		riskPenalty = learnRewardStateRiskPenalty
 	}
 
 	hasRecordedEvidence := false
@@ -754,19 +796,11 @@ func stateHasCritKillRisk(stateKey string) bool {
 	if stateKey == "" {
 		return false
 	}
-	return strings.Contains(stateKey, "\"opponent_crit_kill_risk\":true")
+	return strings.Contains(stateKey, "\"opponent_crit_kill_risk\":true") || strings.Contains(stateKey, "\"opponent_has_move_that_kills\":true")
 }
 
 func actionKey(action *moveAction) string {
 	return "move:" + action.move.Name
-}
-
-func moveActionKeys(actions []*moveAction) []string {
-	keys := make([]string, 0, len(actions))
-	for _, action := range actions {
-		keys = appendUnique(keys, actionKey(action))
-	}
-	return keys
 }
 
 func appendUnique(values []string, value string) []string {

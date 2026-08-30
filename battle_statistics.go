@@ -60,6 +60,7 @@ func (bs *battleStatistics) outcomeScore() float64 {
 	survivalRatio := bs.partySurvivalRatio()
 	lossRate := 1.0 - winRate
 	missingMembers := 0
+	deadMembers := 0
 	aliveMembers := 0
 	for _, survivors := range bs.pokemonSurvivors {
 		if survivors == bs.battleCount {
@@ -67,6 +68,7 @@ func (bs *battleStatistics) outcomeScore() float64 {
 		}
 		if survivors != bs.battleCount {
 			missingMembers++
+			deadMembers++
 		}
 	}
 	aliveRatio := float64(aliveMembers) / float64(len(bs.pokemonSurvivors))
@@ -87,6 +89,7 @@ func (bs *battleStatistics) outcomeScore() float64 {
 	score := winBonus - lossPenalty
 	score += aliveRatio * 200000.0
 	score += survivalRatio * 120000.0
+	score -= float64(deadMembers) * 500000.0
 	score -= float64(missingMembers) * 250000.0
 	if winRate > 0.5 && survivalRatio > 0.5 {
 		score += 500000.0
