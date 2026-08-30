@@ -1,4 +1,4 @@
-# Nuzlocke Verifier Usage Guide
+# Nuzlocke Verifier
 
 This project simulates Pokémon battles, learns a per-state action policy for the player side, and can save that policy to disk for later replay.
 
