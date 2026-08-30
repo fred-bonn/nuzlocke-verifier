@@ -20,7 +20,7 @@ func run(args []string) int {
 	fs := pflag.NewFlagSet("nuzlocke-verifier", pflag.ContinueOnError)
 	fs.SetOutput(os.Stdout)
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: %s [flags] <player_showdown> <opponent_showdown>\n\nExamples:\n  %s -p -s -i 250 data/player.txt data/rnb_trainer_1.txt\n  %s -f policies/player__vs__rnb_trainer_1.json data/player.txt data/rnb_trainer_1.txt -i 1\n\n", os.Args[0], os.Args[0], os.Args[0])
+		fmt.Fprintf(fs.Output(), "Usage: %s [flags] <player_showdown> <opponent_showdown>\n\nExamples:\n  %s -p -s -i 250 player.txt opponent.txt\n  %s -f policies/player__vs__opponent.json player.txt opponent.txt -i 1\n\n", os.Args[0], os.Args[0], os.Args[0])
 		fs.PrintDefaults()
 	}
 	verbose = fs.BoolP("verbose", "v", false, "verbose logging")
