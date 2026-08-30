@@ -11,40 +11,49 @@ import (
 var verbose = pflag.BoolP("verbose", "v", false, "verbose logging")
 
 func main() {
-	weather := pflag.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
-	playerUsesLearningAI := pflag.Bool("player-learning-ai", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
-	policyFile := pflag.String("policy-file", "", "path to a saved policy JSON file to load and use for the player trainer")
-	savePolicy := pflag.Bool("save-policy", false, "save the learned policy under policies/ using the input file names")
-	iterations := pflag.Int("iterations", 1, "number of times to run the same battle scenario for statistics or training")
-	pflag.Parse()
+	os.Exit(run(os.Args[1:]))
+}
+
+func run(args []string) int {
+	fs := pflag.NewFlagSet("nuzlocke-verifier", pflag.ContinueOnError)
+	verbose = fs.BoolP("verbose", "v", false, "verbose logging")
+	weather := fs.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
+	playerUsesLearningAI := fs.Bool("player-learning-ai", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
+	policyFile := fs.String("policy-file", "", "path to a saved policy JSON file to load and use for the player trainer")
+	savePolicy := fs.Bool("save-policy", false, "save the learned policy under policies/ using the input file names")
+	iterations := fs.Int("iterations", 1, "number of times to run the same battle scenario for statistics or training")
+	if err := fs.Parse(args); err != nil {
+		log.Printf("error: invalid flags: %s", err)
+		return 1
+	}
 	if *weather < 0 || *weather > 4 {
 		log.Printf("error: weather (-w) must be between 0 and 4")
-		os.Exit(1)
+		return 1
 	}
 	if *iterations <= 0 {
 		log.Printf("error: iterations must be greater than 0")
-		os.Exit(1)
+		return 1
 	}
 
-	args := pflag.Args()
-	if len(args) != 2 {
+	parsedArgs := fs.Args()
+	if len(parsedArgs) != 2 {
 		log.Printf("error: missing arguments: usage: <executable> <player_showdown> <opponent_showdown> <flags>")
-		os.Exit(1)
+		return 1
 	}
 
 	cfg := &config{
 		client: pokeapi.NewClient(),
 	}
 
-	playerParty, err := cfg.validateInput(args[0])
+	playerParty, err := cfg.validateInput(parsedArgs[0])
 	if err != nil {
-		log.Printf("error: failed validating input '%s': %s", args[0], err)
-		os.Exit(1)
+		log.Printf("error: failed validating input '%s': %s", parsedArgs[0], err)
+		return 1
 	}
-	opponentParty, err := cfg.validateInput(args[1])
+	opponentParty, err := cfg.validateInput(parsedArgs[1])
 	if err != nil {
-		log.Printf("error: failed validating input '%s': %s", args[1], err)
-		os.Exit(1)
+		log.Printf("error: failed validating input '%s': %s", parsedArgs[1], err)
+		return 1
 	}
 
 	var policy *savedPolicy
@@ -54,11 +63,11 @@ func main() {
 		policy, err = loadPolicyFromDisk(*policyFile)
 		if err != nil {
 			log.Printf("error: failed loading policy '%s': %s", *policyFile, err)
-			os.Exit(1)
+			return 1
 		}
 		if err := validatePolicyCompatibility(policy, playerParty, opponentParty); err != nil {
 			log.Printf("error: policy incompatible with input parties: %s", err)
-			os.Exit(1)
+			return 1
 		}
 		playerAI = newStaticPolicyAiFromPolicy(policy)
 		playerLearning = nil
@@ -103,12 +112,13 @@ func main() {
 	}
 
 	if *savePolicy && playerLearning != nil {
-		if err := savePolicyToDisk(playerLearning, args[0], args[1], playerParty, opponentParty); err != nil {
+		if err := savePolicyToDisk(playerLearning, parsedArgs[0], parsedArgs[1], playerParty, opponentParty); err != nil {
 			log.Printf("error: failed saving policy: %s", err)
 		} else {
-			log.Printf("policy saved to %s", policyPathForInputs(args[0], args[1]))
+			log.Printf("policy saved to %s", policyPathForInputs(parsedArgs[0], parsedArgs[1]))
 		}
 	}
 
 	bs.printStatistics()
+	return 0
 }

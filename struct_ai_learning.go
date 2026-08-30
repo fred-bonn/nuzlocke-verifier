@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,8 +13,10 @@ import (
 
 type discreteBattleState struct {
 	PlayerPokemon             string   `json:"player_pokemon"`
+	PlayerHPPercent           int      `json:"player_hp_percent"`
 	PlayerAilments            []string `json:"player_ailments"`
 	OpponentPokemon           string   `json:"opponent_pokemon"`
+	OpponentHPPercent         int      `json:"opponent_hp_percent"`
 	OpponentAilments          []string `json:"opponent_ailments"`
 	SpeedHierarchy            string   `json:"speed_hierarchy"`
 	PlayerMonIsFaster         bool     `json:"player_mon_is_faster"`
@@ -50,8 +53,10 @@ func discretizeBattleState(bs battleState) string {
 	}
 
 	state.PlayerPokemon = playerSlot.mon.base.Name
+	state.PlayerHPPercent = hpPercent(playerSlot.mon)
 	state.PlayerAilments = discreteAilments(playerSlot.mon)
 	state.OpponentPokemon = opponentSlot.mon.base.Name
+	state.OpponentHPPercent = hpPercent(opponentSlot.mon)
 	state.OpponentAilments = discreteAilments(opponentSlot.mon)
 	playerSpeed := playerSlot.mon.effectiveSpeed(bs)
 	opponentSpeed := opponentSlot.mon.effectiveSpeed(bs)
@@ -86,6 +91,13 @@ func mustMarshalDiscreteState(state discreteBattleState) []byte {
 		panic(err)
 	}
 	return encoded
+}
+
+func hpPercent(mon *pokemon) int {
+	if mon == nil || mon.maxHP() <= 0 {
+		return 0
+	}
+	return max(0, min(100, mon.hp*100/mon.maxHP()))
 }
 
 func discreteAilments(mon *pokemon) []string {
@@ -548,12 +560,25 @@ func (la *learningAi) recordBattleOutcome(stats *battleStatistics) {
 
 	la.decayScores(la.decayFactor)
 	reward := stats.outcomeScore()
+	if stats.winCount == stats.battleCount {
+		reward += 5000000.0
+	}
+	if stats.winCount == 0 {
+		reward -= 5000000.0
+	}
 	for _, entry := range la.history {
 		la.ensureState(entry.stateKey)
 		count := float64(la.counts[entry.stateKey][entry.action])
-		la.scores[entry.stateKey][entry.action] += reward * (0.25 + count*0.1)
+		weight := 0.8 + min(count, 60.0)*0.2
+		la.scores[entry.stateKey][entry.action] += reward * weight
 		if stateHasCritKillRisk(entry.stateKey) {
-			la.scores[entry.stateKey][entry.action] -= 1500.0
+			la.scores[entry.stateKey][entry.action] -= 3200.0 * (1.0 + count/12.0)
+		}
+		if reward < 0 {
+			la.scores[entry.stateKey][entry.action] -= 0.6 * math.Abs(reward)
+		}
+		if reward > 0 {
+			la.scores[entry.stateKey][entry.action] += 0.5 * reward
 		}
 	}
 	la.history = nil
@@ -579,6 +604,7 @@ func (la *learningAi) evaluateActions(bs battleState, actions []*moveAction) (*m
 	stateKey := discretizeBattleState(bs)
 	la.ensureState(stateKey)
 	firstAction := actions[0]
+	fallbackAction, fallbackScore := rnbAi{}.evaluateActions(bs, actions)
 	for _, action := range actions {
 		key := actionKey(action)
 		la.policy[stateKey] = appendUnique(la.policy[stateKey], key)
@@ -589,12 +615,27 @@ func (la *learningAi) evaluateActions(bs battleState, actions []*moveAction) (*m
 			la.counts[stateKey][key] = 0
 		}
 	}
-	bestAction := firstAction
-	bestScore := -1e18
+
+	hasRecordedEvidence := false
+	for _, action := range actions {
+		key := actionKey(action)
+		if la.counts[stateKey][key] > 0 || la.scores[stateKey][key] != 0 {
+			hasRecordedEvidence = true
+			break
+		}
+	}
+	if !hasRecordedEvidence {
+		la.recordStateAction(stateKey, actionKey(firstAction))
+		return firstAction, 0
+	}
+
+	bestAction := fallbackAction
+	bestScore := float64(fallbackScore)
 	riskPenalty := 0.0
 	if stateHasCritKillRisk(stateKey) {
 		riskPenalty = 1500.0
 	}
+	positiveFound := false
 	for _, action := range actions {
 		key := actionKey(action)
 		score := la.scores[stateKey][key]
@@ -602,14 +643,17 @@ func (la *learningAi) evaluateActions(bs battleState, actions []*moveAction) (*m
 			score += float64(count) * 2.5
 		}
 		score -= riskPenalty
-		if score > bestScore {
-			bestAction = action
-			bestScore = score
+		if score > 0 {
+			positiveFound = true
+			if score > bestScore {
+				bestAction = action
+				bestScore = score
+			}
 		}
 	}
-	if bestScore <= -1e18 {
-		la.recordStateAction(stateKey, actionKey(firstAction))
-		return firstAction, 0
+	if !positiveFound {
+		la.recordStateAction(stateKey, actionKey(bestAction))
+		return bestAction, int(bestScore)
 	}
 	la.recordStateAction(stateKey, actionKey(bestAction))
 	return bestAction, int(bestScore)
@@ -624,12 +668,29 @@ func (la *learningAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponent
 	}
 	stateKey := discretizeBattleState(bs)
 	la.ensureState(stateKey)
-	bestMon := mons[0]
-	bestScore := -1e18
+	firstMon := mons[0]
+	fallbackMon := rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
+	bestMon := fallbackMon
+	bestScore := 0.0
 	riskPenalty := 0.0
 	if stateHasCritKillRisk(stateKey) {
 		riskPenalty = 1500.0
 	}
+
+	hasRecordedEvidence := false
+	for _, mon := range mons {
+		key := actionKeyForSwitch(mon)
+		if la.counts[stateKey][key] > 0 || la.scores[stateKey][key] != 0 {
+			hasRecordedEvidence = true
+			break
+		}
+	}
+	if !hasRecordedEvidence {
+		la.recordStateAction(stateKey, actionKeyForSwitch(firstMon))
+		return firstMon
+	}
+
+	positiveFound := false
 	for _, mon := range mons {
 		key := actionKeyForSwitch(mon)
 		la.policy[stateKey] = appendUnique(la.policy[stateKey], key)
@@ -644,10 +705,17 @@ func (la *learningAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponent
 			score += float64(count) * 2.5
 		}
 		score -= riskPenalty
-		if score > bestScore {
-			bestMon = mon
-			bestScore = score
+		if score > 0 {
+			positiveFound = true
+			if score > bestScore {
+				bestMon = mon
+				bestScore = score
+			}
 		}
+	}
+	if !positiveFound {
+		la.recordStateAction(stateKey, actionKeyForSwitch(bestMon))
+		return bestMon
 	}
 	la.recordStateAction(stateKey, actionKeyForSwitch(bestMon))
 	return bestMon
@@ -659,14 +727,25 @@ func (la *learningAi) shouldSwitch(bs battleState, slot *slot, score int, party 
 	}
 	stateKey := discretizeBattleState(bs)
 	la.ensureState(stateKey)
+	candidateFound := false
 	for _, mon := range party {
-		if mon == slot.mon || mon.fainted {
+		if mon == nil || mon == slot.mon || mon.fainted {
 			continue
 		}
+		candidateFound = true
 		key := actionKeyForSwitch(mon)
 		if learned, ok := la.scores[stateKey][key]; ok && learned > float64(score) {
 			return true
 		}
+	}
+	if !candidateFound {
+		return false
+	}
+	if (rnbAi{}).shouldSwitch(bs, slot, score, party) {
+		return true
+	}
+	if slot.mon.hp <= slot.mon.maxHP()/3 {
+		return true
 	}
 	return false
 }

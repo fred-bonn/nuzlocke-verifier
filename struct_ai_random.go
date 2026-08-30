@@ -63,7 +63,14 @@ func chooseNextAction(bs battleState, slot *slot, party []*pokemon, decisionAI a
 			possibleMons = append(possibleMons, mon)
 		}
 	}
-	return &switchAction{oldSlot: slot, new: decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))}
+	if len(possibleMons) == 0 {
+		return chosenAction
+	}
+	chosenMon := decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
+	if la, ok := decisionAI.(*learningAi); ok {
+		la.recordStateAction(discretizeBattleState(bs), actionKeyForSwitch(chosenMon))
+	}
+	return &switchAction{oldSlot: slot, new: chosenMon}
 }
 
 func chooseSwitchIn(bs battleState, slot *slot, party []*pokemon, decisionAI ai) *pokemon {
@@ -76,7 +83,11 @@ func chooseSwitchIn(bs battleState, slot *slot, party []*pokemon, decisionAI ai)
 	if len(possibleMons) == 0 {
 		return nil
 	}
-	return decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
+	chosenMon := decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
+	if la, ok := decisionAI.(*learningAi); ok {
+		la.recordStateAction(discretizeBattleState(bs), actionKeyForSwitch(chosenMon))
+	}
+	return chosenMon
 }
 
 func canReplace(party []*pokemon) bool {

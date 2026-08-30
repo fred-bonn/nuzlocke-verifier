@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -46,6 +47,24 @@ func TestBattleStatisticsOutcomeScorePrefersSafetyOverSurvival(t *testing.T) {
 	}
 }
 
+func TestBattleStatisticsOutcomeScoreHeavilyRewardsWinsAndPunishesLosses(t *testing.T) {
+	winStats := newBattleStatistics([]*pokemon{{base: BasePokemon{Name: "a"}}, {base: BasePokemon{Name: "b"}}})
+	winStats.battleCount = 1
+	winStats.winCount = 1
+	winStats.pokemonSurvivors = []int{1, 1}
+	if got := winStats.outcomeScore(); got <= 500000.0 {
+		t.Fatalf("winning should be rewarded heavily: got %.2f", got)
+	}
+
+	lossStats := newBattleStatistics([]*pokemon{{base: BasePokemon{Name: "a"}}, {base: BasePokemon{Name: "b"}}})
+	lossStats.battleCount = 1
+	lossStats.winCount = 0
+	lossStats.pokemonSurvivors = []int{1, 0}
+	if got := lossStats.outcomeScore(); got >= -500000.0 {
+		t.Fatalf("losing should be catastrophic: got %.2f", got)
+	}
+}
+
 func TestLearningAiChoosesSafeStateActionByScore(t *testing.T) {
 	player := testSwitchPokemon("player", 100, 100, 100, 100, nil)
 	opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, nil)
@@ -81,7 +100,36 @@ func TestLearningAiTracksCountsAndDecaysStaleScores(t *testing.T) {
 		t.Fatalf("scores should decay over time: got %f", la.scores[stateKey][actionKey])
 	}
 }
+func TestLearningAiAllowsReasonableSwitchDecisionsAndTracksReplacement(t *testing.T) {
+	current := testSwitchPokemon("current", 100, 100, 100, 100, nil)
+	replacement := testSwitchPokemon("replacement", 100, 100, 100, 100, nil)
+	opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, nil)
+	bs := testSwitchBattleState(current, replacement, opponent)
+	bs.player.player = true
+	current.hp = 20
 
+	la := newLearningAi()
+	if !la.shouldSwitch(bs, bs.activePlayerSlot, 10, []*pokemon{current, replacement}) {
+		t.Fatal("learning AI should consider switching when the current mon is low HP and no score exists yet")
+	}
+
+	stateKey := discretizeBattleState(bs)
+	if _, ok := la.policy[stateKey]; ok && len(la.policy[stateKey]) > 0 {
+		t.Fatal("learning AI should only record the switch decision after an actual action is selected")
+	}
+
+	action := chooseNextAction(bs, bs.activePlayerSlot, []*pokemon{current, replacement}, la)
+	if _, ok := action.(*switchAction); !ok {
+		t.Fatalf("expected a switch action to be selected, got %T", action)
+	}
+	stateKey = discretizeBattleState(bs)
+	if _, ok := la.policy[stateKey]; !ok {
+		t.Fatal("learning AI did not record the selected replacement in policy history")
+	}
+	if !strings.Contains(strings.Join(la.policy[stateKey], ","), "switch:replacement") {
+		t.Fatalf("replacement action was not recorded for learning: %#v", la.policy[stateKey])
+	}
+}
 func TestBattleStatisticsRewardsFullPartySurvival(t *testing.T) {
 	stats := newBattleStatistics([]*pokemon{{base: BasePokemon{Name: "a"}}, {base: BasePokemon{Name: "b"}}})
 	stats.battleCount = 2
@@ -122,6 +170,12 @@ func TestDiscretizeBattleStateFlagsOpponentCritKillRisk(t *testing.T) {
 	state := discretizeBattleState(bs)
 	if !contains(state, `"opponent_crit_kill_risk":true`) {
 		t.Fatalf("state did not detect opponent lethal crit risk: %s", state)
+	}
+	if !contains(state, `"player_hp_percent":50`) {
+		t.Fatalf("state did not encode player hp percent: %s", state)
+	}
+	if !contains(state, `"opponent_hp_percent":100`) {
+		t.Fatalf("state did not encode opponent hp percent: %s", state)
 	}
 }
 
@@ -266,5 +320,103 @@ func TestPolicyPathAndCompatibilityValidation(t *testing.T) {
 	policy.PlayerParty = []string{"Wrong"}
 	if err := validatePolicyCompatibility(policy, playerParty, opponentParty); err == nil {
 		t.Fatal("policy compatibility should reject mismatched party")
+	}
+	if err := validatePolicyCompatibility(nil, playerParty, opponentParty); err == nil {
+		t.Fatal("nil policy should be rejected")
+	}
+}
+
+func TestPolicyLoaderInitializesMissingMaps(t *testing.T) {
+	tempDir := t.TempDir()
+	path := filepath.Join(tempDir, "policy.json")
+	payload := []byte(`{"player_party":["Horsea"],"opponent_party":["Dwebble"]}`)
+	if err := os.WriteFile(path, payload, 0o644); err != nil {
+		t.Fatalf("write policy fixture: %v", err)
+	}
+
+	policy, err := loadPolicyFromDisk(path)
+	if err != nil {
+		t.Fatalf("loadPolicyFromDisk returned unexpected error: %v", err)
+	}
+	if policy.Policy == nil || policy.Scores == nil || policy.Counts == nil {
+		t.Fatal("loadPolicyFromDisk should initialize missing maps")
+	}
+	if len(policy.Policy) != 0 || len(policy.Scores) != 0 || len(policy.Counts) != 0 {
+		t.Fatalf("unexpected non-empty maps after load: policy=%d scores=%d counts=%d", len(policy.Policy), len(policy.Scores), len(policy.Counts))
+	}
+}
+
+func TestStaticPolicyAiUsesPolicyFallbackAndSwitchGuard(t *testing.T) {
+	policy := &savedPolicy{
+		PlayerParty:   []string{"Horsea"},
+		OpponentParty: []string{"Dwebble"},
+		Policy: map[string][]string{
+			"state": {"move:Bubble Beam", "switch:Ponyta"},
+		},
+		Scores: map[string]map[string]float64{
+			"state": {"move:Bubble Beam": 15, "switch:Ponyta": 22},
+		},
+		Counts: map[string]map[string]int{
+			"state": {"move:Bubble Beam": 2},
+		},
+	}
+	ai := newStaticPolicyAiFromPolicy(policy)
+	if got := ai.scoreFor("state", "move:Bubble Beam"); got != 15 {
+		t.Fatalf("scoreFor returned unexpected value: got %.2f want 15", got)
+	}
+	if got := ai.scoreFor("state", "move:Missing"); got != -1e18 {
+		t.Fatalf("unknown action should return the failure score: got %.2f", got)
+	}
+	if got := ai.scoreFor("state", "switch:Ponyta"); got != 22 {
+		t.Fatalf("switch score was not loaded: got %.2f", got)
+	}
+	if got := ai.scoreFor("missing", "switch:Ponyta"); got != -1e18 {
+		t.Fatalf("missing state should reject actions: got %.2f", got)
+	}
+
+	if ai.scoreFor("state", "switch:Ponyta") <= ai.scoreFor("state", "move:Bubble Beam") {
+		t.Fatal("switch action should outrank the backup move in the saved policy scores")
+	}
+	if ai.scoreFor("missing", "move:Bubble Beam") != -1e18 {
+		t.Fatal("missing state should not accept values outside the stored policy map")
+	}
+}
+
+func TestLearningAiRecordBattleOutcomeAppliesCritPenaltyAndClearsHistory(t *testing.T) {
+	makeState := func(risk bool) string {
+		if risk {
+			return "{\"opponent_crit_kill_risk\":true}"
+		}
+		return "{\"opponent_crit_kill_risk\":false}"
+	}
+
+	makeAi := func(stateKey string) *learningAi {
+		la := newLearningAi()
+		la.ensureState(stateKey)
+		la.scores[stateKey]["move:critical-slap"] = 120
+		la.counts[stateKey]["move:critical-slap"] = 2
+		la.history = []stateActionEntry{{stateKey: stateKey, action: "move:critical-slap"}}
+		la.seen[stateKey] = map[string]bool{"move:critical-slap": true}
+		return la
+	}
+
+	safeState := makeState(false)
+	riskyState := makeState(true)
+	safeAI := makeAi(safeState)
+	riskyAI := makeAi(riskyState)
+
+	stats := newBattleStatistics([]*pokemon{{base: BasePokemon{Name: "a"}}, {base: BasePokemon{Name: "b"}}})
+	stats.battleCount = 2
+	stats.winCount = 1
+	stats.pokemonSurvivors = []int{2, 1}
+
+	safeAI.recordBattleOutcome(&stats)
+	riskyAI.recordBattleOutcome(&stats)
+
+	if len(safeAI.history) != 0 || len(riskyAI.history) != 0 {
+		t.Fatal("history should be cleared after recording the outcome")
+	}
+	if safeAI.scores[safeState]["move:critical-slap"] <= riskyAI.scores[riskyState]["move:critical-slap"] {
+		t.Fatalf("crit-risk states should lose more reward than safe states; safe=%.2f risky=%.2f", safeAI.scores[safeState]["move:critical-slap"], riskyAI.scores[riskyState]["move:critical-slap"])
 	}
 }

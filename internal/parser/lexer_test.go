@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -152,5 +155,62 @@ func TestReadIdentifierReadsPokemonNamesCorrectly(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestReadShowdownFileRejectsMalformedNatureLine(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "bad_nature.txt")
+	content := "Pikachu\nLevel: 25\nJolly\nAbility: Static\n- Thunderbolt\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write temp showdown file: %v", err)
+	}
+
+	_, err := ReadShowdownFile(path)
+	if err == nil {
+		t.Fatal("ReadShowdownFile() = nil error, want malformed nature error")
+	}
+	if !strings.Contains(err.Error(), "nature line not enough fields") {
+		t.Fatalf("ReadShowdownFile() error = %v, want nature format error", err)
+	}
+}
+
+func TestReadShowdownFileRejectsUnknownStatus(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "bad_status.txt")
+	content := "Pikachu\nLevel: 25\nJolly Nature\nAbility: Static\nStatus: Confused\n- Thunderbolt\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write temp showdown file: %v", err)
+	}
+
+	_, err := ReadShowdownFile(path)
+	if err == nil {
+		t.Fatal("ReadShowdownFile() = nil error, want invalid status error")
+	}
+	if !strings.Contains(err.Error(), "unrecognized status") {
+		t.Fatalf("ReadShowdownFile() error = %v, want status validation error", err)
+	}
+}
+
+func TestReadShowdownFileAllowsMinimalPokemonWithoutStatusOrHP(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "minimal.txt")
+	content := "Pikachu\nLevel: 25\nJolly Nature\nAbility: Static\n- Thunderbolt\n- Quick Attack\n- Tail Whip\n- Slam\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write temp showdown file: %v", err)
+	}
+
+	pokemon, err := ReadShowdownFile(path)
+	if err != nil {
+		t.Fatalf("ReadShowdownFile() returned error for minimal valid team entry: %v", err)
+	}
+	if len(pokemon) != 1 {
+		t.Fatalf("ReadShowdownFile() = %d entries, want 1", len(pokemon))
+	}
+	if pokemon[0].HP != -1 {
+		t.Fatalf("pokemon[0].HP = %d, want -1 when no HP line is present", pokemon[0].HP)
+	}
+	if pokemon[0].Status != "" {
+		t.Fatalf("pokemon[0].Status = %q, want empty string when no status line is present", pokemon[0].Status)
+	}
+	if len(pokemon[0].Moves) != 4 {
+		t.Fatalf("len(pokemon[0].Moves) = %d, want 4", len(pokemon[0].Moves))
 	}
 }

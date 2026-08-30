@@ -6,7 +6,56 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/fred-bonn/nuzlocke-verifier/internal/pokeapi"
 )
+
+func TestMoveParsingAllowsMovesWithNoAilment(t *testing.T) {
+	move, err := toMove(pokeapi.MoveJSON{
+		Name:     "low-sweep",
+		Power:    65,
+		PP:       20,
+		Accuracy: 100,
+		Priority: 0,
+		Type: struct {
+			Name string `json:"name"`
+		}{Name: "fighting"},
+		DamageClass: struct {
+			Name string `json:"name"`
+		}{Name: "physical"},
+		Meta: struct {
+			Ailment struct {
+				Name string `json:"name"`
+			} `json:"ailment"`
+			AilmentChance int `json:"ailment_chance"`
+			Category      struct {
+				Name string `json:"name"`
+			} `json:"category"`
+			CritRate     int `json:"crit_rate"`
+			Drain        int `json:"drain"`
+			FlinchChance int `json:"flinch_chance"`
+			Heal         int `json:"healing"`
+			MaxHits      int `json:"max_hits"`
+			MaxTurns     int `json:"max_turns"`
+			MinHits      int `json:"min_hits"`
+			MinTurns     int `json:"min_turns"`
+			StatChance   int `json:"stat_chance"`
+		}{
+			Ailment: struct {
+				Name string `json:"name"`
+			}{Name: "none"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("toMove should accept a move with no ailment: %v", err)
+	}
+	if move.Name != "low-sweep" {
+		t.Fatalf("unexpected move parsed: %s", move.Name)
+	}
+	if move.Ailment != noneAilment {
+		t.Fatalf("move ailment = %v, want %v", move.Ailment, noneAilment)
+	}
+}
 
 func TestStringToAilmentStateParsesKnownAilmentNames(t *testing.T) {
 	tests := map[string]struct {
