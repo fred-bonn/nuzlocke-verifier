@@ -74,22 +74,6 @@ func mustMarshalDiscreteState(state discreteBattleState) []byte {
 	return encoded
 }
 
-func hpPercent(mon *pokemon) int {
-	if mon == nil || mon.maxHP() <= 0 {
-		return 0
-	}
-	return max(0, min(100, mon.hp*100/mon.maxHP()))
-}
-
-func discreteAilments(mon *pokemon) []string {
-	result := make([]string, 0, len(mon.ailments))
-	for ailment := range mon.ailments {
-		result = append(result, ailment.String())
-	}
-	sort.Strings(result)
-	return result
-}
-
 func opponentHasMoveThatKills(bs battleState, user, target *pokemon) bool {
 	for _, move := range user.moves {
 		if move == nil || move.PP <= 0 || move.Class == statusClass {
@@ -99,15 +83,6 @@ func opponentHasMoveThatKills(bs battleState, user, target *pokemon) bool {
 			return true
 		}
 		if !target.ability.blocksCrits() && user.ability != moldBreakerAbility && moveCanCritKill(bs, user, target, move) {
-			return true
-		}
-	}
-	return false
-}
-
-func monHasMoveThatKills(bs battleState, user, target *pokemon) bool {
-	for _, move := range user.moves {
-		if move.PP > 0 && move.Class != statusClass && moveCanKill(bs, user, target, move) {
 			return true
 		}
 	}
