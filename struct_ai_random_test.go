@@ -18,7 +18,7 @@ func TestLearningAiReturnsAndRecordsFirstActionForState(t *testing.T) {
 		{userSlot: bs.activePlayerSlot, targetSlot: bs.activeOpponentSlot, move: preferred},
 		{userSlot: bs.activePlayerSlot, targetSlot: bs.activeOpponentSlot, move: other},
 	})
-	options := la.policy[discretizeBattleState(bs)]
+	options := la.policy[discretizeBattleState(bs).key()]
 	if got.move != preferred || len(options) != 2 || options[0] != "move:preferred" || options[1] != "move:other" {
 		t.Fatalf("learning AI did not retain all move options: got %v", options)
 	}
@@ -34,7 +34,7 @@ func TestLearningAiReturnsAndRecordsFirstSwitchForState(t *testing.T) {
 	if got := la.evaluteSwitchIns(bs, []*pokemon{replacement}, bs.activeOpponentSlot); got != replacement {
 		t.Fatal("learning AI did not select first replacement")
 	}
-	options := la.policy[discretizeBattleState(bs)]
+	options := la.policy[discretizeBattleState(bs).key()]
 	if len(options) != 1 || options[0] != "switch:replacement" {
 		t.Fatalf("learning AI did not retain switch option: got %v", options)
 	}
@@ -48,7 +48,7 @@ func TestDiscretizeBattleStateUsesMinimalStateVector(t *testing.T) {
 	player.hp = 20
 	opponent.hp = 20
 
-	state := discretizeBattleState(bs)
+	state := discretizeBattleState(bs).key()
 	if !contains(state, `"player_pokemon":"player"`) {
 		t.Fatalf("state did not record player pokemon: %s", state)
 	}

@@ -91,7 +91,7 @@ func TestLearningAiPrefersGuaranteedKillMovesOverSaferActions(t *testing.T) {
 	safeMove := &Move{Name: "safe", Power: 1, PP: 1, Class: physicalClass}
 	killMove := &Move{Name: "killer", Power: 100, PP: 1, Class: physicalClass}
 	la := newLearningAi()
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	la.policy[stateKey] = []string{"move:safe", "move:killer"}
 	la.scores[stateKey] = map[string]float64{"move:safe": 0, "move:killer": 0}
 	la.counts[stateKey] = map[string]int{"move:safe": 1, "move:killer": 1}
@@ -111,7 +111,7 @@ func TestLearningAiChoosesSafeStateActionByScore(t *testing.T) {
 	safeMove := &Move{Name: "safe", Power: 1, PP: 1, Class: physicalClass}
 	riskyMove := &Move{Name: "risky", Power: 100, PP: 1, Class: physicalClass}
 	la := newLearningAi()
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	la.policy[stateKey] = []string{"move:safe", "move:risky"}
 	la.scores[stateKey] = map[string]float64{"move:safe": 200, "move:risky": -2000}
 
@@ -150,7 +150,7 @@ func TestLearningAiAllowsReasonableSwitchDecisionsAndTracksReplacement(t *testin
 		t.Fatal("learning AI should consider switching when the current mon is low HP and no score exists yet")
 	}
 
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	if _, ok := la.policy[stateKey]; ok && len(la.policy[stateKey]) > 0 {
 		t.Fatal("learning AI should only record the switch decision after an actual action is selected")
 	}
@@ -159,7 +159,7 @@ func TestLearningAiAllowsReasonableSwitchDecisionsAndTracksReplacement(t *testin
 	if _, ok := action.(*switchAction); !ok {
 		t.Fatalf("expected a switch action to be selected, got %T", action)
 	}
-	stateKey = discretizeBattleState(bs)
+	stateKey = discretizeBattleState(bs).key()
 	if _, ok := la.policy[stateKey]; !ok {
 		t.Fatal("learning AI did not record the selected replacement in policy history")
 	}
@@ -204,7 +204,7 @@ func TestDiscretizeBattleStateFlagsOpponentCritKillRisk(t *testing.T) {
 	bs.player.player = true
 	player.hp = 50
 
-	state := discretizeBattleState(bs)
+	state := discretizeBattleState(bs).key()
 	if !contains(state, `"opponent_has_move_that_kills":true`) {
 		t.Fatalf("state did not detect opponent lethal kill risk: %s", state)
 	}

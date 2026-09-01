@@ -30,12 +30,11 @@ type discreteBattleState struct {
 	OpponentHasMoveThatKills bool   `json:"opponent_has_move_that_kills"`
 }
 
-// discretizeBattleState returns a canonical key suitable for a tabular policy.
-func discretizeBattleState(bs battleState) string {
+// discretizeBattleState returns a canonical structured representation suitable for a tabular policy.
+func discretizeBattleState(bs battleState) discreteBattleState {
 	state := discreteBattleState{}
 	if bs == nil {
-		encoded, _ := json.Marshal(state)
-		return string(encoded)
+		return state
 	}
 
 	var playerSlot *slot
@@ -46,11 +45,11 @@ func discretizeBattleState(bs battleState) string {
 		}
 	}
 	if playerSlot == nil {
-		return string(mustMarshalDiscreteState(state))
+		return state
 	}
 	opponentSlot := bs.getOpponentSlot(playerSlot)
 	if playerSlot.mon == nil || opponentSlot == nil || opponentSlot.mon == nil {
-		return string(mustMarshalDiscreteState(state))
+		return state
 	}
 
 	state.PlayerPokemon = playerSlot.mon.base.Name
@@ -60,6 +59,10 @@ func discretizeBattleState(bs battleState) string {
 	state.PlayerMonIsFaster = playerSpeed > opponentSpeed
 	state.OpponentHasMoveThatKills = opponentHasMoveThatKills(bs, opponentSlot.mon, playerSlot.mon)
 
+	return state
+}
+
+func (state discreteBattleState) key() string {
 	return string(mustMarshalDiscreteState(state))
 }
 
@@ -373,7 +376,7 @@ func (spa *staticPolicyAi) evaluateActions(bs battleState, actions []*moveAction
 	if len(actions) == 0 {
 		return nil, 0
 	}
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	bestAction := actions[0]
 	bestScore := -1e18
 	for _, action := range actions {
@@ -390,7 +393,7 @@ func (spa *staticPolicyAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opp
 	if len(mons) == 0 {
 		return nil
 	}
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	bestMon := mons[0]
 	bestScore := -1e18
 	for _, mon := range mons {
@@ -407,7 +410,7 @@ func (spa *staticPolicyAi) shouldSwitch(bs battleState, slot *slot, score int, p
 	if spa == nil || len(party) <= 1 {
 		return false
 	}
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	for _, mon := range party {
 		if mon == nil || mon == slot.mon || mon.fainted {
 			continue
@@ -638,7 +641,7 @@ func (la *learningAi) evaluateActions(bs battleState, actions []*moveAction) (*m
 	if la == nil {
 		return rnbAi{}.evaluateActions(bs, actions)
 	}
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	la.ensureState(stateKey)
 	firstAction := actions[0]
 	fallbackAction, fallbackScore := rnbAi{}.evaluateActions(bs, actions)
@@ -708,7 +711,7 @@ func (la *learningAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opponent
 	if la == nil {
 		return rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
 	}
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	la.ensureState(stateKey)
 	firstMon := mons[0]
 	fallbackMon := rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
@@ -767,7 +770,7 @@ func (la *learningAi) shouldSwitch(bs battleState, slot *slot, score int, party 
 	if la == nil || len(party) <= 1 {
 		return false
 	}
-	stateKey := discretizeBattleState(bs)
+	stateKey := discretizeBattleState(bs).key()
 	la.ensureState(stateKey)
 	candidateFound := false
 	for _, mon := range party {

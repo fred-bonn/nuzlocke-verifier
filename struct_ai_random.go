@@ -68,7 +68,7 @@ func chooseNextAction(bs battleState, slot *slot, party []*pokemon, decisionAI a
 	}
 	chosenMon := decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
 	if la, ok := decisionAI.(*learningAi); ok {
-		la.recordStateAction(discretizeBattleState(bs), actionKeyForSwitch(chosenMon))
+		la.recordStateAction(discretizeBattleState(bs).key(), actionKeyForSwitch(chosenMon))
 	}
 	return &switchAction{oldSlot: slot, new: chosenMon}
 }
@@ -85,7 +85,7 @@ func chooseSwitchIn(bs battleState, slot *slot, party []*pokemon, decisionAI ai)
 	}
 	chosenMon := decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
 	if la, ok := decisionAI.(*learningAi); ok {
-		la.recordStateAction(discretizeBattleState(bs), actionKeyForSwitch(chosenMon))
+		la.recordStateAction(discretizeBattleState(bs).key(), actionKeyForSwitch(chosenMon))
 	}
 	return chosenMon
 }
