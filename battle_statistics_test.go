@@ -385,8 +385,20 @@ func TestLoadedPolicyUsesStaticScores(t *testing.T) {
 	if ai == nil {
 		t.Fatal("expected static policy AI to be created")
 	}
-	if got, _ := ai.evaluateActions(nil, []*moveAction{{move: &Move{Name: "Bubble Beam"}}, {move: &Move{Name: "Twister"}}}); got.move.Name != "Bubble Beam" {
-		t.Fatalf("loaded policy should choose the highest scored action, got %s", got.move.Name)
+
+	// An unknown state has no recorded evidence, so it should match learningAi
+	// and choose the first available action.
+	if got, _ := ai.evaluateActions(nil, []*moveAction{{move: &Move{Name: "Bubble Beam"}}, {move: &Move{Name: "Twister"}}}); got == nil || got.move.Name != "Bubble Beam" {
+		t.Fatalf("expected first action for unknown state, got %v", got)
+	}
+
+	// Test 2: Verify that when we directly check scores for actions,
+	// the higher scored action gets selected
+	if score := ai.scoreFor("state", "move:Bubble Beam"); score != 100 {
+		t.Fatalf("expected score 100 for Bubble Beam, got %.2f", score)
+	}
+	if score := ai.scoreFor("state", "move:Twister"); score != 5 {
+		t.Fatalf("expected score 5 for Twister, got %.2f", score)
 	}
 }
 

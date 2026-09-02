@@ -352,14 +352,49 @@ func (spa *staticPolicyAi) evaluateActions(bs battleState, actions []*moveAction
 		return nil, 0
 	}
 	stateKey := discretizeBattleState(bs).key()
-	bestAction := actions[0]
-	bestScore := -1e18
+	fallbackAction, fallbackScore := rnbAi{}.evaluateActions(bs, actions)
+	hasRecordedEvidence := false
 	for _, action := range actions {
-		score := spa.scoreFor(stateKey, actionKey(action))
-		if score > bestScore {
-			bestScore = score
-			bestAction = action
+		key := actionKey(action)
+		if spa.counts[stateKey][key] > 0 || spa.scores[stateKey][key] != 0 {
+			hasRecordedEvidence = true
+			break
 		}
+	}
+	if !hasRecordedEvidence {
+		return actions[0], 0
+	}
+
+	// Try to find an action with a positive score from the policy
+	bestAction := fallbackAction
+	bestScore := float64(fallbackScore)
+	riskPenalty := 0.0
+	if stateHasCritKillRisk(stateKey) {
+		riskPenalty = learnRewardStateRiskPenalty
+	}
+	positiveFound := false
+	for _, action := range actions {
+		key := actionKey(action)
+		score := spa.scoreFor(stateKey, key)
+		if count := spa.counts[stateKey][key]; count > 0 {
+			score += float64(count) * learnActionCountBoost
+		}
+		if action != nil && action.move != nil && action.userSlot != nil && action.targetSlot != nil && action.userSlot.mon != nil && action.targetSlot.mon != nil {
+			if moveCanKill(bs, action.userSlot.mon, action.targetSlot.mon, action.move) {
+				score += learnRewardGuaranteedKillBonus
+			}
+		}
+		score -= riskPenalty
+		if score > 0 {
+			positiveFound = true
+			if score > bestScore {
+				bestAction = action
+				bestScore = score
+			}
+		}
+	}
+	if !positiveFound {
+		return bestAction, int(bestScore)
 	}
 	return bestAction, int(bestScore)
 }
@@ -369,14 +404,41 @@ func (spa *staticPolicyAi) evaluteSwitchIns(bs battleState, mons []*pokemon, opp
 		return nil
 	}
 	stateKey := discretizeBattleState(bs).key()
-	bestMon := mons[0]
-	bestScore := -1e18
+	fallbackMon := rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
 	for _, mon := range mons {
-		score := spa.scoreFor(stateKey, actionKeyForSwitch(mon))
-		if score > bestScore {
-			bestScore = score
-			bestMon = mon
+		key := actionKeyForSwitch(mon)
+		if spa.counts[stateKey][key] > 0 || spa.scores[stateKey][key] != 0 {
+			goto recordedSwitchEvidence
 		}
+	}
+	return mons[0]
+
+recordedSwitchEvidence:
+	bestMon := fallbackMon
+	bestScore := 0.0
+	riskPenalty := 0.0
+	if stateHasCritKillRisk(stateKey) {
+		riskPenalty = learnRewardStateRiskPenalty
+	}
+
+	positiveFound := false
+	for _, mon := range mons {
+		key := actionKeyForSwitch(mon)
+		score := spa.scoreFor(stateKey, key)
+		if count := spa.counts[stateKey][key]; count > 0 {
+			score += float64(count) * learnActionCountBoost
+		}
+		score -= riskPenalty
+		if score > 0 {
+			positiveFound = true
+			if score > bestScore {
+				bestMon = mon
+				bestScore = score
+			}
+		}
+	}
+	if !positiveFound {
+		return fallbackMon
 	}
 	return bestMon
 }
@@ -386,13 +448,25 @@ func (spa *staticPolicyAi) shouldSwitch(bs battleState, slot *slot, score int, p
 		return false
 	}
 	stateKey := discretizeBattleState(bs).key()
+	candidateFound := false
 	for _, mon := range party {
 		if mon == nil || mon == slot.mon || mon.fainted {
 			continue
 		}
-		if spa.scoreFor(stateKey, actionKeyForSwitch(mon)) > float64(score) {
+		candidateFound = true
+		key := actionKeyForSwitch(mon)
+		if learned, ok := spa.scores[stateKey][key]; ok && learned > float64(score) {
 			return true
 		}
+	}
+	if !candidateFound {
+		return false
+	}
+	if (rnbAi{}).shouldSwitch(bs, slot, score, party) {
+		return true
+	}
+	if slot.mon.hp <= slot.mon.maxHP()/3 {
+		return true
 	}
 	return false
 }
