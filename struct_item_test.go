@@ -275,6 +275,7 @@ func TestPinchHealBerries(t *testing.T) {
 func TestStatBoostBerries(t *testing.T) {
 	tests := map[string]struct {
 		item         itemState
+		stat         statState
 		initialHp    int
 		maxHp        int
 		gluttony     bool
@@ -282,11 +283,13 @@ func TestStatBoostBerries(t *testing.T) {
 		wantStage    int
 		wantConsumed bool
 	}{
-		"liechi boosts attack at threshold":                   {item: liechiBerry, initialHp: 25, maxHp: 100, wantStage: 1, wantConsumed: true},
-		"liechi does not boost above threshold":               {item: liechiBerry, initialHp: 26, maxHp: 100, wantStage: 0},
-		"liechi blocked by unnerve":                           {item: liechiBerry, initialHp: 25, maxHp: 100, unnerved: true, wantStage: 0},
-		"liechi uses gluttony threshold":                      {item: liechiBerry, initialHp: 50, maxHp: 100, gluttony: true, wantStage: 1, wantConsumed: true},
-		"liechi does not boost with gluttony above threshold": {item: liechiBerry, initialHp: 51, maxHp: 100, gluttony: true, wantStage: 0},
+		"liechi boosts attack at threshold":                   {item: liechiBerry, stat: attack, initialHp: 25, maxHp: 100, wantStage: 1, wantConsumed: true},
+		"liechi does not boost above threshold":               {item: liechiBerry, stat: attack, initialHp: 26, maxHp: 100, wantStage: 0},
+		"liechi blocked by unnerve":                           {item: liechiBerry, stat: attack, initialHp: 25, maxHp: 100, unnerved: true, wantStage: 0},
+		"liechi uses gluttony threshold":                      {item: liechiBerry, stat: attack, initialHp: 50, maxHp: 100, gluttony: true, wantStage: 1, wantConsumed: true},
+		"liechi does not boost with gluttony above threshold": {item: liechiBerry, stat: attack, initialHp: 51, maxHp: 100, gluttony: true, wantStage: 0},
+		"salac uses gluttony threshold":                       {item: salacBerry, stat: speed, initialHp: 50, maxHp: 100, gluttony: true, wantStage: 1, wantConsumed: true},
+		"salac does not boost with gluttony above threshold":  {item: salacBerry, stat: speed, initialHp: 51, maxHp: 100, gluttony: true, wantStage: 0},
 	}
 
 	for name, tc := range tests {
@@ -306,8 +309,8 @@ func TestStatBoostBerries(t *testing.T) {
 			mon.item = item
 
 			mon.checkItemTrigger(true, nil)
-			if got := mon.stages[attack]; got != tc.wantStage {
-				t.Errorf("mon.stages[attack] = %d, want %d", got, tc.wantStage)
+			if got := mon.stages[tc.stat]; got != tc.wantStage {
+				t.Errorf("mon.stages[%s] = %d, want %d", tc.stat, got, tc.wantStage)
 			}
 
 			if tc.wantStage == 1 && !item.consumed {

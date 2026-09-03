@@ -26,6 +26,7 @@ func run(args []string) int {
 	verbose = fs.BoolP("verbose", "v", false, "verbose logging")
 	weather := fs.IntP("weather", "w", int(noneWeather), "weather\n 0: None (default)\n 1: Rain\n 2: Sun\n 3: Sandstorm\n 4: Hail")
 	playerUsesLearningAI := fs.BoolP("player-learning-ai", "p", false, "use the learning AI for the player trainer while the opponent keeps the rnb AI")
+	playerUsesGuidedAI := fs.BoolP("player-guided-ai", "g", false, "prompt for the player's action each turn")
 	policyFile := fs.StringP("policy-file", "f", "", "path to a saved policy JSON file to load and use for the player trainer")
 	savePolicy := fs.BoolP("save-policy", "s", false, "save the learned policy under policies/ using the input file names")
 	iterations := fs.IntP("iterations", "i", 1, "number of times to run the same battle scenario for statistics or training")
@@ -69,7 +70,10 @@ func run(args []string) int {
 	var policy *savedPolicy
 	var playerLearning *learningAi
 	playerAI := ai(rnbAi{})
-	if *policyFile != "" {
+	if *playerUsesGuidedAI {
+		*verbose = true
+		playerAI = newGuidedAi(os.Stdin, os.Stdout)
+	} else if *policyFile != "" {
 		policy, err = loadPolicyFromDisk(*policyFile)
 		if err != nil {
 			log.Printf("error: failed loading policy '%s': %s", *policyFile, err)
