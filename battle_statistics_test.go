@@ -9,6 +9,11 @@ import (
 	"testing"
 )
 
+const (
+	playerShowdownFixture   = "Horsea @ Oran Berry\nLevel: 17\nModest Nature\nAbility: Swift Swim\n- Bubble Beam\n\nPonyta @ Oran Berry\nLevel: 17\nAdamant Nature\nAbility: Flame Body\n- Flame Wheel\n"
+	opponentShowdownFixture = "Dwebble @ Salac Berry\nLevel: 17\nAdamant Nature\nAbility: Sturdy\n- Knock Off\n"
+)
+
 func TestBattleStatisticsRecord(t *testing.T) {
 	survivor := &pokemon{base: BasePokemon{Name: "survivor"}}
 	fainted := &pokemon{base: BasePokemon{Name: "fainted"}, fainted: true}
@@ -253,8 +258,6 @@ func TestPolicySaveIsDeterministicForSameInput(t *testing.T) {
 	}
 	defer func() { _ = os.Chdir(cwd) }()
 
-	playerParty := []*pokemon{{base: BasePokemon{Name: "Horsea"}}, {base: BasePokemon{Name: "Ponyta"}}}
-	opponentParty := []*pokemon{{base: BasePokemon{Name: "Dwebble"}}}
 	la := newLearningAi()
 	la.policy["state"] = []string{"move:Bubble Beam", "switch:Ponyta"}
 	la.scores["state"] = map[string]float64{"move:Bubble Beam": 42.5, "switch:Ponyta": -12.25}
@@ -268,7 +271,7 @@ func TestPolicySaveIsDeterministicForSameInput(t *testing.T) {
 	}
 
 	firstPath := filepath.Join("policies", "player__vs__rnb_trainer_1.json")
-	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
+	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt"); err != nil {
 		t.Fatalf("first save policy failed: %v", err)
 	}
 	firstBytes, err := os.ReadFile(firstPath)
@@ -276,7 +279,7 @@ func TestPolicySaveIsDeterministicForSameInput(t *testing.T) {
 		t.Fatalf("read first saved policy failed: %v", err)
 	}
 
-	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
+	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt"); err != nil {
 		t.Fatalf("second save policy failed: %v", err)
 	}
 	secondBytes, err := os.ReadFile(firstPath)
@@ -299,21 +302,21 @@ func TestPolicySaveLoadSmokeTest(t *testing.T) {
 	}
 	defer func() { _ = os.Chdir(cwd) }()
 
-	playerParty := []*pokemon{{base: BasePokemon{Name: "Horsea"}}, {base: BasePokemon{Name: "Ponyta"}}}
-	opponentParty := []*pokemon{{base: BasePokemon{Name: "Dwebble"}}}
+	playerParty := []*pokemon{{base: BasePokemon{Name: "horsea"}}, {base: BasePokemon{Name: "ponyta"}}}
+	opponentParty := []*pokemon{{base: BasePokemon{Name: "dwebble"}}}
 	la := newLearningAi()
 	la.policy["state"] = []string{"move:Bubble Beam"}
 	la.scores["state"] = map[string]float64{"move:Bubble Beam": 128.75}
 	la.counts["state"] = map[string]int{"move:Bubble Beam": 11}
 
-	if err := os.WriteFile("player.txt", []byte("Horsea\n"), 0o644); err != nil {
+	if err := os.WriteFile("player.txt", []byte(playerShowdownFixture), 0o644); err != nil {
 		t.Fatalf("write player input fixture: %v", err)
 	}
-	if err := os.WriteFile("rnb_trainer_1.txt", []byte("Dwebble\n"), 0o644); err != nil {
+	if err := os.WriteFile("rnb_trainer_1.txt", []byte(opponentShowdownFixture), 0o644); err != nil {
 		t.Fatalf("write opponent input fixture: %v", err)
 	}
 
-	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
+	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt"); err != nil {
 		t.Fatalf("save policy failed: %v", err)
 	}
 
@@ -388,8 +391,8 @@ func TestPolicyCliEndToEndSmoke(t *testing.T) {
 
 func TestLoadedPolicyUsesStaticScores(t *testing.T) {
 	policy := &savedPolicy{
-		PlayerParty:   []string{"Horsea"},
-		OpponentParty: []string{"Dwebble"},
+		PlayerParty:   playerShowdownFixture,
+		OpponentParty: opponentShowdownFixture,
 		Policy: map[string][]string{
 			"state": {"move:Bubble Beam", "move:Twister"},
 		},
@@ -428,11 +431,11 @@ func TestPolicyPathAndCompatibilityValidation(t *testing.T) {
 		t.Fatalf("unexpected policy path: %s", path)
 	}
 
-	playerParty := []*pokemon{{base: BasePokemon{Name: "Horsea"}}, {base: BasePokemon{Name: "Ponyta"}}}
-	opponentParty := []*pokemon{{base: BasePokemon{Name: "Dwebble"}}}
+	playerParty := []*pokemon{{base: BasePokemon{Name: "horsea"}}, {base: BasePokemon{Name: "ponyta"}}}
+	opponentParty := []*pokemon{{base: BasePokemon{Name: "dwebble"}}}
 	policy := &savedPolicy{
-		PlayerParty:   []string{"Horsea", "Ponyta"},
-		OpponentParty: []string{"Dwebble"},
+		PlayerParty:   playerShowdownFixture,
+		OpponentParty: opponentShowdownFixture,
 		Policy:        map[string][]string{"state": {"move:Bubble Beam", "switch:Ponyta"}},
 		Scores:        map[string]map[string]float64{"state": {"move:Bubble Beam": 1}},
 		Counts:        map[string]map[string]int{"state": {"move:Bubble Beam": 1}},
@@ -441,7 +444,7 @@ func TestPolicyPathAndCompatibilityValidation(t *testing.T) {
 		t.Fatalf("policy compatibility failed unexpectedly: %v", err)
 	}
 
-	policy.PlayerParty = []string{"Wrong"}
+	policy.PlayerParty = "Wrong @ Item\nLevel: 5\nHardy Nature\nAbility: None\n- Tackle\n"
 	if err := validatePolicyCompatibility(policy, playerParty, opponentParty); err == nil {
 		t.Fatal("policy compatibility should reject mismatched party")
 	}
@@ -453,7 +456,7 @@ func TestPolicyPathAndCompatibilityValidation(t *testing.T) {
 func TestPolicyLoaderInitializesMissingMaps(t *testing.T) {
 	tempDir := t.TempDir()
 	path := filepath.Join(tempDir, "policy.json")
-	payload := []byte(`{"player_party":["Horsea"],"opponent_party":["Dwebble"]}`)
+	payload := []byte(`{"player_party":"Horsea","opponent_party":"Dwebble"}`)
 	if err := os.WriteFile(path, payload, 0o644); err != nil {
 		t.Fatalf("write policy fixture: %v", err)
 	}
@@ -472,8 +475,8 @@ func TestPolicyLoaderInitializesMissingMaps(t *testing.T) {
 
 func TestStaticPolicyAiUsesPolicyFallbackAndSwitchGuard(t *testing.T) {
 	policy := &savedPolicy{
-		PlayerParty:   []string{"Horsea"},
-		OpponentParty: []string{"Dwebble"},
+		PlayerParty:   "Horsea",
+		OpponentParty: "Dwebble",
 		Policy: map[string][]string{
 			"state": {"move:Bubble Beam", "switch:Ponyta"},
 		},

@@ -103,10 +103,8 @@ policies/player__vs__rnb_trainer_1.json
 
 Policies are stored as JSON and live under the `policies/` directory. The files include:
 
-- `player_party`: player Pokémon names
-- `opponent_party`: opponent Pokémon names
-- `player_party_file`: the raw contents of the player's Showdown party file (e.g. `cat data/player.txt`)
-- `opponent_party_file`: the raw contents of the opponent's Showdown party file
+- `player_party`: the entire contents of the player's Showdown party file (i.e. `cat data/player.txt`)
+- `opponent_party`: the entire contents of the opponent's Showdown party file
 - `policy`: the state-to-action map
 - `scores`: learned action scores per state
 - `counts`: action usage counts per state
@@ -114,16 +112,14 @@ Policies are stored as JSON and live under the `policies/` directory. The files 
 - `version`: policy version
 - `metadata`: source input file names
 
-Embedding the party file contents means a saved policy is self-contained: loading it with `--policy-file` never needs the original `data/player.txt` / `data/rnb_trainer_1.txt` files on disk.
+`player_party`/`opponent_party` hold the raw, unparsed Showdown text (items, IVs, moves, everything), so a saved policy is self-contained: `--policy-file` runs that text back through the same lexer/parser used for `<player_showdown>` files, and never needs the original `data/player.txt` / `data/rnb_trainer_1.txt` files on disk.
 
 Example shape:
 
 ```json
 {
-  "player_party": ["horsea", "staravia"],
-  "opponent_party": ["dwebble", "sandygast"],
-  "player_party_file": "Horsea @ Oran Berry\nLevel: 17\nModest Nature\nAbility: Swift Swim\n- Bubble Beam\n- Twister\n",
-  "opponent_party_file": "Dwebble @ Salac Berry\nLevel: 17\nAdamant Nature\nAbility: Sturdy\n- Knock Off\n- Sticky Web\n",
+  "player_party": "Horsea @ Oran Berry\nLevel: 17\nModest Nature\nAbility: Swift Swim\n- Bubble Beam\n- Twister\n",
+  "opponent_party": "Dwebble @ Salac Berry\nLevel: 17\nAdamant Nature\nAbility: Sturdy\n- Knock Off\n- Sticky Web\n",
   "policy": {
     "{\"player_pokemon\":\"horsea\",...}": [
       "move:bubble beam",
@@ -145,7 +141,7 @@ Example shape:
 }
 ```
 
-Compatibility is checked before a policy is used. If the saved policy does not match the loaded party composition, or does not have `player_party_file`/`opponent_party_file` embedded, the program exits with an error instead of running with invalid state.
+Compatibility is checked before a policy is used: `player_party`/`opponent_party` are parsed and must name the same Pokémon, in the same order, as what gets loaded. If the saved policy is missing embedded party text, or it no longer matches, the program exits with an error instead of running with invalid state.
 
 ## Input party format
 

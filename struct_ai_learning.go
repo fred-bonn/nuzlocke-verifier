@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/fred-bonn/nuzlocke-verifier/internal/parser"
 )
 
 const (
@@ -158,16 +160,17 @@ type stateActionEntry struct {
 	action   string
 }
 
+// savedPolicy stores the entire contents of the player/opponent Showdown party files
+// (as if read via `cat player.txt`) so the policy can rebuild the parties without the
+// original files, by running player_party/opponent_party back through the parser.
 type savedPolicy struct {
-	PlayerParty       []string                      `json:"player_party"`
-	OpponentParty     []string                      `json:"opponent_party"`
-	PlayerPartyFile   string                        `json:"player_party_file,omitempty"`
-	OpponentPartyFile string                        `json:"opponent_party_file,omitempty"`
-	Policy            map[string][]string           `json:"policy"`
-	Scores            map[string]map[string]float64 `json:"scores"`
-	Counts            map[string]map[string]int     `json:"counts"`
-	Version           int                           `json:"version"`
-	Metadata          map[string]string             `json:"metadata,omitempty"`
+	PlayerParty   string                        `json:"player_party"`
+	OpponentParty string                        `json:"opponent_party"`
+	Policy        map[string][]string           `json:"policy"`
+	Scores        map[string]map[string]float64 `json:"scores"`
+	Counts        map[string]map[string]int     `json:"counts"`
+	Version       int                           `json:"version"`
+	Metadata      map[string]string             `json:"metadata,omitempty"`
 }
 
 func newLearningAi() *learningAi {
@@ -209,7 +212,7 @@ func loadPolicyFromDisk(path string) (*savedPolicy, error) {
 	return policy, nil
 }
 
-func savePolicyToDisk(la *learningAi, playerInput, opponentInput string, playerParty, opponentParty []*pokemon) error {
+func savePolicyToDisk(la *learningAi, playerInput, opponentInput string) error {
 	if la == nil {
 		return fmt.Errorf("nil learning AI")
 	}
@@ -226,15 +229,13 @@ func savePolicyToDisk(la *learningAi, playerInput, opponentInput string, playerP
 		return fmt.Errorf("failed reading opponent input '%s': %w", opponentInput, err)
 	}
 	policy := &savedPolicy{
-		PlayerParty:       partyNames(playerParty),
-		OpponentParty:     partyNames(opponentParty),
-		PlayerPartyFile:   string(playerPartyFile),
-		OpponentPartyFile: string(opponentPartyFile),
-		Policy:            cloneActionMap(la.policy),
-		Scores:            cloneScoreMap(la.scores),
-		Counts:            cloneCountMap(la.counts),
-		Version:           1,
-		Metadata:          map[string]string{"player_input": playerInput, "opponent_input": opponentInput},
+		PlayerParty:   string(playerPartyFile),
+		OpponentParty: string(opponentPartyFile),
+		Policy:        cloneActionMap(la.policy),
+		Scores:        cloneScoreMap(la.scores),
+		Counts:        cloneCountMap(la.counts),
+		Version:       1,
+		Metadata:      map[string]string{"player_input": playerInput, "opponent_input": opponentInput},
 	}
 	data, err := json.MarshalIndent(policy, "", "  ")
 	if err != nil {
@@ -284,17 +285,6 @@ func cloneCountMap(source map[string]map[string]int) map[string]map[string]int {
 		clone[key] = copied
 	}
 	return clone
-}
-
-func partyNames(party []*pokemon) []string {
-	result := make([]string, 0, len(party))
-	for _, mon := range party {
-		if mon == nil || mon.base.Name == "" {
-			continue
-		}
-		result = append(result, mon.base.Name)
-	}
-	return result
 }
 
 func countScoreEntries(scores map[string]map[string]float64) int {
@@ -509,41 +499,34 @@ func validatePolicyCompatibility(policy *savedPolicy, playerParty, opponentParty
 	if policy == nil {
 		return fmt.Errorf("policy is nil")
 	}
-	toNames := func(p []*pokemon) []string {
-		result := make([]string, 0, len(p))
-		for _, mon := range p {
-			if mon == nil || mon.base.Name == "" {
-				continue
-			}
-			result = append(result, mon.base.Name)
-		}
-		return result
+	if policy.PlayerParty == "" || policy.OpponentParty == "" {
+		return fmt.Errorf("policy is missing embedded player/opponent party files")
 	}
-	if !stringSliceEquivalent(policy.PlayerParty, toNames(playerParty)) {
-		return fmt.Errorf("policy player party does not match input player party")
+	if err := validatePartyMatchesShowdown(policy.PlayerParty, playerParty); err != nil {
+		return fmt.Errorf("player party: %w", err)
 	}
-	if !stringSliceEquivalent(policy.OpponentParty, toNames(opponentParty)) {
-		return fmt.Errorf("policy opponent party does not match input opponent party")
+	if err := validatePartyMatchesShowdown(policy.OpponentParty, opponentParty); err != nil {
+		return fmt.Errorf("opponent party: %w", err)
 	}
 	return nil
 }
 
-func stringSliceEquivalent(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
+// validatePartyMatchesShowdown parses raw Showdown party text and checks that it names
+// the same Pok\u00e9mon, in the same order, as the already-loaded party.
+func validatePartyMatchesShowdown(content string, party []*pokemon) error {
+	parsed, err := parser.ParseShowdown(content)
+	if err != nil {
+		return fmt.Errorf("failed parsing embedded party: %w", err)
 	}
-	lookup := make(map[string]int)
-	for _, value := range b {
-		lookup[strings.ToLower(value)]++
+	if len(parsed) != len(party) {
+		return fmt.Errorf("expected %d pokemon, got %d", len(parsed), len(party))
 	}
-	for _, value := range a {
-		key := strings.ToLower(value)
-		if lookup[key] <= 0 {
-			return false
+	for i, mon := range parsed {
+		if party[i] == nil || cleanName(mon.Name) != party[i].base.Name {
+			return fmt.Errorf("pokemon at position %d does not match: policy=%q loaded=%q", i, mon.Name, party[i].base.Name)
 		}
-		lookup[key]--
 	}
-	return true
+	return nil
 }
 
 func (la *learningAi) ensureState(stateKey string) {

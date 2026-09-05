@@ -71,16 +71,16 @@ func run(args []string) int {
 			log.Printf("error: failed loading policy '%s': %s", *policyFile, err)
 			return 1
 		}
-		if policy.PlayerPartyFile == "" || policy.OpponentPartyFile == "" {
+		if policy.PlayerParty == "" || policy.OpponentParty == "" {
 			log.Printf("error: policy '%s' does not contain embedded party files", *policyFile)
 			return 1
 		}
-		playerParty, err = cfg.validateInputContent(policy.PlayerPartyFile)
+		playerParty, err = cfg.validateInputContent(policy.PlayerParty)
 		if err != nil {
 			log.Printf("error: failed validating player party embedded in policy '%s': %s", *policyFile, err)
 			return 1
 		}
-		opponentParty, err = cfg.validateInputContent(policy.OpponentPartyFile)
+		opponentParty, err = cfg.validateInputContent(policy.OpponentParty)
 		if err != nil {
 			log.Printf("error: failed validating opponent party embedded in policy '%s': %s", *policyFile, err)
 			return 1
@@ -156,7 +156,7 @@ func run(args []string) int {
 	}
 
 	if *savePolicy && playerLearning != nil {
-		if err := savePolicyToDisk(playerLearning, parsedArgs[0], parsedArgs[1], playerParty, opponentParty); err != nil {
+		if err := savePolicyToDisk(playerLearning, parsedArgs[0], parsedArgs[1]); err != nil {
 			log.Printf("error: failed saving policy: %s", err)
 		} else {
 			log.Printf("policy saved to %s", policyPathForInputs(parsedArgs[0], parsedArgs[1]))

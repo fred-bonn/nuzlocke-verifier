@@ -70,13 +70,11 @@ func TestRunLoadsPartiesEmbeddedInPolicyWhenNoInputFilesAreGiven(t *testing.T) {
 
 	withParties := filepath.Join(dir, "with_parties.json")
 	writePolicyFixture(t, withParties, savedPolicy{
-		PlayerParty:       []string{"horsea", "staravia", "monferno", "roselia", "ponyta"},
-		OpponentParty:     []string{"dwebble", "sandygast", "mawile", "munchlax"},
-		PlayerPartyFile:   string(playerContent),
-		OpponentPartyFile: string(opponentContent),
-		Policy:            map[string][]string{},
-		Scores:            map[string]map[string]float64{},
-		Counts:            map[string]map[string]int{},
+		PlayerParty:   string(playerContent),
+		OpponentParty: string(opponentContent),
+		Policy:        map[string][]string{},
+		Scores:        map[string]map[string]float64{},
+		Counts:        map[string]map[string]int{},
 	})
 
 	if code := run([]string{"--policy-file", withParties, "--iterations", "1"}); code != 0 {
@@ -85,11 +83,9 @@ func TestRunLoadsPartiesEmbeddedInPolicyWhenNoInputFilesAreGiven(t *testing.T) {
 
 	withoutParties := filepath.Join(dir, "without_parties.json")
 	writePolicyFixture(t, withoutParties, savedPolicy{
-		PlayerParty:   []string{"horsea"},
-		OpponentParty: []string{"dwebble"},
-		Policy:        map[string][]string{},
-		Scores:        map[string]map[string]float64{},
-		Counts:        map[string]map[string]int{},
+		Policy: map[string][]string{},
+		Scores: map[string]map[string]float64{},
+		Counts: map[string]map[string]int{},
 	})
 
 	if code := run([]string{"--policy-file", withoutParties, "--iterations", "1"}); code != 1 {
