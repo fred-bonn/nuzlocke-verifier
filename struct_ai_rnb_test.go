@@ -3,16 +3,15 @@ package main
 import "testing"
 
 func TestRnbShouldSwitchRejectsUnsafeReplacements(t *testing.T) {
-	tests := []struct {
-		name string
-		hp   int
+	tests := map[string]struct {
+		hp int
 	}{
-		{name: "opponent can one hit KO", hp: 20},
-		{name: "slower opponent can two hit KO", hp: 30},
+		"opponent can one hit KO":        {hp: 20},
+		"slower opponent can two hit KO": {hp: 30},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
 			current := testSwitchPokemon("current", 100, 100, 100, 100, nil)
 			replacement := testSwitchPokemon("replacement", tc.hp, 100, 100, 100, nil)
 			opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, &Move{Name: "sonic boom", Power: 1, PP: 1, Class: specialClass})
