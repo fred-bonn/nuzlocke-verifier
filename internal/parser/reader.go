@@ -11,8 +11,13 @@ func ReadShowdownFile(path string) ([]ParsedPokemon, error) {
 		return nil, fmt.Errorf("could not open file: %s", "<path>")
 	}
 
+	return ParseShowdown(string(input))
+}
+
+// ParseShowdown parses Showdown-style party text directly, without reading it from disk.
+func ParseShowdown(input string) ([]ParsedPokemon, error) {
 	var tokens []token
-	l := newLexer(string(input))
+	l := newLexer(input)
 
 	for tok := l.nextToken(); tok.Type != t_EOF; tok = l.nextToken() {
 		if tok.Type == t_ILLEGAL {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,16 +14,17 @@ func TestRunReturnsTheExpectedExitCodeForCLIArguments(t *testing.T) {
 		args []string
 		want int
 	}{
-		"rejects invalid weather":                 {args: []string{"-w", "99", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
-		"rejects negative weather":                {args: []string{"-w", "-1", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
-		"rejects non-positive iterations":         {args: []string{"--iterations", "0", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
-		"rejects negative iterations":             {args: []string{"--iterations", "-5", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
-		"rejects missing args":                    {args: []string{"--iterations", "1"}, want: 1},
-		"rejects too many args":                   {args: []string{"data/player.txt", "data/rnb_trainer_1.txt", "extra.txt"}, want: 1},
-		"rejects invalid showdown file":           {args: []string{"--iterations", "1", "data/nonexistent.txt", "data/rnb_trainer_1.txt"}, want: 1},
-		"rejects misconfigured policy file":       {args: []string{"--policy-file", "missing.json", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
-		"accepts valid CLI and returns zero":      {args: []string{"--iterations", "1", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 0},
-		"accepts a help request and returns zero": {args: []string{"-h"}, want: 0},
+		"rejects invalid weather":                       {args: []string{"-w", "99", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
+		"rejects negative weather":                      {args: []string{"-w", "-1", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
+		"rejects non-positive iterations":               {args: []string{"--iterations", "0", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
+		"rejects negative iterations":                   {args: []string{"--iterations", "-5", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
+		"rejects missing args":                          {args: []string{"--iterations", "1"}, want: 1},
+		"rejects too many args":                         {args: []string{"data/player.txt", "data/rnb_trainer_1.txt", "extra.txt"}, want: 1},
+		"rejects invalid showdown file":                 {args: []string{"--iterations", "1", "data/nonexistent.txt", "data/rnb_trainer_1.txt"}, want: 1},
+		"rejects misconfigured policy file":             {args: []string{"--policy-file", "missing.json", "--iterations", "1"}, want: 1},
+		"rejects policy file combined with party files": {args: []string{"--policy-file", "missing.json", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 1},
+		"accepts valid CLI and returns zero":            {args: []string{"--iterations", "1", "data/player.txt", "data/rnb_trainer_1.txt"}, want: 0},
+		"accepts a help request and returns zero":       {args: []string{"-h"}, want: 0},
 	}
 
 	for name, tc := range tests {
@@ -51,6 +53,58 @@ func TestRunAcceptsVerboseFlag(t *testing.T) {
 func TestRunHelpDoesNotReturnError(t *testing.T) {
 	if code := run([]string{"-h"}); code != 0 {
 		t.Fatalf("expected zero exit code for help request, got %d", code)
+	}
+}
+
+func TestRunLoadsPartiesEmbeddedInPolicyWhenNoInputFilesAreGiven(t *testing.T) {
+	dir := t.TempDir()
+
+	playerContent, err := os.ReadFile("data/player.txt")
+	if err != nil {
+		t.Fatalf("read player fixture: %v", err)
+	}
+	opponentContent, err := os.ReadFile("data/rnb_trainer_1.txt")
+	if err != nil {
+		t.Fatalf("read opponent fixture: %v", err)
+	}
+
+	withParties := filepath.Join(dir, "with_parties.json")
+	writePolicyFixture(t, withParties, savedPolicy{
+		PlayerParty:       []string{"horsea", "staravia", "monferno", "roselia", "ponyta"},
+		OpponentParty:     []string{"dwebble", "sandygast", "mawile", "munchlax"},
+		PlayerPartyFile:   string(playerContent),
+		OpponentPartyFile: string(opponentContent),
+		Policy:            map[string][]string{},
+		Scores:            map[string]map[string]float64{},
+		Counts:            map[string]map[string]int{},
+	})
+
+	if code := run([]string{"--policy-file", withParties, "--iterations", "1"}); code != 0 {
+		t.Fatalf("run(--policy-file, no input files) = %d, want 0", code)
+	}
+
+	withoutParties := filepath.Join(dir, "without_parties.json")
+	writePolicyFixture(t, withoutParties, savedPolicy{
+		PlayerParty:   []string{"horsea"},
+		OpponentParty: []string{"dwebble"},
+		Policy:        map[string][]string{},
+		Scores:        map[string]map[string]float64{},
+		Counts:        map[string]map[string]int{},
+	})
+
+	if code := run([]string{"--policy-file", withoutParties, "--iterations", "1"}); code != 1 {
+		t.Fatalf("run(--policy-file without embedded parties, no input files) = %d, want 1", code)
+	}
+}
+
+func writePolicyFixture(t *testing.T, path string, policy savedPolicy) {
+	t.Helper()
+	data, err := json.Marshal(policy)
+	if err != nil {
+		t.Fatalf("marshal policy fixture: %v", err)
+	}
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatalf("write policy fixture: %v", err)
 	}
 }
 
@@ -100,7 +154,7 @@ func TestRunRejectsInvalidPolicyFileFormat(t *testing.T) {
 		t.Fatalf("write bad policy file: %v", err)
 	}
 
-	code := run([]string{"--policy-file", badPolicy, "data/player.txt", "data/rnb_trainer_1.txt"})
+	code := run([]string{"--policy-file", badPolicy, "--iterations", "1"})
 	if code != 1 {
 		t.Fatalf("expected exit code 1 for invalid policy file, got %d", code)
 	}

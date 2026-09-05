@@ -159,13 +159,15 @@ type stateActionEntry struct {
 }
 
 type savedPolicy struct {
-	PlayerParty   []string                      `json:"player_party"`
-	OpponentParty []string                      `json:"opponent_party"`
-	Policy        map[string][]string           `json:"policy"`
-	Scores        map[string]map[string]float64 `json:"scores"`
-	Counts        map[string]map[string]int     `json:"counts"`
-	Version       int                           `json:"version"`
-	Metadata      map[string]string             `json:"metadata,omitempty"`
+	PlayerParty       []string                      `json:"player_party"`
+	OpponentParty     []string                      `json:"opponent_party"`
+	PlayerPartyFile   string                        `json:"player_party_file,omitempty"`
+	OpponentPartyFile string                        `json:"opponent_party_file,omitempty"`
+	Policy            map[string][]string           `json:"policy"`
+	Scores            map[string]map[string]float64 `json:"scores"`
+	Counts            map[string]map[string]int     `json:"counts"`
+	Version           int                           `json:"version"`
+	Metadata          map[string]string             `json:"metadata,omitempty"`
 }
 
 func newLearningAi() *learningAi {
@@ -215,14 +217,24 @@ func savePolicyToDisk(la *learningAi, playerInput, opponentInput string, playerP
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
+	playerPartyFile, err := os.ReadFile(playerInput)
+	if err != nil {
+		return fmt.Errorf("failed reading player input '%s': %w", playerInput, err)
+	}
+	opponentPartyFile, err := os.ReadFile(opponentInput)
+	if err != nil {
+		return fmt.Errorf("failed reading opponent input '%s': %w", opponentInput, err)
+	}
 	policy := &savedPolicy{
-		PlayerParty:   partyNames(playerParty),
-		OpponentParty: partyNames(opponentParty),
-		Policy:        cloneActionMap(la.policy),
-		Scores:        cloneScoreMap(la.scores),
-		Counts:        cloneCountMap(la.counts),
-		Version:       1,
-		Metadata:      map[string]string{"player_input": playerInput, "opponent_input": opponentInput},
+		PlayerParty:       partyNames(playerParty),
+		OpponentParty:     partyNames(opponentParty),
+		PlayerPartyFile:   string(playerPartyFile),
+		OpponentPartyFile: string(opponentPartyFile),
+		Policy:            cloneActionMap(la.policy),
+		Scores:            cloneScoreMap(la.scores),
+		Counts:            cloneCountMap(la.counts),
+		Version:           1,
+		Metadata:          map[string]string{"player_input": playerInput, "opponent_input": opponentInput},
 	}
 	data, err := json.MarshalIndent(policy, "", "  ")
 	if err != nil {

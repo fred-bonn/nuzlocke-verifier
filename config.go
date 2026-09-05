@@ -37,6 +37,25 @@ func (cfg *config) validateInput(trainerPath string) ([]*pokemon, error) {
 	return trainerParty, nil
 }
 
+// validateInputContent parses Showdown-style party text embedded directly in a saved policy,
+// rather than reading it from a file on disk.
+func (cfg *config) validateInputContent(content string) ([]*pokemon, error) {
+	trainerPokemon, err := parser.ParseShowdown(content)
+	if err != nil {
+		return nil, fmt.Errorf("failed parsing showdown content: %w", err)
+	}
+	if len(trainerPokemon) == 0 {
+		return nil, fmt.Errorf("no pokemon parsed from showdown content")
+	}
+
+	trainerParty, err := cfg.loadShowdown(trainerPokemon)
+	if err != nil {
+		return nil, fmt.Errorf("failed loading showdown content: %w", err)
+	}
+
+	return trainerParty, nil
+}
+
 func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*pokemon, error) {
 	var res []*pokemon
 

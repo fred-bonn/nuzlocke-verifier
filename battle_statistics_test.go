@@ -260,6 +260,13 @@ func TestPolicySaveIsDeterministicForSameInput(t *testing.T) {
 	la.scores["state"] = map[string]float64{"move:Bubble Beam": 42.5, "switch:Ponyta": -12.25}
 	la.counts["state"] = map[string]int{"move:Bubble Beam": 9, "switch:Ponyta": 3}
 
+	if err := os.WriteFile("player.txt", []byte("Horsea\n"), 0o644); err != nil {
+		t.Fatalf("write player input fixture: %v", err)
+	}
+	if err := os.WriteFile("rnb_trainer_1.txt", []byte("Dwebble\n"), 0o644); err != nil {
+		t.Fatalf("write opponent input fixture: %v", err)
+	}
+
 	firstPath := filepath.Join("policies", "player__vs__rnb_trainer_1.json")
 	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
 		t.Fatalf("first save policy failed: %v", err)
@@ -298,6 +305,13 @@ func TestPolicySaveLoadSmokeTest(t *testing.T) {
 	la.policy["state"] = []string{"move:Bubble Beam"}
 	la.scores["state"] = map[string]float64{"move:Bubble Beam": 128.75}
 	la.counts["state"] = map[string]int{"move:Bubble Beam": 11}
+
+	if err := os.WriteFile("player.txt", []byte("Horsea\n"), 0o644); err != nil {
+		t.Fatalf("write player input fixture: %v", err)
+	}
+	if err := os.WriteFile("rnb_trainer_1.txt", []byte("Dwebble\n"), 0o644); err != nil {
+		t.Fatalf("write opponent input fixture: %v", err)
+	}
 
 	if err := savePolicyToDisk(la, "player.txt", "rnb_trainer_1.txt", playerParty, opponentParty); err != nil {
 		t.Fatalf("save policy failed: %v", err)
@@ -347,7 +361,7 @@ func TestPolicyCliEndToEndSmoke(t *testing.T) {
 		t.Fatalf("reading saved policy before reload failed: %v", err)
 	}
 
-	cmdLoad := exec.Command("go", "run", ".", "--policy-file", policyPath, "data/player.txt", "data/rnb_trainer_1.txt", "--iterations", "1")
+	cmdLoad := exec.Command("go", "run", ".", "--policy-file", policyPath, "--iterations", "1")
 	cmdLoad.Dir = cwd
 	output, err = cmdLoad.CombinedOutput()
 	if err != nil {
@@ -363,6 +377,12 @@ func TestPolicyCliEndToEndSmoke(t *testing.T) {
 	}
 	if !bytes.Equal(beforeReload, afterReload) {
 		t.Fatalf("policy should remain identical before and after reload for the same input pair\nbefore=%s\nafter=%s", beforeReload, afterReload)
+	}
+
+	cmdLoadWithExtraArgs := exec.Command("go", "run", ".", "--policy-file", policyPath, "data/player.txt", "data/rnb_trainer_1.txt", "--iterations", "1")
+	cmdLoadWithExtraArgs.Dir = cwd
+	if output, err = cmdLoadWithExtraArgs.CombinedOutput(); err == nil {
+		t.Fatalf("expected an error when passing party files alongside --policy-file:\n%s", output)
 	}
 }
 
