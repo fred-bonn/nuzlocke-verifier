@@ -4,34 +4,13 @@ This project simulates Pokémon battles, learns a per-state action policy for th
 
 ## What has been added
 
-### Battle simulation
-
-- a single-battle engine ([battle_state_single.go](battle_state_single.go)) with a shared `battleState` interface ([battle_state_interface.go](battle_state_interface.go)) and a deep-cloning/reset path ([battle_state_cloning.go](battle_state_cloning.go)) for repeated iterations
-- a priority-based action queue ([action_queue.go](action_queue.go)) with benchmarked comparisons against an older heap-based implementation ([action_queue_old.go](action_queue_old.go))
-- move resolution, including damage calculation, accuracy/evasion, critical hits, and STAB/type effectiveness ([action_move.go](action_move.go), [action_move_helper.go](action_move_helper.go), [action_move_score_calculation.go](action_move_score_calculation.go))
-- switch and move-replacement actions ([action_switch.go](action_switch.go), [action_replace.go](action_replace.go))
-- full type chart effectiveness lookups ([lookup_types.go](lookup_types.go))
-- weather (rain, sun, sandstorm, hail) with type immunities and per-turn effects ([lookup_weather.go](lookup_weather.go))
-- field effects such as entry hazards ([lookup_field_effect.go](lookup_field_effect.go))
-- non-volatile and volatile status ailments (burn, paralysis, poison/toxic, freeze, sleep, confusion, infatuation, trap, bound, leech seed, yawn) with ability/type-based immunities ([struct_ailment.go](struct_ailment.go))
-- roughly 90 abilities affecting weather, stats, damage, and status interactions ([lookup_abilities.go](lookup_abilities.go))
-- held items, including status-curing and stat-boosting berries, gems, choice items, and Leftovers ([struct_item.go](struct_item.go))
-- Pokémon stat/stage calculations, HP tracking, and stat-changing effects ([struct_pokemon.go](struct_pokemon.go), [struct_pokemon_base.go](struct_pokemon_base.go), [struct_slot.go](struct_slot.go))
-- base stat/EV/IV/nature balancing helpers used when constructing parties ([lookup_balancing.go](lookup_balancing.go), [lookup_stats.go](lookup_stats.go))
-- per-battle and cross-run outcome statistics, including a safety-first scoring model ([battle_statistics.go](battle_statistics.go))
-
 ### AI opponents
 
-- `rnbAi` ("risk and back off"), a heuristic AI that switches out of unsafe matchups ([struct_ai_rnb.go](struct_ai_rnb.go))
+- `rnbAi` ("Run & Bun"), an AI based on the Run & Run romhack ([struct_ai_rnb.go](struct_ai_rnb.go))
 - `randomAi`, a baseline random action chooser ([struct_ai_random.go](struct_ai_random.go))
-- `guidedAi`, an interactive AI that prompts a human for each action over stdin/stdout ([struct_ai_guided.go](struct_ai_guided.go))
-- `learningAi`, reinforcement learning for the player trainer using discretized battle states ([struct_ai_learning.go](struct_ai_learning.go)), including:
-  - safety-first reward scoring that penalizes losing and prioritizes survival
-  - full-party survival rewards so the policy learns to keep the whole party alive
-  - a negative penalty when the active opponent move has a non-zero crit chance to kill the player Pokémon
-  - per-state action counts and decay so the policy keeps improving across many battle iterations
-  - saturation detection to stop training once the policy stabilizes
-- a static policy executor used when loading a saved policy with `--policy-file`, plus compatibility checking to reject policies that don't match the loaded party composition
+- `guidedAi`, an interactive AI that prompts the user ([struct_ai_guided.go](struct_ai_guided.go))
+- `learningAi`, reinforcement learning for the player trainer using discretized battle states ([struct_ai_learning.go](struct_ai_learning.go))
+- a static policy executor used when loading a saved policy
 
 ### Data and persistence
 
@@ -39,15 +18,6 @@ This project simulates Pokémon battles, learns a per-state action policy for th
 - a PokeAPI client for fetching Pokémon and move data, with local JSON caching under [data/pokemon](data/pokemon) and [data/moves](data/moves) ([internal/pokeapi](internal/pokeapi/client.go))
 - persisted policy storage under a `policies/` directory
 - command-line support for training, saving, and reusing learned policies
-
-## What might be missing
-
-- ability and item coverage is broad but not exhaustive; several common competitive abilities/items (e.g. Multiscale, Protean, priority-negating abilities) aren't implemented yet
-- no support for double battles, only single 1v1 slots per side
-- no support for held-item recovery (e.g. Recycle) or move-based item removal (Knock Off's item-destroying side effect is untested beyond ailment application)
-- the guided AI only supports move selection prompts, not interactive switching
-- no persistence/versioning migration path if the saved policy JSON schema changes
-- test coverage for the battle statistics reward shaping is present but largely integration-style; see [battle_statistics_test.go](battle_statistics_test.go)
 
 ## CLI usage
 
@@ -93,12 +63,6 @@ The policy file is named using the input filenames:
 policies/<player_name>__vs__<opponent_name>.json
 ```
 
-For example, the default battle pair produces:
-
-```text
-policies/player__vs__rnb_trainer_1.json
-```
-
 ## Saved policy format
 
 Policies are stored as JSON and live under the `policies/` directory. The files include:
@@ -112,7 +76,7 @@ Policies are stored as JSON and live under the `policies/` directory. The files 
 - `version`: policy version
 - `metadata`: source input file names
 
-`player_party`/`opponent_party` hold the raw, unparsed Showdown text (items, IVs, moves, everything), so a saved policy is self-contained: `--policy-file` runs that text back through the same lexer/parser used for `<player_showdown>` files, and never needs the original `data/player.txt` / `data/rnb_trainer_1.txt` files on disk.
+`player_party`/`opponent_party` hold the raw, unparsed Showdown text (items, IVs, moves, everything), so a saved policy is self-contained: `--policy-file`/`-f` runs that text back through the same lexer/parser used for `<player_showdown>` files.
 
 Example shape:
 
@@ -141,8 +105,6 @@ Example shape:
 }
 ```
 
-Compatibility is checked before a policy is used: `player_party`/`opponent_party` are parsed and must name the same Pokémon, in the same order, as what gets loaded. If the saved policy is missing embedded party text, or it no longer matches, the program exits with an error instead of running with invalid state.
-
 ## Input party format
 
 The parser accepts Showdown-style party files, like the examples in [data/player.txt](data/player.txt) and [data/rnb_trainer_1.txt](data/rnb_trainer_1.txt).
@@ -154,8 +116,8 @@ Pokemon Name @ Item
 Level: N
 Nature Nature
 Ability: Ability
-Status: Status   (optional)
-HP: N            (optional)
+Status: Status
+HP: N
 IVs: 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Move 1
 - Move 2
@@ -176,18 +138,18 @@ Ability: Swift Swim
 
 ### Notes
 
-- each Pokémon starts with a name line
-- `@ Item` is optional but common
+- `@ Item` is optional
 - `Level`, `Nature`, and `Ability` are required
-- status, HP, and IVs are optional sections
+- status, HP, and IVs are optional sections:
+  - status allows the set a non-volatile ailment, default to none
+  - HP allows to set the starting HP for the, default to max HP
+  - IVs allows for individually setting each IV, default to 31 in all stats
 - moves are listed as `- Move Name`
 - the parser normalizes names, strips punctuation, and reads the move list into the battle state
 
-The actual parser logic lives in [internal/parser/parser.go](internal/parser/parser.go) and [internal/parser/lexer.go](internal/parser/lexer.go). The project validates the file structure before constructing the Pokémon party.
-
 ## Behavior of loaded policies
 
-When a policy is loaded via `--policy-file`, it is used as a static policy, not as a live learning AI. That means:
+When a policy is loaded via `--policy-file`/`-f`, it is used as a static policy, not as a live learning AI. That means:
 
 - it does not accumulate new battle outcomes during evaluation
 - it does not decay or reset the learned scores while the battle runs
@@ -196,22 +158,8 @@ When a policy is loaded via `--policy-file`, it is used as a static policy, not 
 
 This is specifically important when comparing a single-battle loaded run to a long training run. A single loaded battle with a saved policy is expected to behave consistently, while the training AI continues to improve over many iterations.
 
-## Building and testing
+## TODO
 
-The [Makefile](Makefile) wraps the common developer commands:
-
-```bash
-make test        # go test ./...
-make build        # runs tests, then builds ./bin/myprog
-make run          # build, then run the default player vs. rnb_trainer_1 battle verbosely
-make brief        # same, without verbose output
-make rain         # build, then run under forced rain weather (also: sun, sandstorm, hail)
-make 250          # build, then run 250 iterations (any positive integer works as a goal)
-```
-
-## Notes
-
-- saved policies are stored under the `policies/` directory, which is ignored by Git via [.gitignore](.gitignore)
-- safety-first training and crit-risk penalties are enforced in the learning logic in [struct_ai_learning.go](struct_ai_learning.go)
-- the combat reward model is summarized in [battle_statistics.go](battle_statistics.go)
-
+- more exhaustive coverage of abilities and items; several common competitive abilities/items are missing (e.g. Multiscale, Protean, priority-negating abilities)
+- support for double battles; only single 1v1 slots per side
+- more exhaustive coverage of field effects and interactive moves; screens and abilities that breaks them (e.g. Brick Break), Defog
