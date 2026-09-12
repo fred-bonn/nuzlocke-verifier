@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/fred-bonn/nuz/internal/engine"
+	"github.com/fred-bonn/nuz/nuzengine"
 	"github.com/spf13/pflag"
 )
 
@@ -54,7 +54,7 @@ func run(args []string) int {
 		*iterations = defaultLearningIterations
 	}
 	if *verbose {
-		engine.Verbose = true
+		nuzengine.Verbose = true
 	}
 
 	parsedArgs := fs.Args()
@@ -85,7 +85,7 @@ func run(args []string) int {
 		opponentParty = string(opponentPartyData)
 	}
 
-	battleState, err := engine.InitBattleState(0, playerParty, opponentParty, *inputAi, *weather, *policyFile)
+	battleState, err := nuzengine.InitBattleState(0, playerParty, opponentParty, *inputAi, *weather, *policyFile)
 	if err != nil {
 		log.Printf("error: failed initializing battle state: %s", err)
 		return 1

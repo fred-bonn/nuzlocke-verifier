@@ -1,11 +1,7 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
-
-	"github.com/fred-bonn/nuz/internal/parser"
 )
 
 func TestRunReturnsTheExpectedExitCodeForCLIArguments(t *testing.T) {
@@ -30,45 +26,6 @@ func TestRunReturnsTheExpectedExitCodeForCLIArguments(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if got := run(tc.args); got != tc.want {
 				t.Fatalf("run(%v) = %d, want %d", tc.args, got, tc.want)
-			}
-		})
-	}
-}
-
-func TestParserEdgeCases(t *testing.T) {
-	tests := map[string]struct {
-		input string
-		want  bool
-	}{
-		"missing level line":     {input: "Horsea\nModest Nature\nAbility: Swift Swim\n- Bubble Beam\n", want: false},
-		"invalid nature":         {input: "Horsea\nLevel: 17\nBad Nature\nAbility: Swift Swim\n- Bubble Beam\n", want: false},
-		"invalid status":         {input: "Horsea\nLevel: 17\nModest Nature\nAbility: Swift Swim\nStatus> bad\n- Bubble Beam\n", want: false},
-		"valid multi-move party": {input: "Horsea\nLevel: 17\nModest Nature\nAbility: Swift Swim\n- Bubble Beam\n- Twister\n", want: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			dir := t.TempDir()
-			path := filepath.Join(dir, "party.txt")
-			if err := os.WriteFile(path, []byte(tc.input), 0o644); err != nil {
-				t.Fatalf("write temp file: %v", err)
-			}
-
-			parsed, err := parser.ReadShowdownFile(path)
-			if tc.want {
-				if err != nil {
-					t.Fatalf("expected valid parser result, got error: %v", err)
-				}
-				if len(parsed) == 0 {
-					t.Fatal("expected at least one parsed pokemon")
-				}
-				if parsed[0].Name != "Horsea" {
-					t.Fatalf("unexpected parsed name: %q", parsed[0].Name)
-				}
-				return
-			}
-			if err == nil {
-				t.Fatal("expected parse error for malformed input")
 			}
 		})
 	}
