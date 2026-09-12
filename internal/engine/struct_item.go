@@ -177,7 +177,7 @@ var itemStateMap = map[string]itemState{
 	"focus sash":     focusSash,
 }
 
-func StringToItemState(s string) itemState {
+func stringToItemState(s string) itemState {
 	if state, ok := itemStateMap[s]; ok {
 		return state
 	}
@@ -382,7 +382,7 @@ func (i item) String() string {
 	return i.State.String()
 }
 
-func (p *Pokemon) CheckItemTrigger(consume bool, event any) {
+func (p *Pokemon) checkItemTrigger(consume bool, event any) {
 	if p.Item == nil {
 		if p.Base.Name != "" {
 			elogf("warning: p.checkItemTrigger: item is nil for %s", p.Base.Name)
@@ -402,9 +402,9 @@ func (p *Pokemon) CheckItemTrigger(consume bool, event any) {
 	}
 }
 
-type ItemFactoryBuilder func(*Pokemon) *item
+type itemFactoryBuilder func(*Pokemon) *item
 
-var itemBuilders = map[itemState]ItemFactoryBuilder{
+var itemBuilders = map[itemState]itemFactoryBuilder{
 	berryJuice:    makeBerryJuice,
 	oranBerry:     makeOranBerry,
 	sitrusBerry:   makeSitrusBerry,
@@ -491,13 +491,13 @@ var itemBuilders = map[itemState]ItemFactoryBuilder{
 	focusSash:     makeFocusSash,
 }
 
-func createItemFactory(builder ItemFactoryBuilder, mon *Pokemon) func() *item {
+func createItemFactory(builder itemFactoryBuilder, mon *Pokemon) func() *item {
 	return func() *item {
 		return builder(mon)
 	}
 }
 
-func RegisterItem(is itemState, mon *Pokemon) (*item, error) {
+func registerItem(is itemState, mon *Pokemon) (*item, error) {
 	if is == noneItem {
 		return &item{
 			Consumed: true,

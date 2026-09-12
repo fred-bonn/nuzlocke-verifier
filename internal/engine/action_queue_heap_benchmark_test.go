@@ -23,7 +23,7 @@ func BenchmarkActionQueueHeapInit(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		q := newEmptyActionQueueHeap()
 		heap.Init(q)
 		for _, a := range actions {
@@ -47,7 +47,7 @@ func BenchmarkActionQueueHeapDrain(b *testing.B) {
 
 	b.ReportAllocs()
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		// Push actions to the heap
 		for _, a := range actions {
 			heap.Push(q, a)

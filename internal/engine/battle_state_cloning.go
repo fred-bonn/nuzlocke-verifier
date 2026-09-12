@@ -59,7 +59,7 @@ func ClonePokemon(p *Pokemon) *Pokemon {
 	}
 
 	if p.Item != nil {
-		copyP.Item, _ = RegisterItem(p.Item.State, &copyP)
+		copyP.Item, _ = registerItem(p.Item.State, &copyP)
 		copyP.Item.Consumed = p.Item.Consumed
 	}
 

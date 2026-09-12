@@ -35,7 +35,7 @@ func TestBerryItemsCureAilments(t *testing.T) {
 				unnerved: tc.unnerved,
 				Ailments: make(map[ailmentState]*ailment),
 			}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
 			if got := mon.applyAilment(tc.ailment, nil, nil); got != true {
@@ -79,9 +79,9 @@ func TestBerryItemsHeal(t *testing.T) {
 				unnerved: tc.unnerved,
 			}
 			mon.Stats[hitPoints] = tc.maxHp
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
-			mon.CheckItemTrigger(true, nil)
+			mon.checkItemTrigger(true, nil)
 
 			if got := mon.HP; got != tc.wantHp {
 				t.Errorf("mon.hp = %d, want %d", got, tc.wantHp)
@@ -114,11 +114,11 @@ func TestLeppaBerryRestoresPP(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			mon := Pokemon{unnerved: tc.unnerved}
-			item, _ := RegisterItem(leppaBerry, &mon)
+			item, _ := registerItem(leppaBerry, &mon)
 			mon.Item = item
 
 			move := Move{PP: tc.initialPP, MaxPP: tc.maxPP}
-			mon.CheckItemTrigger(true, makeLeppaBerryEvent(&move))
+			mon.checkItemTrigger(true, makeLeppaBerryEvent(&move))
 
 			if got := move.PP; got != tc.wantPP {
 				t.Errorf("move.PP = %d, want %d", got, tc.wantPP)
@@ -238,7 +238,7 @@ func TestPinchHealBerries(t *testing.T) {
 				HP:       tc.initialHp,
 				unnerved: tc.unnerved,
 			}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 			nat, _ := getNature(tc.nature)
 			mon.nat = nat
@@ -247,7 +247,7 @@ func TestPinchHealBerries(t *testing.T) {
 				mon.Ability = GluttonyAbility
 			}
 
-			mon.CheckItemTrigger(true, nil)
+			mon.checkItemTrigger(true, nil)
 			if got := mon.HP; got != tc.wantHp {
 				t.Errorf("mon.hp = %d, want %d", got, tc.wantHp)
 			}
@@ -305,10 +305,10 @@ func TestStatBoostBerries(t *testing.T) {
 				mon.Ability = GluttonyAbility
 			}
 
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
-			mon.CheckItemTrigger(true, nil)
+			mon.checkItemTrigger(true, nil)
 			if got := mon.Stages[tc.stat]; got != tc.wantStage {
 				t.Errorf("mon.stages[%s] = %d, want %d", tc.stat, got, tc.wantStage)
 			}
@@ -347,14 +347,14 @@ func TestResistBerries(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			mon := Pokemon{unnerved: tc.unnerved}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
 			damage := tc.initialDamage
 			if tc.event {
-				mon.CheckItemTrigger(true, makeResistBerryEvent(tc.Pokemon, &damage))
+				mon.checkItemTrigger(true, makeResistBerryEvent(tc.Pokemon, &damage))
 			} else {
-				mon.CheckItemTrigger(true, nil)
+				mon.checkItemTrigger(true, nil)
 			}
 
 			if got := damage; got != tc.wantDamage {
@@ -389,14 +389,14 @@ func TestTypeGems(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			mon := Pokemon{}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
 			power := tc.initialPower
 			if tc.event {
-				mon.CheckItemTrigger(true, makeGemEvent(tc.move, &power))
+				mon.checkItemTrigger(true, makeGemEvent(tc.move, &power))
 			} else {
-				mon.CheckItemTrigger(true, nil)
+				mon.checkItemTrigger(true, nil)
 			}
 
 			if got := power; got != tc.wantPower {
@@ -431,7 +431,7 @@ func TestChoiceScarf(t *testing.T) {
 				Stages: []int{0, 0, 0, 0, 0, 0, 0, 0},
 			}
 			mon.Stats[Speed] = tc.speed
-			item, _ := RegisterItem(choiceScarf, &mon)
+			item, _ := registerItem(choiceScarf, &mon)
 			mon.Item = item
 			bs := initBenchBattleState(NoneWeather)
 
@@ -465,7 +465,7 @@ func TestAssaultVest(t *testing.T) {
 				Stages: []int{0, 0, 0, 0, 0, 0, 0, 0},
 			}
 			mon.Stats[specialDefense] = tc.spdef
-			item, _ := RegisterItem(assaultVest, &mon)
+			item, _ := registerItem(assaultVest, &mon)
 			mon.Item = item
 
 			if got := mon.effectiveStat(specialDefense, tc.crit); got != tc.want {
@@ -502,14 +502,14 @@ func TestChoiceBand(t *testing.T) {
 			move := Move{
 				Class: tc.class,
 			}
-			item, _ := RegisterItem(choiceBand, &mon)
+			item, _ := registerItem(choiceBand, &mon)
 			mon.Item = item
 
 			newAttack := tc.initialAttack
 			if tc.event {
-				mon.CheckItemTrigger(false, makeChoiceItemEvent(&move, noStat, &newAttack))
+				mon.checkItemTrigger(false, makeChoiceItemEvent(&move, noStat, &newAttack))
 			} else {
-				mon.CheckItemTrigger(false, nil)
+				mon.checkItemTrigger(false, nil)
 			}
 
 			if got := newAttack; got != tc.want {
@@ -546,14 +546,14 @@ func TestChoiceSpecs(t *testing.T) {
 			move := Move{
 				Class: tc.class,
 			}
-			item, _ := RegisterItem(choiceSpecs, &mon)
+			item, _ := registerItem(choiceSpecs, &mon)
 			mon.Item = item
 
 			newSpecialAttack := tc.initialSpecialAttack
 			if tc.event {
-				mon.CheckItemTrigger(false, makeChoiceItemEvent(&move, noStat, &newSpecialAttack))
+				mon.checkItemTrigger(false, makeChoiceItemEvent(&move, noStat, &newSpecialAttack))
 			} else {
-				mon.CheckItemTrigger(false, nil)
+				mon.checkItemTrigger(false, nil)
 			}
 
 			if got := newSpecialAttack; got != tc.want {
@@ -589,14 +589,14 @@ func TestFocusSash(t *testing.T) {
 				HP:    tc.initialHp,
 			}
 			mon.Stats[hitPoints] = tc.maxHp
-			item, _ := RegisterItem(focusSash, &mon)
+			item, _ := registerItem(focusSash, &mon)
 			mon.Item = item
 
 			damage := tc.initialDamage
 			if tc.event {
-				mon.CheckItemTrigger(true, makeFocusSashEvent(&damage))
+				mon.checkItemTrigger(true, makeFocusSashEvent(&damage))
 			} else {
-				mon.CheckItemTrigger(true, nil)
+				mon.checkItemTrigger(true, nil)
 			}
 
 			if got := damage; got != tc.want {
@@ -633,14 +633,14 @@ func TestTypeBoostingItem(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			mon := Pokemon{}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
 			power := tc.initialPower
 			if tc.event {
-				mon.CheckItemTrigger(false, makeMoveBoostingEvent(tc.move, &power))
+				mon.checkItemTrigger(false, makeMoveBoostingEvent(tc.move, &power))
 			} else {
-				mon.CheckItemTrigger(false, nil)
+				mon.checkItemTrigger(false, nil)
 			}
 
 			if got := power; got != tc.want {

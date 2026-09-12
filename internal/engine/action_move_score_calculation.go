@@ -17,7 +17,7 @@ func (ma *moveAction) scoreActionMove(bs BattleState) (int, bool) {
 		damageRoll += calculateDamage(ma.userSlot.mon, ma.targetSlot.mon, ma.move, new(critRate >= 3), bs.getWeather(), false, true, false)
 	}
 
-	ma.targetSlot.mon.CheckItemTrigger(false, makeFocusSashEvent(&damageRoll))
+	ma.targetSlot.mon.checkItemTrigger(false, makeFocusSashEvent(&damageRoll))
 	if ma.targetSlot.mon.Ability == sturdyAbility && ma.targetSlot.mon.HP == ma.targetSlot.mon.MaxHP() {
 		damageRoll = min(damageRoll, ma.targetSlot.mon.HP-1)
 	}

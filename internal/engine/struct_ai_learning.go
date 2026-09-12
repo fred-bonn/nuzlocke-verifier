@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/fred-bonn/nuz/internal/parser"
 )
 
 const (
@@ -102,7 +100,7 @@ func moveCanKill(bs BattleState, user, target *Pokemon, move *Move) bool {
 	for i := 0; i < rolls; i++ {
 		damage += calculateDamage(user, target, move, new(critRate >= 3), bs.getWeather(), true, true, false)
 	}
-	target.CheckItemTrigger(false, makeFocusSashEvent(&damage))
+	target.checkItemTrigger(false, makeFocusSashEvent(&damage))
 	if target.Ability == sturdyAbility && target.HP == target.MaxHP() {
 		damage = min(damage, target.HP-1)
 	}
@@ -134,7 +132,7 @@ func moveCanCritKill(bs BattleState, user, target *Pokemon, move *Move) bool {
 	if critMult > 1 {
 		damage *= critMult
 	}
-	target.CheckItemTrigger(false, makeFocusSashEvent(&damage))
+	target.checkItemTrigger(false, makeFocusSashEvent(&damage))
 	if target.Ability == sturdyAbility && target.HP == target.MaxHP() {
 		damage = min(damage, target.HP-1)
 	}
@@ -492,40 +490,6 @@ func (spa *staticPolicyAi) scoreFor(stateKey, actionKey string) float64 {
 		}
 	}
 	return -1e18
-}
-
-func ValidatePolicyCompatibility(policy *SavedPolicy, playerParty, opponentParty []*Pokemon) error {
-	if policy == nil {
-		return fmt.Errorf("policy is nil")
-	}
-	if policy.PlayerParty == "" || policy.OpponentParty == "" {
-		return fmt.Errorf("policy is missing embedded player/opponent party files")
-	}
-	if err := validatePartyMatchesShowdown(policy.PlayerParty, playerParty); err != nil {
-		return fmt.Errorf("player party: %w", err)
-	}
-	if err := validatePartyMatchesShowdown(policy.OpponentParty, opponentParty); err != nil {
-		return fmt.Errorf("opponent party: %w", err)
-	}
-	return nil
-}
-
-// validatePartyMatchesShowdown parses raw Showdown party text and checks that it names
-// the same Pok\u00e9mon, in the same order, as the already-loaded party.
-func validatePartyMatchesShowdown(content string, party []*Pokemon) error {
-	parsed, err := parser.ParseShowdown(content)
-	if err != nil {
-		return fmt.Errorf("failed parsing embedded party: %w", err)
-	}
-	if len(parsed) != len(party) {
-		return fmt.Errorf("expected %d Pokemon, got %d", len(parsed), len(party))
-	}
-	for i, mon := range parsed {
-		if party[i] == nil || CleanName(mon.Name) != party[i].Base.Name {
-			return fmt.Errorf("Pokemon at position %d does not match: policy=%q loaded=%q", i, mon.Name, party[i].Base.Name)
-		}
-	}
-	return nil
 }
 
 func (la *LearningAI) ensureState(stateKey string) {

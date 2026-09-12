@@ -287,7 +287,7 @@ func calculateMaxDamage(bs BattleState, user, target *Pokemon, checkChoice bool)
 			dmg += calculateDamage(user, target, move, new(critRate >= 3), bs.getWeather(), true, true, false)
 		}
 
-		target.CheckItemTrigger(false, makeFocusSashEvent(&dmg))
+		target.checkItemTrigger(false, makeFocusSashEvent(&dmg))
 		if target.Ability == sturdyAbility && target.HP == target.MaxHP() {
 			dmg = min(dmg, target.HP-1)
 		}

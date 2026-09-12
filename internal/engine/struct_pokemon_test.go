@@ -103,7 +103,7 @@ func TestEffectiveSpeedAppliesSpeedModifiersCorrectly(t *testing.T) {
 			}
 			mon.Stats[Speed] = tc.base
 			mon.Stages[Speed] = tc.stage
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 			bbs := initBenchBattleState(tc.weather)
 			if tc.paralyzed {
@@ -333,7 +333,7 @@ func TestApplyAilmentAppliesAilmentsWhenAllowed(t *testing.T) {
 				Ability:  tc.ability,
 				Ailments: make(map[ailmentState]*ailment),
 			}
-			item, _ := RegisterItem(noneItem, &mon)
+			item, _ := registerItem(noneItem, &mon)
 			mon.Item = item
 
 			got := mon.applyAilment(tc.ailment, nil, nil)
@@ -431,7 +431,7 @@ func TestIsGroundedAccountsForTypeAbilitiesAndItems(t *testing.T) {
 				},
 				Ability: tc.ability,
 			}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
 			if got := mon.isGrounded(); got != tc.want {
@@ -521,7 +521,7 @@ func TestApplyMoveTypeCalculatesTheCorrectDamageMultiplier(t *testing.T) {
 				},
 				Ability: tc.ability,
 			}
-			item, _ := RegisterItem(tc.item, &mon)
+			item, _ := registerItem(tc.item, &mon)
 			mon.Item = item
 
 			if num, dem := mon.applyMoveType(tc.input.num, tc.input.dem, tc.moveType); num != tc.want.num || dem != tc.want.dem {

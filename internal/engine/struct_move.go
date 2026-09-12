@@ -90,7 +90,7 @@ func ToMove(mj pokeapi.MoveJSON) (Move, error) {
 		return Move{}, fmt.Errorf("%s is not a valid type for %s", mj.Type.Name, mj.Name)
 	}
 
-	ailment := StringToAilmentState(mj.Meta.Ailment.Name)
+	ailment := stringToAilmentState(mj.Meta.Ailment.Name)
 	if mj.Meta.Ailment.Name != "" && mj.Meta.Ailment.Name != "none" && ailment == noneAilment {
 		return Move{}, fmt.Errorf("%s is not a valid ailment for %s", mj.Meta.Ailment.Name, mj.Name)
 	}

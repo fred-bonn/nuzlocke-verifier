@@ -172,7 +172,7 @@ func (ma *moveAction) invoke(bs BattleState) {
 		return
 	}
 
-	ma.userSlot.mon.CheckItemTrigger(true, makeLeppaBerryEvent(ma.move))
+	ma.userSlot.mon.checkItemTrigger(true, makeLeppaBerryEvent(ma.move))
 
 	if ma.move.Type == FireType {
 		delete(ma.targetSlot.mon.Ailments, freezeAilment)
@@ -270,12 +270,12 @@ func (ma *moveAction) resolveDamage(bs BattleState) bool {
 		return false
 	}
 
-	target.CheckItemTrigger(true, makeResistBerryEvent(ma.move.Type, nil))
-	target.CheckItemTrigger(true, makeFocusSashEvent(&damage))
+	target.checkItemTrigger(true, makeResistBerryEvent(ma.move.Type, nil))
+	target.checkItemTrigger(true, makeFocusSashEvent(&damage))
 	if target.Ability == sturdyAbility && target.HP == target.MaxHP() {
 		damage = min(damage, target.HP-1)
 	}
-	user.CheckItemTrigger(true, makeGemEvent(ma.move.Type, nil))
+	user.checkItemTrigger(true, makeGemEvent(ma.move.Type, nil))
 
 	damage = min(damage, target.HP)
 	vprintf("%s took %d damage", target.Base.Name, int(damage))
@@ -284,9 +284,9 @@ func (ma *moveAction) resolveDamage(bs BattleState) bool {
 	}
 	if ma.move.Name == "bug bite" && target.Item.State.isBerry() && !target.Item.Consumed {
 		vprintf("%s's %s was consumed by bug bite", target.Base.Name, target.Item.String())
-		item, _ := RegisterItem(target.Item.State, user)
+		item, _ := registerItem(target.Item.State, user)
 		item.activate()
-		target.Item, _ = RegisterItem(noneItem, target)
+		target.Item, _ = registerItem(noneItem, target)
 
 	} else if ma.move.Name == "wake up slap" {
 		if a := target.hasAilment(sleepAilment); a != nil {

@@ -79,7 +79,7 @@ func TestStringToAilmentStateParsesKnownAilmentNames(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			if got := StringToAilmentState(tc.input); got != tc.want {
+			if got := stringToAilmentState(tc.input); got != tc.want {
 				t.Errorf("StringToAilmentState(%s) = %s, want %s", tc.input, got, tc.want)
 			}
 		})
@@ -146,7 +146,7 @@ func TestGenerateAilmentProducesAValidAilmentState(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			for i := 0; i < generateAilmentIterations; i++ {
-				if got := GenerateAilment(tc.state, nil); got.State != tc.want || got.Turns < tc.minTurns || got.Turns > tc.maxTurns {
+				if got := generateAilment(tc.state, nil); got.State != tc.want || got.Turns < tc.minTurns || got.Turns > tc.maxTurns {
 					t.Fatalf("generateAilment(%s, _) = {state: %s, turns: %d, _}, want {state: %s, turns: %d-%d, _}", tc.state, got.State, got.Turns, tc.want, tc.minTurns, tc.maxTurns)
 				}
 			}

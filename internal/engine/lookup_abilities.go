@@ -273,7 +273,7 @@ func (a abilityState) String() string {
 	}
 }
 
-func StringToAbility(s string) abilityState {
+func stringToAbility(s string) abilityState {
 	switch s {
 	case "insomnia":
 		return insomniaAbility
@@ -492,7 +492,7 @@ func unnerve(s *slot, bs BattleState, switchIn bool) {
 	for _, otherSlot := range bs.getOtherSlots(s) {
 		if s.Trainer != otherSlot.Trainer {
 			otherSlot.mon.unnerved = switchIn
-			otherSlot.mon.CheckItemTrigger(true, nil)
+			otherSlot.mon.checkItemTrigger(true, nil)
 		}
 	}
 }

@@ -3,6 +3,9 @@ package engine
 import (
 	"fmt"
 	"slices"
+	"strings"
+
+	"github.com/fred-bonn/nuz/internal/parser"
 )
 
 type Pokemon struct {
@@ -37,19 +40,19 @@ func getNature(nat string) (nature, error) {
 
 }
 
-func InitPokemon(base BasePokemon, level int, ivs map[string]int, nature string, moves []*Move, hp int, status ailmentState) (Pokemon, error) {
-	if level < 1 || level > 100 {
-		return Pokemon{}, fmt.Errorf("invalid level: %d", level)
+func InitPokemon(baseMon BasePokemon, moves []*Move, parsedMon parser.ParsedPokemon) (Pokemon, error) {
+	if parsedMon.Level < 1 || parsedMon.Level > 100 {
+		return Pokemon{}, fmt.Errorf("invalid level: %d", parsedMon.Level)
 	}
 
-	nat, err := getNature(nature)
+	nat, err := getNature(parsedMon.Nature)
 	if err != nil {
 		return Pokemon{}, err
 	}
 
 	res := Pokemon{
-		Base:     base,
-		level:    level,
+		Base:     baseMon,
+		level:    parsedMon.Level,
 		IVs:      []int{31, 31, 31, 31, 31, 31},
 		nat:      nat,
 		Moves:    moves,
@@ -60,7 +63,7 @@ func InitPokemon(base BasePokemon, level int, ivs map[string]int, nature string,
 		Ailments: make(map[ailmentState]*ailment),
 	}
 
-	err = setIVs(&res, ivs)
+	err = setIVs(&res, parsedMon.IVs)
 	if err != nil {
 		return Pokemon{}, err
 	}
@@ -70,14 +73,26 @@ func InitPokemon(base BasePokemon, level int, ivs map[string]int, nature string,
 		return Pokemon{}, err
 	}
 
-	if hp == -1 {
-		hp = res.MaxHP()
+	if parsedMon.HP == -1 {
+		parsedMon.HP = res.MaxHP()
 	}
 
-	res.HP = max(1, min(res.MaxHP(), hp))
+	res.HP = max(1, min(res.MaxHP(), parsedMon.HP))
 
+	status := stringToAilmentState(parsedMon.Status)
 	if status.isNonVolatileStatus() {
-		res.Ailments[status] = GenerateAilment(status, nil)
+		res.Ailments[status] = generateAilment(status, nil)
+	}
+
+	item, err := registerItem(stringToItemState(strings.ToLower(parsedMon.Item)), &res)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	res.Item = item
+
+	res.Ability = stringToAbility(strings.ToLower(parsedMon.Ability))
+	if res.Ability == NoneAbility {
+		return Pokemon{}, fmt.Errorf("none is not a valid ability")
 	}
 
 	return res, nil
@@ -87,7 +102,7 @@ func setIVs(Pokemon *Pokemon, ivs map[string]int) error {
 	for key, val := range ivs {
 		stat := stringToStat(key)
 		if stat == noStat {
-			return fmt.Errorf("%s is not a valid stat for %s", key, Pokemon.Base.Name)
+			return fmt.Errorf("no stat is not a valid stat")
 		}
 		Pokemon.IVs[stat] = max(0, min(31, val))
 	}
@@ -99,7 +114,7 @@ func calculateStats(Pokemon *Pokemon) error {
 	for key, val := range Pokemon.Base.Stats {
 		stat := stringToStat(key)
 		if stat == noStat {
-			return fmt.Errorf("%s is not a valid stat for %s", key, Pokemon.Base.Name)
+			return fmt.Errorf("no stat is not a valid stat")
 		}
 		Pokemon.Stats[stat] = ((val*2+Pokemon.IVs[stat])*Pokemon.level)/100 + 5
 	}
@@ -174,7 +189,7 @@ func resetPokemonPartyPPs(party []*Pokemon) {
 func (p *Pokemon) effectiveStat(stat statState, crit bool) int {
 	stage := p.Stages[stat]
 	base := p.Stats[stat]
-	p.CheckItemTrigger(false, makeChoiceItemEvent(nil, stat, &base))
+	p.checkItemTrigger(false, makeChoiceItemEvent(nil, stat, &base))
 
 	if crit {
 		switch stat {
@@ -194,7 +209,7 @@ func (p *Pokemon) effectiveStat(stat statState, crit bool) int {
 func (p *Pokemon) effectiveSpeed(bs BattleState) int {
 	stage := p.Stages[Speed]
 	base := p.Stats[Speed]
-	p.CheckItemTrigger(false, makeChoiceItemEvent(nil, Speed, &base))
+	p.checkItemTrigger(false, makeChoiceItemEvent(nil, Speed, &base))
 	numerator := 1
 	denominator := 1
 
@@ -317,12 +332,12 @@ func (p *Pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 		}
 	}
 
-	p.Ailments[ailment] = GenerateAilment(ailment, afflictedBy)
+	p.Ailments[ailment] = generateAilment(ailment, afflictedBy)
 	vprintf("%s became afflicted with %s", p.Base.Name, ailment.String())
 	if ailment.isNonVolatileStatus() && p.Ability == synchronizeAbility {
 		afflictedBy.mon.applyAilment(ailment, nil, nil)
 	}
-	p.CheckItemTrigger(true, nil)
+	p.checkItemTrigger(true, nil)
 
 	return true
 }
@@ -355,7 +370,7 @@ func (p *Pokemon) isGrounded() bool {
 
 func (p *Pokemon) ChangeHpBy(change int) {
 	p.HP = min(p.HP+change, p.MaxHP())
-	p.CheckItemTrigger(true, nil)
+	p.checkItemTrigger(true, nil)
 }
 
 func (p *Pokemon) hasMovePredicate(f func(*Move) bool) bool {

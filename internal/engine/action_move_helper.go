@@ -167,11 +167,11 @@ func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather Weat
 		denominator *= 2
 	}
 
-	user.CheckItemTrigger(false, makeGemEvent(moveType, &power))
+	user.checkItemTrigger(false, makeGemEvent(moveType, &power))
 
-	user.CheckItemTrigger(false, makeChoiceItemEvent(move, noStat, &offensiveStat))
+	user.checkItemTrigger(false, makeChoiceItemEvent(move, noStat, &offensiveStat))
 
-	user.CheckItemTrigger(false, makeMoveBoostingEvent(moveType, &power))
+	user.checkItemTrigger(false, makeMoveBoostingEvent(moveType, &power))
 
 	if !maxRoll {
 		numerator *= rand.Intn(16) + 85
@@ -181,7 +181,7 @@ func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather Weat
 	damage := ((((2*user.level)/5)+2)*power*offensiveStat)/defensiveStat/50 + 2
 	damage = damage * numerator / denominator
 
-	target.CheckItemTrigger(false, makeResistBerryEvent(moveType, &damage))
+	target.checkItemTrigger(false, makeResistBerryEvent(moveType, &damage))
 
 	damage = max(1, damage)
 

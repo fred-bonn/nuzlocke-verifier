@@ -42,7 +42,7 @@ func volatileStatuses(yield func(ailmentState) bool) {
 	}
 }
 
-func StringToAilmentState(s string) ailmentState {
+func stringToAilmentState(s string) ailmentState {
 	switch s {
 	case "paralysis":
 		return paralysisAilment
@@ -114,7 +114,7 @@ type ailment struct {
 	afflictedBy *slot
 }
 
-func GenerateAilment(as ailmentState, afflictedBy *slot) *ailment {
+func generateAilment(as ailmentState, afflictedBy *slot) *ailment {
 	res := ailment{
 		State:       as,
 		afflictedBy: afflictedBy,

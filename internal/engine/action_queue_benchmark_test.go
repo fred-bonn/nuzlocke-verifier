@@ -21,8 +21,7 @@ func BenchmarkActionQueueInit(b *testing.B) {
 	bs := &dummyBattleState{}
 
 	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		q := newEmptyActionQueue()
 		bs.actions = q
 		for _, a := range actions {
@@ -47,8 +46,7 @@ func BenchmarkActionQueueDrain(b *testing.B) {
 	bs.actions = q
 
 	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		// Push actions to the queue
 		for _, a := range actions {
 			q.queue.push(a)

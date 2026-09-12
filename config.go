@@ -22,10 +22,10 @@ func (cfg *config) validateInput(trainerContent string) ([]*engine.Pokemon, erro
 		return nil, fmt.Errorf("failed parsing showdown content: %w", err)
 	}
 
-	return cfg.validateParsedInput(trainerPokemon)
+	return cfg.validateParty(trainerPokemon)
 }
 
-func (cfg *config) validateParsedInput(trainerPokemon []parser.ParsedPokemon) ([]*engine.Pokemon, error) {
+func (cfg *config) validateParty(trainerPokemon []parser.ParsedPokemon) ([]*engine.Pokemon, error) {
 	if len(trainerPokemon) == 0 {
 		return nil, fmt.Errorf("showdown party is empty")
 	}
@@ -38,20 +38,20 @@ func (cfg *config) validateParsedInput(trainerPokemon []parser.ParsedPokemon) ([
 	return trainerParty, nil
 }
 
-func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*engine.Pokemon, error) {
+func (cfg *config) loadShowdown(parsedPokemons []parser.ParsedPokemon) ([]*engine.Pokemon, error) {
 	var res []*engine.Pokemon
 
-	for _, mon := range mons {
+	for _, parsedPokemon := range parsedPokemons {
 		var moves []*engine.Move
 
-		basePokemon, err := cfg.loadPokemon(apiName(mon.Name))
+		basePokemon, err := cfg.loadPokemon(apiName(parsedPokemon.Name))
 		if err != nil {
 			return nil, err
 		}
 
-		basePokemon.Name = engine.CleanName(mon.Name)
+		basePokemon.Name = cleanName(parsedPokemon.Name)
 
-		for _, moveName := range mon.Moves {
+		for _, moveName := range parsedPokemon.Moves {
 			baseMove, err := cfg.loadMove(apiName(moveName))
 			if err != nil {
 				return nil, err
@@ -61,25 +61,14 @@ func (cfg *config) loadShowdown(mons []parser.ParsedPokemon) ([]*engine.Pokemon,
 				mb.Apply(&baseMove)
 			}
 
-			baseMove.Name = engine.CleanName(moveName)
+			baseMove.Name = cleanName(moveName)
 
 			moves = append(moves, &baseMove)
 		}
 
-		finalPokemon, err := engine.InitPokemon(basePokemon, mon.Level, mon.IVs, mon.Nature, moves, mon.HP, engine.StringToAilmentState(mon.Status))
+		finalPokemon, err := engine.InitPokemon(basePokemon, moves, parsedPokemon)
 		if err != nil {
 			return nil, err
-		}
-
-		item, err := engine.RegisterItem(engine.StringToItemState(strings.ToLower(mon.Item)), &finalPokemon)
-		if err != nil {
-			return nil, err
-		}
-		finalPokemon.Item = item
-
-		finalPokemon.Ability = engine.StringToAbility(strings.ToLower(mon.Ability))
-		if finalPokemon.Ability == engine.NoneAbility {
-			return nil, fmt.Errorf("%s is not a valid ability for %s", strings.ToLower(mon.Ability), mon.Name)
 		}
 
 		res = append(res, &finalPokemon)
@@ -207,4 +196,52 @@ func apiName(name string) string {
 	name = strings.ReplaceAll(name, ".", "")
 	name = strings.ReplaceAll(name, "’", "")
 	return name
+}
+
+func cleanName(name string) string {
+	name = strings.ToLower(name)
+	if !hasHyphen(name) && !isRegionalPokemon(name) {
+		name = strings.ReplaceAll(name, "-", " ")
+	}
+
+	return name
+}
+
+func hasHyphen(name string) bool {
+	var withHyphen = map[string]struct{}{
+		"ho-oh":     {},
+		"porygon-z": {},
+		"jangmo-o":  {},
+		"hakamo-o":  {},
+		"kommo-o":   {},
+		"ting-lu":   {},
+		"chien-pao": {},
+		"wo-chien":  {},
+		"chi-yu":    {},
+	}
+
+	if _, ok := withHyphen[name]; ok {
+		return true
+	}
+
+	return false
+}
+
+func isRegionalPokemon(name string) bool {
+	regions := []string{
+		"-alola",
+		"-galar",
+		"-hisui",
+		"-paldea",
+	}
+
+	name = strings.ToLower(name)
+
+	for _, region := range regions {
+		if strings.HasSuffix(name, region) {
+			return true
+		}
+	}
+
+	return false
 }
