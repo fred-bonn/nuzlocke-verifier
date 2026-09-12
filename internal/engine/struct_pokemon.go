@@ -295,7 +295,7 @@ func (p *Pokemon) applyAilment(ailment ailmentState, move *Move, afflictedBy *sl
 
 	switch ailment {
 	case burnAilment:
-		if p.hasType(FireType) || p.Ability == waterVeilAbility {
+		if p.hasType(fireType) || p.Ability == waterVeilAbility {
 			return false
 		}
 	case paralysisAilment:

@@ -17,7 +17,7 @@ func TestRnbShouldSwitchRejectsUnsafeReplacements(t *testing.T) {
 			opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, &Move{Name: "sonic boom", Power: 1, PP: 1, Class: SpecialClass})
 			bs := testSwitchBattleState(current, replacement, opponent)
 
-			if got := (RnbAi{}).shouldSwitch(bs, bs.activePlayerSlot, -1, []*Pokemon{current, replacement}); got {
+			if got := (rnbAi{}).shouldSwitch(bs, bs.activePlayerSlot, -1, []*Pokemon{current, replacement}); got {
 				t.Fatal("shouldSwitch returned true for an unsafe replacement")
 			}
 		})
@@ -31,7 +31,7 @@ func TestRnbShouldSwitchCanChooseSafeReplacement(t *testing.T) {
 	bs := testSwitchBattleState(current, replacement, opponent)
 
 	for i := 0; i < 100; i++ {
-		if (RnbAi{}).shouldSwitch(bs, bs.activePlayerSlot, -1, []*Pokemon{current, replacement}) {
+		if (rnbAi{}).shouldSwitch(bs, bs.activePlayerSlot, -1, []*Pokemon{current, replacement}) {
 			return
 		}
 	}
@@ -57,10 +57,10 @@ func testSwitchPokemon(name string, hp, speed, specialAttack, specialDefense int
 
 func testSwitchBattleState(current, replacement, opponent *Pokemon) *SingleBattleState {
 	return InitSingleBattleState(
-		Trainer{AI: RnbAi{}, FieldEffects: make(map[FieldEffect]int)},
-		Trainer{AI: RnbAi{}, FieldEffects: make(map[FieldEffect]int)},
+		trainer{AI: rnbAi{}, FieldEffects: make(map[fieldEffect]int)},
+		trainer{AI: rnbAi{}, FieldEffects: make(map[fieldEffect]int)},
 		[]*Pokemon{current, replacement},
 		[]*Pokemon{opponent},
-		NoneWeather,
+		0,
 	)
 }

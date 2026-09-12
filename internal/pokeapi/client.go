@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type Client struct {
@@ -48,6 +49,9 @@ func (c *Client) FetchPokemon(name string) (PokemonJSON, error) {
 	if err := c.fetchJSON(url, &pokemonJSON); err != nil {
 		return PokemonJSON{}, fmt.Errorf("error fetching Pokemon data from API: %w", err)
 	}
+
+	pokemonJSON.Name = cleanName(pokemonJSON.Name)
+
 	return pokemonJSON, nil
 }
 
@@ -57,5 +61,58 @@ func (c *Client) FetchMove(name string) (MoveJSON, error) {
 	if err := c.fetchJSON(url, &move); err != nil {
 		return MoveJSON{}, fmt.Errorf("error fetching Move data from API: %w", err)
 	}
+
+	fmt.Println("Fetched move:", move.Name)
+	move.Name = cleanName(move.Name)
+	fmt.Println("Fetched move:", move.Name)
+
 	return move, nil
+}
+
+func cleanName(name string) string {
+	name = strings.ToLower(name)
+	if !hasHyphen(name) && !isRegionalPokemon(name) {
+		name = strings.ReplaceAll(name, "-", " ")
+	}
+
+	return name
+}
+
+func hasHyphen(name string) bool {
+	var withHyphen = map[string]struct{}{
+		"ho-oh":     {},
+		"porygon-z": {},
+		"jangmo-o":  {},
+		"hakamo-o":  {},
+		"kommo-o":   {},
+		"ting-lu":   {},
+		"chien-pao": {},
+		"wo-chien":  {},
+		"chi-yu":    {},
+	}
+
+	if _, ok := withHyphen[name]; ok {
+		return true
+	}
+
+	return false
+}
+
+func isRegionalPokemon(name string) bool {
+	regions := []string{
+		"-alola",
+		"-galar",
+		"-hisui",
+		"-paldea",
+	}
+
+	name = strings.ToLower(name)
+
+	for _, region := range regions {
+		if strings.HasSuffix(name, region) {
+			return true
+		}
+	}
+
+	return false
 }

@@ -10,7 +10,7 @@ import (
 
 func TestWeatherAffectsMonAccordingToTypeAndAbilities(t *testing.T) {
 	tests := map[string]struct {
-		weather     WeatherState
+		weather     weatherState
 		ability     abilityState
 		goggles     bool
 		pokemonType pokemonType
@@ -67,7 +67,7 @@ func TestWeatherAffectsMonAccordingToTypeAndAbilities(t *testing.T) {
 
 func TestWeatherOnsetReportsTheCorrectWeatherMessage(t *testing.T) {
 	tests := map[string]struct {
-		weather  WeatherState
+		weather  weatherState
 		contains string
 	}{
 		"reports rain onset":      {weather: rainWeather, contains: "to rain"},

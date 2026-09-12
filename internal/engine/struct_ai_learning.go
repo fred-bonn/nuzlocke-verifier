@@ -139,7 +139,7 @@ func moveCanCritKill(bs BattleState, user, target *Pokemon, move *Move) bool {
 	return damage >= target.HP
 }
 
-type LearningAI struct {
+type learningAI struct {
 	policy              map[string][]string
 	scores              map[string]map[string]float64
 	counts              map[string]map[string]int
@@ -150,6 +150,8 @@ type LearningAI struct {
 	discountFactor      float64
 	lastPolicySignature string
 	stableRounds        int
+	playerShowdown      string
+	opponentShowdown    string
 }
 
 type stateActionEntry struct {
@@ -160,18 +162,17 @@ type stateActionEntry struct {
 // SavedPolicy stores the entire contents of the player/opponent Showdown party files
 // (as if read via `cat player.txt`) so the policy can rebuild the parties without the
 // original files, by running player_party/opponent_party back through the parser.
-type SavedPolicy struct {
+type savedPolicy struct {
 	PlayerParty   string                        `json:"player_party"`
 	OpponentParty string                        `json:"opponent_party"`
 	Policy        map[string][]string           `json:"policy"`
 	Scores        map[string]map[string]float64 `json:"scores"`
 	Counts        map[string]map[string]int     `json:"counts"`
 	Version       int                           `json:"version"`
-	Metadata      map[string]string             `json:"metadata,omitempty"`
 }
 
-func NewLearningAI() *LearningAI {
-	return &LearningAI{
+func newLearningAI() *learningAI {
+	return &learningAI{
 		policy:         make(map[string][]string),
 		scores:         make(map[string]map[string]float64),
 		counts:         make(map[string]map[string]int),
@@ -182,18 +183,18 @@ func NewLearningAI() *LearningAI {
 	}
 }
 
-func PolicyPathForInputs(playerInput, opponentInput string) string {
+func policyPathForInputs(playerInput, opponentInput string) string {
 	playerName := strings.TrimSuffix(filepath.Base(playerInput), filepath.Ext(playerInput))
 	opponentName := strings.TrimSuffix(filepath.Base(opponentInput), filepath.Ext(opponentInput))
 	return filepath.Join("policies", fmt.Sprintf("%s__vs__%s.json", playerName, opponentName))
 }
 
-func LoadPolicyFromDisk(path string) (*SavedPolicy, error) {
+func loadPolicyFromDisk(path string) (*savedPolicy, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	policy := &SavedPolicy{}
+	policy := &savedPolicy{}
 	if err := json.Unmarshal(data, policy); err != nil {
 		return nil, err
 	}
@@ -209,35 +210,26 @@ func LoadPolicyFromDisk(path string) (*SavedPolicy, error) {
 	return policy, nil
 }
 
-func SavePolicyToDisk(la *LearningAI, playerInput, opponentInput string) error {
-	if la == nil {
-		return fmt.Errorf("nil learning AI")
-	}
-	path := PolicyPathForInputs(playerInput, opponentInput)
+func (la *learningAI) savePolicyToDisk() error {
+	path := filepath.Join("policies", "policy.json")
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	playerPartyFile, err := os.ReadFile(playerInput)
-	if err != nil {
-		return fmt.Errorf("failed reading player input '%s': %w", playerInput, err)
-	}
-	opponentPartyFile, err := os.ReadFile(opponentInput)
-	if err != nil {
-		return fmt.Errorf("failed reading opponent input '%s': %w", opponentInput, err)
-	}
-	policy := &SavedPolicy{
-		PlayerParty:   string(playerPartyFile),
-		OpponentParty: string(opponentPartyFile),
+
+	policy := &savedPolicy{
+		PlayerParty:   la.playerShowdown,
+		OpponentParty: la.opponentShowdown,
 		Policy:        cloneActionMap(la.policy),
 		Scores:        cloneScoreMap(la.scores),
 		Counts:        cloneCountMap(la.counts),
 		Version:       1,
-		Metadata:      map[string]string{"player_input": playerInput, "opponent_input": opponentInput},
 	}
+
 	data, err := json.MarshalIndent(policy, "", "  ")
 	if err != nil {
 		return err
 	}
+
 	return os.WriteFile(path, data, 0o644)
 }
 
@@ -284,7 +276,7 @@ func cloneCountMap(source map[string]map[string]int) map[string]map[string]int {
 	return clone
 }
 
-func CountScoreEntries(scores map[string]map[string]float64) int {
+func countScoreEntries(scores map[string]map[string]float64) int {
 	count := 0
 	for _, actions := range scores {
 		count += len(actions)
@@ -292,7 +284,7 @@ func CountScoreEntries(scores map[string]map[string]float64) int {
 	return count
 }
 
-func CountCountEntries(counts map[string]map[string]int) int {
+func countCountEntries(counts map[string]map[string]int) int {
 	count := 0
 	for _, actions := range counts {
 		count += len(actions)
@@ -300,11 +292,11 @@ func CountCountEntries(counts map[string]map[string]int) int {
 	return count
 }
 
-func loadLearningAIFromPolicy(policy *SavedPolicy) *LearningAI {
+func loadLearningAIFromPolicy(policy *savedPolicy) *learningAI {
 	if policy == nil {
-		return NewLearningAI()
+		return newLearningAI()
 	}
-	la := &LearningAI{
+	la := &learningAI{
 		policy:      cloneActionMap(policy.Policy),
 		scores:      cloneScoreMap(policy.Scores),
 		counts:      cloneCountMap(policy.Counts),
@@ -335,7 +327,7 @@ type staticPolicyAi struct {
 	counts map[string]map[string]int
 }
 
-func NewStaticPolicyAIFromPolicy(policy *SavedPolicy) *staticPolicyAi {
+func newStaticPolicyAIFromPolicy(policy *savedPolicy) *staticPolicyAi {
 	if policy == nil {
 		return &staticPolicyAi{policy: map[string][]string{}, scores: map[string]map[string]float64{}, counts: map[string]map[string]int{}}
 	}
@@ -351,7 +343,7 @@ func (spa *staticPolicyAi) evaluateActions(bs BattleState, slot *slot, actions [
 		return nil, 0
 	}
 	stateKey := discretizeBattleState(bs).key()
-	fallbackAction, fallbackScore := RnbAi{}.evaluateActions(bs, slot, actions)
+	fallbackAction, fallbackScore := rnbAi{}.evaluateActions(bs, slot, actions)
 	hasRecordedEvidence := false
 	for _, action := range actions {
 		key := actionKey(action)
@@ -403,7 +395,7 @@ func (spa *staticPolicyAi) evaluteSwitchIns(bs BattleState, mons []*Pokemon, opp
 		return nil
 	}
 	stateKey := discretizeBattleState(bs).key()
-	fallbackMon := RnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
+	fallbackMon := rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
 	for _, mon := range mons {
 		key := actionKeyForSwitch(mon)
 		if spa.counts[stateKey][key] > 0 || spa.scores[stateKey][key] != 0 {
@@ -461,7 +453,7 @@ func (spa *staticPolicyAi) shouldSwitch(bs BattleState, slot *slot, score int, p
 	if !candidateFound {
 		return false
 	}
-	if (RnbAi{}).shouldSwitch(bs, slot, score, party) {
+	if (rnbAi{}).shouldSwitch(bs, slot, score, party) {
 		return true
 	}
 	if slot.mon.HP <= slot.mon.MaxHP()/3 {
@@ -492,7 +484,7 @@ func (spa *staticPolicyAi) scoreFor(stateKey, actionKey string) float64 {
 	return -1e18
 }
 
-func (la *LearningAI) ensureState(stateKey string) {
+func (la *learningAI) ensureState(stateKey string) {
 	if la == nil {
 		return
 	}
@@ -522,7 +514,7 @@ func (la *LearningAI) ensureState(stateKey string) {
 	}
 }
 
-func (la *LearningAI) decayScores(factor float64) {
+func (la *learningAI) decayScores(factor float64) {
 	if la == nil {
 		return
 	}
@@ -542,7 +534,7 @@ func (la *LearningAI) decayScores(factor float64) {
 	}
 }
 
-func (la *LearningAI) policySignature() string {
+func (la *learningAI) policySignature() string {
 	if la == nil {
 		return ""
 	}
@@ -565,7 +557,7 @@ func (la *LearningAI) policySignature() string {
 	return b.String()
 }
 
-func (la *LearningAI) PolicySaturated() bool {
+func (la *learningAI) PolicySaturated() bool {
 	if la == nil || len(la.policy) == 0 {
 		return false
 	}
@@ -587,7 +579,7 @@ func (la *LearningAI) PolicySaturated() bool {
 	return false
 }
 
-func (la *LearningAI) recordStateAction(stateKey string, action string) {
+func (la *learningAI) recordStateAction(stateKey string, action string) {
 	if la == nil || stateKey == "" || action == "" {
 		return
 	}
@@ -601,7 +593,7 @@ func (la *LearningAI) recordStateAction(stateKey string, action string) {
 	la.history = append(la.history, stateActionEntry{stateKey: stateKey, action: action})
 }
 
-func (la *LearningAI) RecordBattleOutcome(stats *battleStatistics) {
+func (la *learningAI) RecordBattleOutcome(stats *battleStatistics) {
 	if la == nil || stats == nil {
 		return
 	}
@@ -638,17 +630,17 @@ func (la *LearningAI) RecordBattleOutcome(stats *battleStatistics) {
 	la.seen = make(map[string]map[string]bool)
 }
 
-func (la *LearningAI) evaluateActions(bs BattleState, slot *slot, actions []*moveAction) (*moveAction, int) {
+func (la *learningAI) evaluateActions(bs BattleState, slot *slot, actions []*moveAction) (*moveAction, int) {
 	if len(actions) == 0 {
 		return nil, 0
 	}
 	if la == nil {
-		return RnbAi{}.evaluateActions(bs, slot, actions)
+		return rnbAi{}.evaluateActions(bs, slot, actions)
 	}
 	stateKey := discretizeBattleState(bs).key()
 	la.ensureState(stateKey)
 	firstAction := actions[0]
-	fallbackAction, fallbackScore := RnbAi{}.evaluateActions(bs, slot, actions)
+	fallbackAction, fallbackScore := rnbAi{}.evaluateActions(bs, slot, actions)
 	for _, action := range actions {
 		key := actionKey(action)
 		la.policy[stateKey] = appendUnique(la.policy[stateKey], key)
@@ -708,17 +700,17 @@ func (la *LearningAI) evaluateActions(bs BattleState, slot *slot, actions []*mov
 	return bestAction, int(bestScore)
 }
 
-func (la *LearningAI) evaluteSwitchIns(bs BattleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
+func (la *learningAI) evaluteSwitchIns(bs BattleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
 	if len(mons) == 0 {
 		return nil
 	}
 	if la == nil {
-		return RnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
+		return rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
 	}
 	stateKey := discretizeBattleState(bs).key()
 	la.ensureState(stateKey)
 	firstMon := mons[0]
-	fallbackMon := RnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
+	fallbackMon := rnbAi{}.evaluteSwitchIns(bs, mons, opponentSlot)
 	bestMon := fallbackMon
 	bestScore := 0.0
 	riskPenalty := 0.0
@@ -770,7 +762,7 @@ func (la *LearningAI) evaluteSwitchIns(bs BattleState, mons []*Pokemon, opponent
 	return bestMon
 }
 
-func (la *LearningAI) shouldSwitch(bs BattleState, slot *slot, score int, party []*Pokemon) bool {
+func (la *learningAI) shouldSwitch(bs BattleState, slot *slot, score int, party []*Pokemon) bool {
 	if la == nil || len(party) <= 1 {
 		return false
 	}
@@ -790,7 +782,7 @@ func (la *LearningAI) shouldSwitch(bs BattleState, slot *slot, score int, party 
 	if !candidateFound {
 		return false
 	}
-	if (RnbAi{}).shouldSwitch(bs, slot, score, party) {
+	if (rnbAi{}).shouldSwitch(bs, slot, score, party) {
 		return true
 	}
 	if slot.mon.HP <= slot.mon.MaxHP()/3 {

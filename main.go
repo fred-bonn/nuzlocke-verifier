@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/fred-bonn/nuz/internal/engine"
-	"github.com/fred-bonn/nuz/internal/pokeapi"
 	"github.com/spf13/pflag"
 )
 
@@ -58,136 +57,44 @@ func run(args []string) int {
 		engine.Verbose = true
 	}
 
-	learning := *inputAi == 1
-
 	parsedArgs := fs.Args()
 
-	var policy *engine.SavedPolicy
 	usingPolicyFile := *policyFile != ""
 	if !usingPolicyFile {
 		if len(parsedArgs) != 2 {
 			log.Printf("error: missing arguments: usage: <executable> <player_showdown> <opponent_showdown> <flags>")
 			return 1
 		}
-	} else {
-		var err error
-		policy, err = engine.LoadPolicyFromDisk(*policyFile)
-		if err != nil {
-			log.Printf("error: failed loading policy '%s': %s", *policyFile, err)
-			return 1
-		}
-		if policy.PlayerParty == "" || policy.OpponentParty == "" {
-			log.Printf("error: policy '%s' does not contain embedded party files", *policyFile)
-			return 1
-		}
 	}
 
-	cfg := &config{
-		client: pokeapi.NewClient(),
-	}
+	var playerParty, opponentParty string
 
-	var err error
-	var playerParty, opponentParty []*engine.Pokemon
 	if !usingPolicyFile {
-		playerFileData, err := os.ReadFile(parsedArgs[0])
+		playerPartyData, err := os.ReadFile(parsedArgs[0])
 		if err != nil {
 			log.Printf("error: failed reading player party file '%s': %s", parsedArgs[0], err)
 			return 1
 		}
-		playerParty, err = cfg.validateInput(string(playerFileData))
-		if err != nil {
-			log.Printf("error: failed validating player party '%s': %s", parsedArgs[0], err)
-			return 1
-		}
-		opponentFileData, err := os.ReadFile(parsedArgs[1])
+		playerParty = string(playerPartyData)
+
+		opponentPartyData, err := os.ReadFile(parsedArgs[1])
 		if err != nil {
 			log.Printf("error: failed reading opponent party file '%s': %s", parsedArgs[0], err)
 			return 1
 		}
-		opponentParty, err = cfg.validateInput(string(opponentFileData))
-		if err != nil {
-			log.Printf("error: failed validating player party '%s': %s", parsedArgs[0], err)
-			return 1
-		}
-	} else {
-		playerParty, err = cfg.validateInput(policy.PlayerParty)
-		if err != nil {
-			log.Printf("error: failed validating player party embedded in policy '%s': %s", *policyFile, err)
-			return 1
-		}
-		opponentParty, err = cfg.validateInput(policy.OpponentParty)
-		if err != nil {
-			log.Printf("error: failed validating opponent party embedded in policy '%s': %s", *policyFile, err)
-			return 1
-		}
+		opponentParty = string(opponentPartyData)
 	}
 
-	var playerAI engine.AI
-
-	if usingPolicyFile {
-		playerAI = engine.NewStaticPolicyAIFromPolicy(policy)
-	} else {
-		switch *inputAi {
-		case 0:
-			playerAI = engine.RnbAi{}
-		case 1:
-			playerAI = engine.NewLearningAI()
-		case 2:
-			engine.Verbose = true
-			playerAI = engine.NewGuidedAI(os.Stdin, os.Stdout)
-		case 3:
-			playerAI = engine.RandomAi{}
-		}
+	battleState, err := engine.InitBattleState(0, playerParty, opponentParty, *inputAi, *weather, *policyFile)
+	if err != nil {
+		log.Printf("error: failed initializing battle state: %s", err)
+		return 1
 	}
 
-	var bs engine.BattleState = engine.InitSingleBattleState(
-		engine.Trainer{
-			AI:           playerAI,
-			Player:       true,
-			FieldEffects: make(map[engine.FieldEffect]int),
-		},
-		engine.Trainer{
-			AI:           engine.RnbAi{},
-			FieldEffects: make(map[engine.FieldEffect]int),
-		},
-		playerParty,
-		opponentParty,
-		engine.WeatherState(*weather),
-	)
-
-	for i := 0; i < *iterations; i++ {
-		if err := bs.Reset(); err != nil {
-			log.Fatal(err)
-		}
-		if err := bs.Execute(); err != nil {
-			log.Fatal(err)
-		}
-		bs.RecordStatistics()
-		if learning, ok := bs.(*engine.SingleBattleState); ok {
-			if playerAI, ok := learning.Player.AI.(*engine.LearningAI); ok {
-				playerAI.RecordBattleOutcome(learning.GetStatistics())
-				if playerAI.PolicySaturated() {
-					log.Printf("training policy saturated after %d battle(s)", i+1)
-					break
-				}
-				if learning.GetStatistics().AllPartySurvived() {
-					log.Printf("training target reached: all party members survived after %d battle(s)", i+1)
-					break
-				}
-			}
-		}
-	}
-
-	if learning {
-		if err := engine.SavePolicyToDisk((playerAI.(*engine.LearningAI)), parsedArgs[0], parsedArgs[1]); err != nil {
-			log.Printf("error: failed saving policy: %s", err)
-		} else {
-			log.Printf("policy saved to %s", engine.PolicyPathForInputs(parsedArgs[0], parsedArgs[1]))
-		}
-	}
-
-	if *iterations > 1 {
-		bs.PrintStatistics()
+	err = battleState.Execute(*iterations)
+	if err != nil {
+		log.Printf("error: failed executing battle state: %s", err)
+		return 1
 	}
 
 	return 0

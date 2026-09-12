@@ -382,7 +382,7 @@ func TestTypeGems(t *testing.T) {
 		wantConsumed bool
 	}{
 		"normal gem increases normal type":              {item: normalGem, move: normalType, initialPower: 100, event: true, wantPower: 150, wantConsumed: true},
-		"normal gem does not increase normal fire type": {item: normalGem, move: FireType, initialPower: 100, event: true, wantPower: 100},
+		"normal gem does not increase normal fire type": {item: normalGem, move: fireType, initialPower: 100, event: true, wantPower: 100},
 		"gem wont activate if event is missing":         {item: normalGem, move: normalType, initialPower: 100, wantPower: 100},
 	}
 
@@ -433,7 +433,7 @@ func TestChoiceScarf(t *testing.T) {
 			mon.Stats[Speed] = tc.speed
 			item, _ := registerItem(choiceScarf, &mon)
 			mon.Item = item
-			bs := initBenchBattleState(NoneWeather)
+			bs := initBenchBattleState(noneWeather)
 
 			if got := mon.effectiveSpeed(bs); got != tc.want {
 				t.Errorf("mon.effectiveSpeed(bs) = %d, want %d", got, tc.want)

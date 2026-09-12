@@ -14,7 +14,7 @@ func newBattleStatistics(party []*Pokemon) battleStatistics {
 	}
 }
 
-func (bs *battleStatistics) record(player *Trainer) {
+func (bs *battleStatistics) record(player *trainer) {
 	bs.battleCount++
 	if !player.lost {
 		bs.winCount++

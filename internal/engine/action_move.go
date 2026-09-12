@@ -174,7 +174,7 @@ func (ma *moveAction) invoke(bs BattleState) {
 
 	ma.userSlot.mon.checkItemTrigger(true, makeLeppaBerryEvent(ma.move))
 
-	if ma.move.Type == FireType {
+	if ma.move.Type == fireType {
 		delete(ma.targetSlot.mon.Ailments, freezeAilment)
 	}
 }

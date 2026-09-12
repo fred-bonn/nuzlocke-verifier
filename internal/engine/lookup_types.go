@@ -3,9 +3,9 @@ package engine
 type pokemonType int
 
 const (
-	NoType pokemonType = iota
+	noType pokemonType = iota
 	normalType
-	FireType
+	fireType
 	waterType
 	electricType
 	grassType
@@ -24,12 +24,12 @@ const (
 	fairyType
 )
 
-func StringToPokemonType(s string) pokemonType {
+func stringToPokemonType(s string) pokemonType {
 	switch s {
 	case "normal":
 		return normalType
 	case "fire":
-		return FireType
+		return fireType
 	case "water":
 		return waterType
 	case "electric":
@@ -63,7 +63,7 @@ func StringToPokemonType(s string) pokemonType {
 	case "fairy":
 		return fairyType
 	default:
-		return NoType
+		return noType
 	}
 }
 
@@ -71,7 +71,7 @@ func (pt pokemonType) String() string {
 	switch pt {
 	case normalType:
 		return "normal"
-	case FireType:
+	case fireType:
 		return "fire"
 	case waterType:
 		return "water"
@@ -123,12 +123,12 @@ var typeChart = map[pokemonType]map[pokemonType]effectiveness{
 	normalType: {
 		rockType: resistedEffectiveness, ghostType: immuneEffectivensss, steelType: resistedEffectiveness,
 	},
-	FireType: {
-		FireType: resistedEffectiveness, waterType: resistedEffectiveness, grassType: superEffectiveness, iceType: superEffectiveness,
+	fireType: {
+		fireType: resistedEffectiveness, waterType: resistedEffectiveness, grassType: superEffectiveness, iceType: superEffectiveness,
 		bugType: superEffectiveness, rockType: resistedEffectiveness, dragonType: resistedEffectiveness, steelType: superEffectiveness,
 	},
 	waterType: {
-		FireType: superEffectiveness, waterType: resistedEffectiveness, grassType: resistedEffectiveness, groundType: superEffectiveness,
+		fireType: superEffectiveness, waterType: resistedEffectiveness, grassType: resistedEffectiveness, groundType: superEffectiveness,
 		rockType: superEffectiveness, dragonType: resistedEffectiveness,
 	},
 	electricType: {
@@ -136,12 +136,12 @@ var typeChart = map[pokemonType]map[pokemonType]effectiveness{
 		flyingType: superEffectiveness, dragonType: resistedEffectiveness,
 	},
 	grassType: {
-		FireType: resistedEffectiveness, waterType: superEffectiveness, grassType: resistedEffectiveness, poisonType: resistedEffectiveness,
+		fireType: resistedEffectiveness, waterType: superEffectiveness, grassType: resistedEffectiveness, poisonType: resistedEffectiveness,
 		groundType: superEffectiveness, flyingType: resistedEffectiveness, bugType: resistedEffectiveness, rockType: superEffectiveness,
 		dragonType: resistedEffectiveness, steelType: resistedEffectiveness,
 	},
 	iceType: {
-		FireType: resistedEffectiveness, waterType: resistedEffectiveness, grassType: superEffectiveness, groundType: superEffectiveness,
+		fireType: resistedEffectiveness, waterType: resistedEffectiveness, grassType: superEffectiveness, groundType: superEffectiveness,
 		flyingType: superEffectiveness, dragonType: superEffectiveness, steelType: resistedEffectiveness, iceType: resistedEffectiveness,
 	},
 	fightingType: {
@@ -154,7 +154,7 @@ var typeChart = map[pokemonType]map[pokemonType]effectiveness{
 		rockType: resistedEffectiveness, ghostType: resistedEffectiveness, steelType: immuneEffectivensss,
 	},
 	groundType: {
-		FireType: superEffectiveness, electricType: superEffectiveness, grassType: resistedEffectiveness, poisonType: superEffectiveness,
+		fireType: superEffectiveness, electricType: superEffectiveness, grassType: resistedEffectiveness, poisonType: superEffectiveness,
 		flyingType: immuneEffectivensss, bugType: resistedEffectiveness, rockType: superEffectiveness, steelType: superEffectiveness,
 	},
 	flyingType: {
@@ -166,12 +166,12 @@ var typeChart = map[pokemonType]map[pokemonType]effectiveness{
 		steelType: resistedEffectiveness, darkType: immuneEffectivensss,
 	},
 	bugType: {
-		FireType: resistedEffectiveness, grassType: superEffectiveness, fightingType: resistedEffectiveness, poisonType: resistedEffectiveness,
+		fireType: resistedEffectiveness, grassType: superEffectiveness, fightingType: resistedEffectiveness, poisonType: resistedEffectiveness,
 		flyingType: resistedEffectiveness, psychicType: superEffectiveness, ghostType: resistedEffectiveness,
 		darkType: superEffectiveness, steelType: resistedEffectiveness, fairyType: resistedEffectiveness,
 	},
 	rockType: {
-		FireType: superEffectiveness, iceType: superEffectiveness, flyingType: superEffectiveness, bugType: superEffectiveness,
+		fireType: superEffectiveness, iceType: superEffectiveness, flyingType: superEffectiveness, bugType: superEffectiveness,
 		fightingType: resistedEffectiveness, groundType: resistedEffectiveness, steelType: resistedEffectiveness,
 	},
 	ghostType: {
@@ -185,11 +185,11 @@ var typeChart = map[pokemonType]map[pokemonType]effectiveness{
 		darkType: resistedEffectiveness, fairyType: resistedEffectiveness,
 	},
 	steelType: {
-		FireType: resistedEffectiveness, waterType: resistedEffectiveness, electricType: resistedEffectiveness, iceType: superEffectiveness,
+		fireType: resistedEffectiveness, waterType: resistedEffectiveness, electricType: resistedEffectiveness, iceType: superEffectiveness,
 		rockType: superEffectiveness, fairyType: superEffectiveness, steelType: resistedEffectiveness,
 	},
 	fairyType: {
-		FireType: resistedEffectiveness, fightingType: superEffectiveness, poisonType: resistedEffectiveness,
+		fireType: resistedEffectiveness, fightingType: superEffectiveness, poisonType: resistedEffectiveness,
 		dragonType: superEffectiveness, darkType: superEffectiveness, steelType: resistedEffectiveness,
 	},
 }

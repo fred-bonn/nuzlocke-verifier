@@ -1,7 +1,14 @@
 package engine
 
+import (
+	"fmt"
+	"os"
+
+	"github.com/fred-bonn/nuz/internal/pokeapi"
+)
+
 type BattleState interface {
-	Execute() error
+	Execute(iterations int) error
 	Reset() error
 	setError(error)
 	gatherActions()
@@ -9,12 +16,95 @@ type BattleState interface {
 	getOtherSlots(slot *slot) []*slot
 	getOpponentSlot(slot *slot) *slot
 	getActions() *actionQueue
-	getWeather() WeatherState
-	setWeather(WeatherState)
-	getFieldEffects() map[FieldEffect]int
+	getWeather() weatherState
+	setWeather(weatherState)
+	getFieldEffects() map[fieldEffect]int
 	GetStatistics() *battleStatistics
 	RecordStatistics()
 	PrintStatistics()
+}
+
+type BattleStateType int
+
+const (
+	SingleBattle BattleStateType = iota
+)
+
+func InitBattleState(battleStateInt int, playerPartyStr, opponentPartyStr string, aiInt, weatherInt int, policyFile string) (BattleState, error) {
+	cfg := &config{
+		client: pokeapi.NewClient(),
+	}
+
+	if battleStateInt < int(SingleBattle) || battleStateInt > int(SingleBattle) {
+		return nil, fmt.Errorf("invalid battle state type: %d", battleStateInt)
+	}
+	battleStateType := BattleStateType(battleStateInt)
+
+	if weatherInt < int(noneWeather) || weatherInt > int(hailWeather) {
+		return nil, fmt.Errorf("invalid weather type: %d", weatherInt)
+	}
+	weather := weatherState(weatherInt)
+
+	if aiInt < 0 || aiInt > 3 {
+		return nil, fmt.Errorf("invalid AI type: %d", aiInt)
+	}
+
+	var playerAi ai
+	if policyFile != "" {
+		policy, err := loadPolicyFromDisk(policyFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed loading policy '%s': %s", policyFile, err)
+		}
+		playerPartyStr = policy.PlayerParty
+		opponentPartyStr = policy.OpponentParty
+		playerAi = newStaticPolicyAIFromPolicy(policy)
+	} else {
+		switch aiInt {
+		case 0:
+			playerAi = rnbAi{}
+		case 1:
+			learningAi := newLearningAI()
+			learningAi.playerShowdown = playerPartyStr
+			learningAi.opponentShowdown = opponentPartyStr
+			playerAi = learningAi
+		case 2:
+			playerAi = newGuidedAI(os.Stdin, os.Stdout)
+		case 3:
+			playerAi = randomAi{}
+		}
+	}
+
+	playerParty, err := cfg.validateInput(playerPartyStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed validating player party: %s", err)
+	}
+
+	opponentParty, err := cfg.validateInput(opponentPartyStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed validating opponent party: %s", err)
+	}
+
+	var battleState BattleState
+
+	switch battleStateType {
+	case SingleBattle:
+		battleState = InitSingleBattleState(
+			trainer{
+				AI:           playerAi,
+				Player:       true,
+				FieldEffects: make(map[fieldEffect]int),
+			},
+			trainer{
+				AI:           rnbAi{},
+				FieldEffects: make(map[fieldEffect]int),
+			},
+			playerParty,
+			opponentParty,
+			weather,
+		)
+	}
+
+	return battleState, nil
 }
 
 func injectReplaceAction(bs BattleState, slot *slot, midTurn bool) {
@@ -59,7 +149,7 @@ func resolveEndOfTurn(bs BattleState) {
 		}
 
 		// resolve end of turn effects of weather
-		if w := bs.getWeather(); w != NoneWeather {
+		if w := bs.getWeather(); w != noneWeather {
 			if w.affectsMon(slot.mon) {
 				takeResidualDamage(bs, slot, w.String(), 1, 16)
 			}

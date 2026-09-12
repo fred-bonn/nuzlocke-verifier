@@ -12,7 +12,7 @@ func TestIsImmuneToPowderMovesDetectsPowderImmunity(t *testing.T) {
 		"grass types remain immune with overcoat":   {t: grassType, a: overcoatAbility, want: true},
 		"non-grass types are not immune by default": {t: flyingType, a: intimidateAbility, want: false},
 		"water types are not immune by default":     {t: waterType, a: intimidateAbility, want: false},
-		"fire types are immune with overcoat":       {t: FireType, a: overcoatAbility, want: true},
+		"fire types are immune with overcoat":       {t: fireType, a: overcoatAbility, want: true},
 	}
 
 	for name, tc := range tests {
@@ -69,18 +69,18 @@ func TestEffectiveSpeedAppliesSpeedModifiersCorrectly(t *testing.T) {
 		base      int
 		item      itemState
 		ability   abilityState
-		weather   WeatherState
+		weather   weatherState
 		paralyzed bool
 		unburden  bool
 		want      int
 	}{
-		"boosts speed with a positive stage":                                   {stage: 1, base: 100, item: noneItem, ability: NoneAbility, weather: NoneWeather, paralyzed: false, unburden: false, want: 150},
-		"reduces speed with a negative stage":                                  {stage: -1, base: 100, item: noneItem, ability: NoneAbility, weather: NoneWeather, paralyzed: false, unburden: false, want: 66},
-		"halves speed when paralyzed":                                          {stage: 0, base: 100, item: noneItem, ability: NoneAbility, weather: NoneWeather, paralyzed: true, unburden: false, want: 25},
-		"combines paralysis with a positive stage":                             {stage: 1, base: 100, item: noneItem, ability: NoneAbility, weather: NoneWeather, paralyzed: true, unburden: false, want: 37},
-		"uses iron ball to halve speed":                                        {stage: 0, base: 100, item: ironBall, ability: NoneAbility, weather: NoneWeather, paralyzed: false, unburden: false, want: 50},
-		"uses iron ball with a negative stage":                                 {stage: -1, base: 100, item: ironBall, ability: NoneAbility, weather: NoneWeather, paralyzed: false, unburden: false, want: 33},
-		"does not boost speed with swift swim outside rain":                    {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: NoneWeather, paralyzed: false, unburden: false, want: 100},
+		"boosts speed with a positive stage":                                   {stage: 1, base: 100, item: noneItem, ability: NoneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 150},
+		"reduces speed with a negative stage":                                  {stage: -1, base: 100, item: noneItem, ability: NoneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 66},
+		"halves speed when paralyzed":                                          {stage: 0, base: 100, item: noneItem, ability: NoneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 25},
+		"combines paralysis with a positive stage":                             {stage: 1, base: 100, item: noneItem, ability: NoneAbility, weather: noneWeather, paralyzed: true, unburden: false, want: 37},
+		"uses iron ball to halve speed":                                        {stage: 0, base: 100, item: ironBall, ability: NoneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 50},
+		"uses iron ball with a negative stage":                                 {stage: -1, base: 100, item: ironBall, ability: NoneAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 33},
+		"does not boost speed with swift swim outside rain":                    {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: noneWeather, paralyzed: false, unburden: false, want: 100},
 		"boosts speed with swift swim in rain":                                 {stage: 0, base: 100, item: noneItem, ability: swiftSwimAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 200},
 		"does not boost speed with sand rush in rain":                          {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
 		"boosts speed with sand rush in sandstorm":                             {stage: 0, base: 100, item: noneItem, ability: sandRushAbility, weather: sandstormWeather, paralyzed: false, unburden: false, want: 200},
@@ -88,8 +88,8 @@ func TestEffectiveSpeedAppliesSpeedModifiersCorrectly(t *testing.T) {
 		"does not boost speed with slush rush in hail while holding iron ball": {stage: 0, base: 100, item: ironBall, ability: slushRushAbility, weather: hailWeather, paralyzed: false, unburden: false, want: 100},
 		"does not boost speed with chlorophyll outside sun":                    {stage: 0, base: 100, item: noneItem, ability: chlorophyllAbility, weather: rainWeather, paralyzed: false, unburden: false, want: 100},
 		"boosts speed with chlorophyll in sun":                                 {stage: 1, base: 100, item: noneItem, ability: chlorophyllAbility, weather: sunWeather, paralyzed: false, unburden: false, want: 300},
-		"does not boost speed for unburden without the ability":                {stage: 0, base: 100, item: noneItem, ability: NoneAbility, weather: NoneWeather, paralyzed: false, unburden: true, want: 100},
-		"boosts speed for unburden with the ability":                           {stage: 0, base: 100, item: noneItem, ability: unburdenAbility, weather: NoneWeather, paralyzed: false, unburden: true, want: 200},
+		"does not boost speed for unburden without the ability":                {stage: 0, base: 100, item: noneItem, ability: NoneAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 100},
+		"boosts speed for unburden with the ability":                           {stage: 0, base: 100, item: noneItem, ability: unburdenAbility, weather: noneWeather, paralyzed: false, unburden: true, want: 200},
 	}
 
 	for name, tc := range tests {
@@ -304,7 +304,7 @@ func TestApplyAilmentAppliesAilmentsWhenAllowed(t *testing.T) {
 		want        bool
 	}{
 		"applies burn to a normal type":                {ailment: burnAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
-		"does not apply burn to a fire type":           {ailment: burnAilment, pokemonType: FireType, ability: intimidateAbility, want: false},
+		"does not apply burn to a fire type":           {ailment: burnAilment, pokemonType: fireType, ability: intimidateAbility, want: false},
 		"applies paralysis to a normal type":           {ailment: paralysisAilment, pokemonType: normalType, ability: intimidateAbility, want: true},
 		"does not apply paralysis to an electric type": {ailment: paralysisAilment, pokemonType: electricType, ability: intimidateAbility, want: false},
 		"applies freeze to a normal type":              {ailment: freezeAilment, pokemonType: normalType, ability: NoneAbility, want: true},

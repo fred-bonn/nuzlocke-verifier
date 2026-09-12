@@ -14,7 +14,7 @@ type guidedAi struct {
 	output io.Writer
 }
 
-func NewGuidedAI(input io.Reader, output io.Writer) *guidedAi {
+func newGuidedAI(input io.Reader, output io.Writer) *guidedAi {
 	if input == nil {
 		input = os.Stdin
 	}

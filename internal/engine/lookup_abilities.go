@@ -600,7 +600,7 @@ var typeImmunityAbilities = map[abilityState]func(u *Pokemon, t pokemonType, s b
 }
 
 func flashFire(p *Pokemon, t pokemonType, s bool) bool {
-	if t != FireType {
+	if t != fireType {
 		return false
 	}
 	p.flashFire = true
@@ -682,7 +682,7 @@ func levitate(p *Pokemon, t pokemonType, s bool) bool {
 
 var pinchAbilities = map[abilityState]pokemonType{
 	overgrowAbility: grassType,
-	blazeAbility:    FireType,
+	blazeAbility:    fireType,
 	torrentAbility:  waterType,
 	swarmAbility:    bugType,
 }

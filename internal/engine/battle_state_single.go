@@ -1,21 +1,61 @@
 package engine
 
+import "log"
+
 type SingleBattleState struct {
 	activePlayerSlot   *slot
 	activeOpponentSlot *slot
-	Player             *Trainer
-	opponent           *Trainer
+	Player             *trainer
+	opponent           *trainer
 	actions            actionQueue
-	weather            WeatherState
-	fieldEffects       map[FieldEffect]int
+	weather            weatherState
+	fieldEffects       map[fieldEffect]int
 	err                error
-	initialPlayer      Trainer
-	initialOpponent    Trainer
-	initialWeather     WeatherState
+	initialPlayer      trainer
+	initialOpponent    trainer
+	initialWeather     weatherState
 	statistics         battleStatistics
 }
 
-func (sbs *SingleBattleState) Execute() error {
+func (sbs *SingleBattleState) Execute(iterations int) error {
+	var learningAi *learningAI
+	if ai, ok := sbs.activePlayerSlot.Trainer.AI.(*learningAI); ok {
+		learningAi = ai
+	}
+
+	for range iterations {
+		if err := sbs.Reset(); err != nil {
+			return err
+		}
+
+		if err := sbs.executeIteration(); err != nil {
+			return err
+		}
+
+		sbs.RecordStatistics()
+
+		if learningAi != nil {
+			learningAi.RecordBattleOutcome(sbs.GetStatistics())
+		}
+	}
+
+	if learningAi != nil {
+		if err := learningAi.savePolicyToDisk(); err != nil {
+			log.Printf("error: failed saving policy: %s", err)
+		} else {
+			log.Printf("policy saved to policites/policy.json")
+		}
+
+	}
+
+	if iterations > 1 {
+		sbs.PrintStatistics()
+	}
+
+	return nil
+}
+
+func (sbs *SingleBattleState) executeIteration() error {
 	vprintln("\nStarting battle...")
 
 	for k := 0; !sbs.Player.lost && !sbs.opponent.lost; k++ {
@@ -82,16 +122,16 @@ func (sbs *SingleBattleState) getActions() *actionQueue {
 	return &sbs.actions
 }
 
-func (sbs *SingleBattleState) getWeather() WeatherState {
+func (sbs *SingleBattleState) getWeather() weatherState {
 	return sbs.weather
 }
 
-func (sbs *SingleBattleState) setWeather(w WeatherState) {
+func (sbs *SingleBattleState) setWeather(w weatherState) {
 	sbs.weather = w
 	w.onset()
 }
 
-func (sbs *SingleBattleState) getFieldEffects() map[FieldEffect]int {
+func (sbs *SingleBattleState) getFieldEffects() map[fieldEffect]int {
 	return sbs.fieldEffects
 }
 
@@ -144,7 +184,7 @@ func (sbs *SingleBattleState) Reset() error {
 	return nil
 }
 
-func InitSingleBattleState(player, opponent Trainer, playerParty, opponentParty []*Pokemon, weather WeatherState) *SingleBattleState {
+func InitSingleBattleState(player, opponent trainer, playerParty, opponentParty []*Pokemon, weather weatherState) *SingleBattleState {
 	player.PokemonParty = playerParty
 	opponent.PokemonParty = opponentParty
 

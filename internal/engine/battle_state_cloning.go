@@ -1,10 +1,10 @@
 package engine
 
-func cloneFieldEffects(src map[FieldEffect]int) map[FieldEffect]int {
+func cloneFieldEffects(src map[fieldEffect]int) map[fieldEffect]int {
 	if src == nil {
-		return make(map[FieldEffect]int)
+		return make(map[fieldEffect]int)
 	}
-	clone := make(map[FieldEffect]int, len(src))
+	clone := make(map[fieldEffect]int, len(src))
 	for k, v := range src {
 		clone[k] = v
 	}

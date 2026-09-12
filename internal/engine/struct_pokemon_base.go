@@ -18,8 +18,8 @@ type BasePokemon struct {
 func ToPokemon(pj pokeapi.PokemonJSON) (BasePokemon, error) {
 	types := make([]pokemonType, len(pj.Types))
 	for i, t := range pj.Types {
-		types[i] = StringToPokemonType(t.Type.Name)
-		if types[i] == NoType {
+		types[i] = stringToPokemonType(t.Type.Name)
+		if types[i] == noType {
 			return BasePokemon{}, fmt.Errorf("%s is not a valid type for %s", t.Type.Name, pj.Name)
 		}
 	}

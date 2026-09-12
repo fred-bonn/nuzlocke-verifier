@@ -2,27 +2,27 @@ package engine
 
 import "math/rand"
 
-type AI interface {
+type ai interface {
 	evaluateActions(bs BattleState, slot *slot, actions []*moveAction) (*moveAction, int)
 	evaluteSwitchIns(bs BattleState, mons []*Pokemon, opponentSlot *slot) *Pokemon
 	shouldSwitch(bs BattleState, slot *slot, score int, party []*Pokemon) bool
 }
 
-type RandomAi struct{}
+type randomAi struct{}
 
-func (ra RandomAi) evaluateActions(bs BattleState, slot *slot, actions []*moveAction) (*moveAction, int) {
+func (ra randomAi) evaluateActions(bs BattleState, slot *slot, actions []*moveAction) (*moveAction, int) {
 	return actions[rand.Intn(len(actions))], 1
 }
 
-func (ra RandomAi) evaluteSwitchIns(bs BattleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
+func (ra randomAi) evaluteSwitchIns(bs BattleState, mons []*Pokemon, opponentSlot *slot) *Pokemon {
 	return mons[rand.Intn(len(mons))]
 }
 
-func (ra RandomAi) shouldSwitch(bs BattleState, slot *slot, score int, party []*Pokemon) bool {
+func (ra randomAi) shouldSwitch(bs BattleState, slot *slot, score int, party []*Pokemon) bool {
 	return roll(1, 10)
 }
 
-func chooseNextAction(bs BattleState, slot *slot, party []*Pokemon, decisionAI AI) action {
+func chooseNextAction(bs BattleState, slot *slot, party []*Pokemon, decisionAI ai) action {
 	if slot.invulnerableAction != nil {
 		return slot.invulnerableAction
 	}
@@ -67,13 +67,13 @@ func chooseNextAction(bs BattleState, slot *slot, party []*Pokemon, decisionAI A
 		return chosenAction
 	}
 	chosenMon := decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
-	if la, ok := decisionAI.(*LearningAI); ok {
+	if la, ok := decisionAI.(*learningAI); ok {
 		la.recordStateAction(discretizeBattleState(bs).key(), actionKeyForSwitch(chosenMon))
 	}
 	return &switchAction{oldSlot: slot, new: chosenMon}
 }
 
-func chooseSwitchIn(bs BattleState, slot *slot, party []*Pokemon, decisionAI AI) *Pokemon {
+func chooseSwitchIn(bs BattleState, slot *slot, party []*Pokemon, decisionAI ai) *Pokemon {
 	var possibleMons []*Pokemon
 	for _, mon := range party {
 		if mon != slot.mon && !mon.fainted {
@@ -84,7 +84,7 @@ func chooseSwitchIn(bs BattleState, slot *slot, party []*Pokemon, decisionAI AI)
 		return nil
 	}
 	chosenMon := decisionAI.evaluteSwitchIns(bs, possibleMons, bs.getOpponentSlot(slot))
-	if la, ok := decisionAI.(*LearningAI); ok {
+	if la, ok := decisionAI.(*learningAI); ok {
 		la.recordStateAction(discretizeBattleState(bs).key(), actionKeyForSwitch(chosenMon))
 	}
 

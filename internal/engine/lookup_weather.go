@@ -1,22 +1,22 @@
 package engine
 
-type WeatherState int
+type weatherState int
 
 const (
-	NoneWeather WeatherState = iota
+	noneWeather weatherState = iota
 	rainWeather
 	sunWeather
 	sandstormWeather
 	hailWeather
 )
 
-var weatherFuncs = map[WeatherState]func(*int, *int, pokemonType){
+var weatherFuncs = map[weatherState]func(*int, *int, pokemonType){
 	rainWeather: func(num, den *int, t pokemonType) {
 		switch t {
 		case waterType:
 			*num = *num * 3
 			*den = *den * 2
-		case FireType:
+		case fireType:
 			*den = *den * 2
 		}
 	},
@@ -24,14 +24,14 @@ var weatherFuncs = map[WeatherState]func(*int, *int, pokemonType){
 		switch t {
 		case waterType:
 			*den = *den * 2
-		case FireType:
+		case fireType:
 			*num = *num * 3
 			*den = *den * 2
 		}
 	},
 }
 
-func (ws WeatherState) affectsMon(mon *Pokemon) bool {
+func (ws weatherState) affectsMon(mon *Pokemon) bool {
 	if mon.Ability == overcoatAbility || mon.Ability == magicGuardAbility || mon.Item.State == safetyGoggles {
 		return false
 	}
@@ -50,7 +50,7 @@ func (ws WeatherState) affectsMon(mon *Pokemon) bool {
 	return false
 }
 
-func (ws WeatherState) activateMonAbility(bs BattleState, slot *slot) {
+func (ws weatherState) activateMonAbility(bs BattleState, slot *slot) {
 	mon := slot.mon
 
 	switch ws {
@@ -89,7 +89,7 @@ func (ws WeatherState) activateMonAbility(bs BattleState, slot *slot) {
 	}
 }
 
-func (ws WeatherState) String() string {
+func (ws weatherState) String() string {
 	switch ws {
 	case rainWeather:
 		return "rain"
@@ -104,7 +104,7 @@ func (ws WeatherState) String() string {
 	}
 }
 
-func (ws WeatherState) onset() {
+func (ws weatherState) onset() {
 	switch ws {
 	case rainWeather:
 		vprintln("it started to rain")

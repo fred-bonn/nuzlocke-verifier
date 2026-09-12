@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fred-bonn/nuz/internal/engine"
 	"github.com/fred-bonn/nuz/internal/parser"
 	"github.com/fred-bonn/nuz/internal/pokeapi"
 )
@@ -16,7 +15,7 @@ type config struct {
 	client pokeapi.Client
 }
 
-func (cfg *config) validateInput(trainerContent string) ([]*engine.Pokemon, error) {
+func (cfg *config) validateInput(trainerContent string) ([]*Pokemon, error) {
 	trainerPokemon, err := parser.ParseShowdown(trainerContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed parsing showdown content: %w", err)
@@ -25,7 +24,7 @@ func (cfg *config) validateInput(trainerContent string) ([]*engine.Pokemon, erro
 	return cfg.validateParty(trainerPokemon)
 }
 
-func (cfg *config) validateParty(trainerPokemon []parser.ParsedPokemon) ([]*engine.Pokemon, error) {
+func (cfg *config) validateParty(trainerPokemon []parser.ParsedPokemon) ([]*Pokemon, error) {
 	if len(trainerPokemon) == 0 {
 		return nil, fmt.Errorf("showdown party is empty")
 	}
@@ -38,18 +37,16 @@ func (cfg *config) validateParty(trainerPokemon []parser.ParsedPokemon) ([]*engi
 	return trainerParty, nil
 }
 
-func (cfg *config) loadShowdown(parsedPokemons []parser.ParsedPokemon) ([]*engine.Pokemon, error) {
-	var res []*engine.Pokemon
+func (cfg *config) loadShowdown(parsedPokemons []parser.ParsedPokemon) ([]*Pokemon, error) {
+	var res []*Pokemon
 
 	for _, parsedPokemon := range parsedPokemons {
-		var moves []*engine.Move
+		var moves []*Move
 
 		basePokemon, err := cfg.loadPokemon(apiName(parsedPokemon.Name))
 		if err != nil {
 			return nil, err
 		}
-
-		basePokemon.Name = cleanName(parsedPokemon.Name)
 
 		for _, moveName := range parsedPokemon.Moves {
 			baseMove, err := cfg.loadMove(apiName(moveName))
@@ -57,16 +54,14 @@ func (cfg *config) loadShowdown(parsedPokemons []parser.ParsedPokemon) ([]*engin
 				return nil, err
 			}
 
-			if mb, ok := engine.MoveBalanceMap[baseMove.Name]; ok {
-				mb.Apply(&baseMove)
+			if mb, ok := moveBalanceMap[baseMove.Name]; ok {
+				mb.apply(&baseMove)
 			}
-
-			baseMove.Name = cleanName(moveName)
 
 			moves = append(moves, &baseMove)
 		}
 
-		finalPokemon, err := engine.InitPokemon(basePokemon, moves, parsedPokemon)
+		finalPokemon, err := InitPokemon(basePokemon, moves, parsedPokemon)
 		if err != nil {
 			return nil, err
 		}
@@ -77,15 +72,15 @@ func (cfg *config) loadShowdown(parsedPokemons []parser.ParsedPokemon) ([]*engin
 	return res, nil
 }
 
-func (cfg *config) loadPokemon(name string) (engine.BasePokemon, error) {
-	var p engine.BasePokemon
+func (cfg *config) loadPokemon(name string) (BasePokemon, error) {
+	var p BasePokemon
 
 	data, err := os.ReadFile(fmt.Sprintf("data/pokemon/%s.json", name))
 	if err == nil {
 		// If the file exists and is read successfully, unmarshal it into a Pokemon struct
 		err = json.Unmarshal(data, &p)
 		if err != nil {
-			return engine.BasePokemon{}, fmt.Errorf("failed unmarshaling '%s' Pokemon data: %w", name, err)
+			return BasePokemon{}, fmt.Errorf("failed unmarshaling '%s' Pokemon data: %w", name, err)
 		}
 
 		return p, nil
@@ -94,34 +89,34 @@ func (cfg *config) loadPokemon(name string) (engine.BasePokemon, error) {
 	// Otherwise, fetch the Pokemon data from the API
 	pokemonJSON, err := cfg.client.FetchPokemon(name)
 	if err != nil {
-		return engine.BasePokemon{}, fmt.Errorf("failed fetching Pokemon '%s': %w", name, err)
+		return BasePokemon{}, fmt.Errorf("failed fetching Pokemon '%s': %w", name, err)
 	}
 	fmt.Printf("Fetched '%s' from API\n", name)
 
-	p, err = engine.ToPokemon(pokemonJSON)
+	p, err = ToPokemon(pokemonJSON)
 	if err != nil {
-		return engine.BasePokemon{}, err
+		return BasePokemon{}, err
 	}
 
 	// Save the fetched Pokemon data to a file for future use
 	data, err = json.Marshal(p)
 	if err != nil {
-		return engine.BasePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
+		return BasePokemon{}, fmt.Errorf("failed marshaling Pokemon JSON data '%s' to file: %w", name, err)
 	}
 	writeToFile(fmt.Sprintf("data/pokemon/%s.json", name), data)
 
 	return p, nil
 }
 
-func (cfg *config) loadMove(name string) (engine.Move, error) {
-	var m engine.Move
+func (cfg *config) loadMove(name string) (Move, error) {
+	var m Move
 
 	if strings.HasPrefix(name, "hidden-power") {
 		// If the move is Hidden Power, generate it
 		var err error
 		m, err = generateHiddenPower(name)
 		if err != nil {
-			return engine.Move{}, err
+			return Move{}, err
 		}
 		return m, nil
 	}
@@ -131,7 +126,7 @@ func (cfg *config) loadMove(name string) (engine.Move, error) {
 		// If the file exists and is read successfully, unmarshal it into a Move struct
 		err = json.Unmarshal(data, &m)
 		if err != nil {
-			return engine.Move{}, fmt.Errorf("failed unmarshaling Move '%s' data: %w", name, err)
+			return Move{}, fmt.Errorf("failed unmarshaling Move '%s' data: %w", name, err)
 		}
 
 		return m, nil
@@ -140,13 +135,13 @@ func (cfg *config) loadMove(name string) (engine.Move, error) {
 	// Otherwise, fetch the Move data from the API
 	moveJson, err := cfg.client.FetchMove(name)
 	if err != nil {
-		return engine.Move{}, fmt.Errorf("failed fetching Move '%s': %w", name, err)
+		return Move{}, fmt.Errorf("failed fetching Move '%s': %w", name, err)
 	}
 	fmt.Printf("Fetched '%s' from API\n", name)
 
-	m, err = engine.ToMove(moveJson)
+	m, err = ToMove(moveJson)
 	if err != nil {
-		return engine.Move{}, err
+		return Move{}, err
 	}
 
 	// Save the fetched Move data using the internal Move struct to a file for future use
@@ -159,23 +154,23 @@ func (cfg *config) loadMove(name string) (engine.Move, error) {
 	return m, nil
 }
 
-func generateHiddenPower(name string) (engine.Move, error) {
+func generateHiddenPower(name string) (Move, error) {
 	parts := strings.Split(name, "-")
 	if len(parts) != 3 {
-		return engine.Move{}, fmt.Errorf("type not specified for hidden power")
+		return Move{}, fmt.Errorf("type not specified for hidden power")
 	}
 
-	moveType := engine.StringToPokemonType(parts[2])
-	if moveType == engine.NoType {
-		return engine.Move{}, fmt.Errorf("%s is not a valid type for %s", parts[2], name)
+	moveType := stringToPokemonType(parts[2])
+	if moveType == noType {
+		return Move{}, fmt.Errorf("%s is not a valid type for %s", parts[2], name)
 	}
 
-	move := engine.Move{
+	move := Move{
 		Name:     "hidden power",
 		Type:     moveType,
 		Power:    60,
 		Accuracy: 100,
-		Class:    engine.SpecialClass,
+		Class:    SpecialClass,
 	}
 
 	return move, nil
@@ -196,52 +191,4 @@ func apiName(name string) string {
 	name = strings.ReplaceAll(name, ".", "")
 	name = strings.ReplaceAll(name, "’", "")
 	return name
-}
-
-func cleanName(name string) string {
-	name = strings.ToLower(name)
-	if !hasHyphen(name) && !isRegionalPokemon(name) {
-		name = strings.ReplaceAll(name, "-", " ")
-	}
-
-	return name
-}
-
-func hasHyphen(name string) bool {
-	var withHyphen = map[string]struct{}{
-		"ho-oh":     {},
-		"porygon-z": {},
-		"jangmo-o":  {},
-		"hakamo-o":  {},
-		"kommo-o":   {},
-		"ting-lu":   {},
-		"chien-pao": {},
-		"wo-chien":  {},
-		"chi-yu":    {},
-	}
-
-	if _, ok := withHyphen[name]; ok {
-		return true
-	}
-
-	return false
-}
-
-func isRegionalPokemon(name string) bool {
-	regions := []string{
-		"-alola",
-		"-galar",
-		"-hisui",
-		"-paldea",
-	}
-
-	name = strings.ToLower(name)
-
-	for _, region := range regions {
-		if strings.HasSuffix(name, region) {
-			return true
-		}
-	}
-
-	return false
 }

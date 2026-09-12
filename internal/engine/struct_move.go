@@ -85,8 +85,8 @@ func ToMove(mj pokeapi.MoveJSON) (Move, error) {
 		return Move{}, fmt.Errorf("%s is not a valid move class for %s", mj.DamageClass.Name, mj.Name)
 	}
 
-	moveType := StringToPokemonType(mj.Type.Name)
-	if moveType == NoType {
+	moveType := stringToPokemonType(mj.Type.Name)
+	if moveType == noType {
 		return Move{}, fmt.Errorf("%s is not a valid type for %s", mj.Type.Name, mj.Name)
 	}
 

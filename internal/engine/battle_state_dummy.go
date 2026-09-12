@@ -11,26 +11,26 @@ func (ba *dummyAction) speed(bs BattleState) int { return ba.spd }
 
 type dummyBattleState struct {
 	actions *actionQueue
-	weather WeatherState
+	weather weatherState
 	slots   []*slot
 }
 
-func initBenchBattleState(w WeatherState) *dummyBattleState {
+func initBenchBattleState(w weatherState) *dummyBattleState {
 	return &dummyBattleState{
 		weather: w,
 	}
 }
 
-func (bs *dummyBattleState) Execute() error                       { return nil }
+func (bs *dummyBattleState) Execute(int) error                    { return nil }
 func (bs *dummyBattleState) setError(error)                       {}
 func (bs *dummyBattleState) gatherActions()                       {}
 func (bs *dummyBattleState) getAllSlots() []*slot                 { return bs.slots }
 func (bs *dummyBattleState) getOtherSlots(s *slot) []*slot        { return nil }
 func (bs *dummyBattleState) getOpponentSlot(s *slot) *slot        { return nil }
 func (bs *dummyBattleState) getActions() *actionQueue             { return bs.actions }
-func (bs *dummyBattleState) getWeather() WeatherState             { return bs.weather }
-func (bs *dummyBattleState) setWeather(WeatherState)              {}
-func (bs *dummyBattleState) getFieldEffects() map[FieldEffect]int { return nil }
+func (bs *dummyBattleState) getWeather() weatherState             { return bs.weather }
+func (bs *dummyBattleState) setWeather(weatherState)              {}
+func (bs *dummyBattleState) getFieldEffects() map[fieldEffect]int { return nil }
 func (bs *dummyBattleState) Reset() error                         { return nil }
 func (bs *dummyBattleState) GetStatistics() *battleStatistics     { return nil }
 func (bs *dummyBattleState) RecordStatistics()                    {}

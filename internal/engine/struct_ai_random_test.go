@@ -13,7 +13,7 @@ func TestLearningAiReturnsAndRecordsFirstActionForState(t *testing.T) {
 	preferred := &Move{Name: "preferred", Power: 1, PP: 1, Class: physicalClass}
 	other := &Move{Name: "other", Power: 100, PP: 1, Class: physicalClass}
 	player.Moves = []*Move{preferred, other}
-	la := NewLearningAI()
+	la := newLearningAI()
 	got, _ := la.evaluateActions(bs, nil, []*moveAction{
 		{userSlot: bs.activePlayerSlot, targetSlot: bs.activeOpponentSlot, move: preferred},
 		{userSlot: bs.activePlayerSlot, targetSlot: bs.activeOpponentSlot, move: other},
@@ -30,7 +30,7 @@ func TestLearningAiReturnsAndRecordsFirstSwitchForState(t *testing.T) {
 	opponent := testSwitchPokemon("opponent", 100, 50, 100, 100, nil)
 	bs := testSwitchBattleState(player, replacement, opponent)
 	bs.Player.Player = true
-	la := NewLearningAI()
+	la := newLearningAI()
 	if got := la.evaluteSwitchIns(bs, []*Pokemon{replacement}, bs.activeOpponentSlot); got != replacement {
 		t.Fatal("learning AI did not select first replacement")
 	}
@@ -69,7 +69,7 @@ func TestDiscretizeBattleStateUsesMinimalStateVector(t *testing.T) {
 }
 
 func TestLearningAiReportsSaturationWhenPolicyStopsChanging(t *testing.T) {
-	la := NewLearningAI()
+	la := newLearningAI()
 	stateKey := `{"player_pokemon":"player","opponent_pokemon":"opponent","player_mon_is_faster":true,"opponent_has_move_that_kills":true}`
 	la.policy[stateKey] = []string{"move:hit"}
 	la.scores[stateKey] = map[string]float64{"move:hit": 12}
@@ -91,7 +91,7 @@ func contains(value, substring string) bool {
 }
 
 func TestSingleBattleStateResetRestoresInitialBattleState(t *testing.T) {
-	playerAI := &LearningAI{policy: map[string][]string{}}
+	playerAI := &learningAI{policy: map[string][]string{}}
 	playerParty := []*Pokemon{{
 		Base:  BasePokemon{Name: "player mon"},
 		Stats: []int{100, 10, 10, 10, 10, 10},
@@ -106,11 +106,11 @@ func TestSingleBattleStateResetRestoresInitialBattleState(t *testing.T) {
 	}}
 
 	sbs := InitSingleBattleState(
-		Trainer{AI: playerAI, Player: true, FieldEffects: make(map[FieldEffect]int)},
-		Trainer{AI: RnbAi{}, FieldEffects: make(map[FieldEffect]int)},
+		trainer{AI: playerAI, Player: true, FieldEffects: make(map[fieldEffect]int)},
+		trainer{AI: rnbAi{}, FieldEffects: make(map[fieldEffect]int)},
 		playerParty,
 		opponentParty,
-		NoneWeather,
+		0,
 	)
 
 	sbs.activePlayerSlot.mon.HP = 1
@@ -131,7 +131,7 @@ func TestSingleBattleStateResetRestoresInitialBattleState(t *testing.T) {
 	if !sbs.activePlayerSlot.firstTurn || !sbs.activeOpponentSlot.firstTurn {
 		t.Fatal("reset did not restore first-turn state")
 	}
-	if got := len(sbs.Player.AI.(*LearningAI).policy); got != 0 {
+	if got := len(sbs.Player.AI.(*learningAI).policy); got != 0 {
 		t.Fatalf("reset unexpectedly changed learning policy: got %d entries", got)
 	}
 }

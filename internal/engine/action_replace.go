@@ -2,7 +2,7 @@ package engine
 
 type replaceAction struct {
 	oldSlot *slot
-	Trainer *Trainer
+	Trainer *trainer
 	midTurn bool
 }
 

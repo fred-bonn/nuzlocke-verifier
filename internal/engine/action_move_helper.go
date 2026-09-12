@@ -16,19 +16,19 @@ var critRateMap = map[int]int{
 
 var confusionMove = Move{
 	Name:  "confusion",
-	Type:  NoType,
+	Type:  noType,
 	Power: 40,
 	Class: physicalClass,
 }
 
 var struggleMove = Move{
 	Name:  "struggle",
-	Type:  NoType,
+	Type:  noType,
 	Power: 50,
 	Class: physicalClass,
 }
 
-func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather WeatherState, maxRoll, forScoring, pursuit bool) int {
+func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather weatherState, maxRoll, forScoring, pursuit bool) int {
 	if f, ok := typeImmunityAbilities[target.Ability]; ok && user.Ability != moldBreakerAbility && f(target, move.Type, forScoring) {
 		return 0
 	}
@@ -53,7 +53,7 @@ func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather Weat
 		f(&moveType, &power)
 	}
 	numerator, denominator = target.applyMoveType(numerator, denominator, moveType)
-	if weather != NoneWeather {
+	if weather != noneWeather {
 		if f, ok := weatherFuncs[weather]; ok {
 			f(&numerator, &denominator, moveType)
 		}
@@ -129,7 +129,7 @@ func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather Weat
 		power = power * 3 / 2
 	} else if t, ok := pinchAbilities[user.Ability]; ok && t == moveType && user.HP*3 <= user.MaxHP() {
 		offensiveStat = offensiveStat * 3 / 2
-	} else if user.flashFire && moveType == FireType {
+	} else if user.flashFire && moveType == fireType {
 		offensiveStat = offensiveStat * 3 / 2
 	} else if user.Ability == hustleAbility && move.Class == physicalClass {
 		offensiveStat = offensiveStat * 3 / 2
@@ -150,7 +150,7 @@ func calculateDamage(user, target *Pokemon, move *Move, crit *bool, weather Weat
 		denominator *= 2
 	}
 
-	if target.Ability == drySkinAbility && moveType == FireType {
+	if target.Ability == drySkinAbility && moveType == fireType {
 		power = power * 5 / 4
 	}
 
@@ -222,7 +222,7 @@ func accuracyRoll(bs BattleState, user *Pokemon, target *Pokemon, move *Move) bo
 		denominator *= 10
 	}
 
-	if bs.getWeather() != NoneWeather {
+	if bs.getWeather() != noneWeather {
 		switch bs.getWeather() {
 		case hailWeather:
 			if target.Ability == snowCloakAbility {

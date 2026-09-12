@@ -1,9 +1,9 @@
 package engine
 
-type FieldEffect int
+type fieldEffect int
 
 const (
-	noneEffect FieldEffect = iota
+	noneEffect fieldEffect = iota
 	spikesEffect
 	stealthRockEffect
 	stickyWebEffect
@@ -20,7 +20,7 @@ const (
 	wonderRoomEffect
 )
 
-var fieldEffectMap = map[string]FieldEffect{
+var fieldEffectMap = map[string]fieldEffect{
 	"spikes":       spikesEffect,
 	"stealth rock": stealthRockEffect,
 	"sticky web":   stickyWebEffect,
@@ -37,7 +37,7 @@ var fieldEffectMap = map[string]FieldEffect{
 	"wonder room":  wonderRoomEffect,
 }
 
-func stringToFieldEffect(s string) FieldEffect {
+func stringToFieldEffect(s string) fieldEffect {
 	if e, ok := fieldEffectMap[s]; ok {
 		return e
 	}

@@ -8,7 +8,7 @@ type moveBalance struct {
 	pokemonType  *pokemonType
 }
 
-func (mb moveBalance) Apply(m *Move) {
+func (mb moveBalance) apply(m *Move) {
 	if mb.power != nil {
 		m.Power = *mb.power
 	}
@@ -26,7 +26,7 @@ func (mb moveBalance) Apply(m *Move) {
 	}
 }
 
-var MoveBalanceMap = map[string]*moveBalance{
+var moveBalanceMap = map[string]*moveBalance{
 	"absorb": {
 		power: new(40),
 	},

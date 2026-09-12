@@ -4,7 +4,7 @@ import "fmt"
 
 type slot struct {
 	mon                *Pokemon
-	Trainer            *Trainer
+	Trainer            *trainer
 	firstTurn          bool
 	suckerPunch        bool
 	protected          bool

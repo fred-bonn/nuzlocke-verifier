@@ -1,14 +1,14 @@
 package engine
 
-type Trainer struct {
+type trainer struct {
 	PokemonParty []*Pokemon
 	Player       bool
-	AI           AI
-	FieldEffects map[FieldEffect]int
+	AI           ai
+	FieldEffects map[fieldEffect]int
 	lost         bool
 }
 
-func (t *Trainer) canReplace(bs BattleState) bool {
+func (t *trainer) canReplace(bs BattleState) bool {
 	count := 0
 	for _, mon := range t.PokemonParty {
 		if !mon.fainted {
